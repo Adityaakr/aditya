@@ -1,21 +1,27 @@
 import { siteConfig } from "@/data/content";
 
 const Footer = () => (
-  <footer className="py-10 px-6 border-t border-border">
-    <div className="mx-auto max-w-4xl flex flex-col sm:flex-row items-center justify-between gap-4">
-      <span className="text-xs text-muted-foreground/50 font-body">
-        © {new Date().getFullYear()} {siteConfig.name}
+  <footer className="py-8 px-6 lg:px-8 border-t border-border/60">
+    <div className="mx-auto max-w-[860px] flex flex-col sm:flex-row items-center justify-between gap-4">
+      <span className="text-[12px] text-muted-foreground/40 font-medium">
+        &copy; {new Date().getFullYear()} {siteConfig.name}
       </span>
-      <div className="flex gap-5">
-        <a href={siteConfig.twitter} target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground/50 hover:text-foreground transition-colors duration-200 font-body">
-          twitter
-        </a>
-        <a href={siteConfig.github} target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground/50 hover:text-foreground transition-colors duration-200 font-body">
-          github
-        </a>
-        <a href={siteConfig.linkedin} target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground/50 hover:text-foreground transition-colors duration-200 font-body">
-          linkedin
-        </a>
+      <div className="flex gap-6">
+        {[
+          { label: "twitter", href: siteConfig.twitter },
+          { label: "github", href: siteConfig.github },
+          { label: "linkedin", href: siteConfig.linkedin },
+        ].map((link) => (
+          <a
+            key={link.label}
+            href={link.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[12px] text-muted-foreground/40 hover:text-foreground font-medium transition-colors duration-200"
+          >
+            {link.label}
+          </a>
+        ))}
       </div>
     </div>
   </footer>

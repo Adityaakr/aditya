@@ -13,8 +13,8 @@ export default {
       },
     },
     fontFamily: {
-      heading: ['Newsreader', 'Georgia', 'serif'],
-      body: ['Space Grotesk', 'system-ui', 'sans-serif'],
+      heading: ['Satoshi', 'system-ui', 'sans-serif'],
+      body: ['Satoshi', 'system-ui', 'sans-serif'],
     },
     extend: {
       colors: {

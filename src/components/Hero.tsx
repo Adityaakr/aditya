@@ -1,13 +1,16 @@
 const Hero = () => (
-  <section className="pt-32 pb-20 md:pt-40 md:pb-28 px-6">
-    <div className="mx-auto max-w-4xl">
-      <h1 className="text-4xl md:text-5xl lg:text-6xl font-light tracking-tight leading-tight text-foreground">
+  <section className="pt-36 pb-24 md:pt-44 md:pb-32 px-6 lg:px-8">
+    <div className="mx-auto max-w-[860px]">
+      <p className="text-[13px] font-medium tracking-wide uppercase text-muted-foreground/70 mb-6">
+        builder / operator / devrel
+      </p>
+      <h1 className="text-[2.75rem] md:text-[3.5rem] lg:text-[4.25rem] font-bold tracking-tighter leading-[1.05] text-foreground">
         hi, i'm aditya.
       </h1>
-      <p className="mt-6 text-xl md:text-2xl font-heading text-muted-foreground font-light leading-relaxed max-w-2xl">
+      <p className="mt-6 text-xl md:text-[1.375rem] text-muted-foreground font-normal leading-relaxed max-w-[540px]">
         i build products, developer ecosystems, and internet-native finance ideas.
       </p>
-      <p className="mt-6 text-base md:text-lg text-muted-foreground leading-relaxed max-w-xl font-body">
+      <p className="mt-5 text-base md:text-[1.0625rem] text-muted-foreground/75 leading-[1.7] max-w-[520px]">
         i work across devrel, product, growth, technical education, and web3 execution. i like helping technical products get adopted and building a few of my own along the way.
       </p>
     </div>
