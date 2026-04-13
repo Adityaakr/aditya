@@ -54,7 +54,7 @@ const About = () => (
           <a href="https://x.com/adityakrx/status/1971095045236465940" target="_blank" rel="noopener noreferrer" className={linkClass}>ETH Pragma</a>,
           won{" "}
           <a href="https://x.com/adityakrx/status/1994392689287262212" target="_blank" rel="noopener noreferrer" className={linkClass}>20+ hackathons</a>,
-          and run 25+ workshops across ecosystems including avalanche, stellar, aptos and hedera.
+          and run 35+ workshops across ecosystems including vara, avalanche, stellar, aptos and hedera.
         </motion.p>
         </motion.div>
       </div>
