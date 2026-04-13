@@ -43,6 +43,86 @@ export const stats = [
   { value: "18k+", label: "monaris waitlist" },
 ];
 
+export const testimonials = [
+  {
+    quote: "Vara's most loved KOL. Awesome video!",
+    name: "Vara Network",
+    handle: "@VaraNetwork",
+    platform: "x" as const,
+    image: "/testimonials/vara.png",
+  },
+  {
+    quote: "True Passionate DevRel",
+    name: "Satyam Singhal",
+    handle: "Agentic AI×Web3 Researcher",
+    platform: "linkedin" as const,
+    image: "/testimonials/satyam.png",
+  },
+  {
+    quote: "Great explainer video, thank you Adityaa!",
+    name: "Dion Cornett",
+    handle: "Advisor, Investor, Mentor",
+    platform: "linkedin" as const,
+    image: "/testimonials/dion.png",
+  },
+  {
+    quote: "goat 🐐",
+    name: "Pandit",
+    handle: "@panditdhamdhere",
+    platform: "x" as const,
+    image: "/testimonials/pandit.png",
+  },
+  {
+    quote: "Awesome content Aditya 🫡",
+    name: "Harpreet Singh",
+    handle: "@HAPPYS1NGH",
+    platform: "x" as const,
+    image: "/testimonials/harpreet.png",
+  },
+  {
+    quote: "This is all you need to know to create your project on Vara Network",
+    name: "Luis | Vara.eth",
+    handle: "@luisreve85",
+    platform: "x" as const,
+    image: "/testimonials/luis.png",
+  },
+  {
+    quote: "Building something Cool on this! with @antigravity and @claudeai and @VaraNetwork skills! LFGGG",
+    name: "Mannu.web3",
+    handle: "@callmeveizir",
+    platform: "x" as const,
+    image: "/testimonials/mannu.png",
+  },
+  {
+    quote: "coooooking",
+    name: "Kanishk.hl",
+    handle: "@kanishkkhurana",
+    platform: "x" as const,
+    image: "/testimonials/kanishk.png",
+  },
+  {
+    quote: "legend, content arc dropping soon??",
+    name: "Akshit | Epoch Protocol",
+    handle: "@OstrichBoy",
+    platform: "x" as const,
+    image: "/testimonials/akshit.png",
+  },
+  {
+    quote: "This is amazing Aditya. Love to see this quality content from you",
+    name: "Nishant | Citrea",
+    handle: "@nishant_zk",
+    platform: "x" as const,
+    image: "/testimonials/nishant.png",
+  },
+  {
+    quote: "Amazing video brother",
+    name: "ayman",
+    handle: "@ayman_web3",
+    platform: "x" as const,
+    image: "/testimonials/ayman.png",
+  },
+];
+
 export const selectedWork = [
   {
     title: "vara network documentation & developer education",
@@ -340,6 +420,12 @@ export const contentItems: ContentItem[] = [
     type: "essay",
     date: "2026-03",
     link: "https://x.com/adityakrx/status/2028806412705616032",
+  },
+  {
+    title: "from passkey to smart wallet (ERC-4337) — wallet creation & first-time transaction flow",
+    type: "essay",
+    date: "2025-02",
+    link: "https://x.com/adityakrx/status/1954767427415544104?s=20",
   },
   {
     title: "workshop — hands-on vara building session",
