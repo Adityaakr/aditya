@@ -42,7 +42,7 @@ const ContentSection = () => {
       : activeTab === "thread"
         ? contentItems.filter((i) => i.type === "thread" || i.type === "essay")
         : contentItems.filter((i) => i.type === activeTab);
-    return items.filter((i) => !i.featured);
+    return activeTab === "all" ? items.filter((i) => !i.featured) : items;
   }, [activeTab]);
 
   const displayed = showAll ? filtered : filtered.slice(0, INITIAL_COUNT);
