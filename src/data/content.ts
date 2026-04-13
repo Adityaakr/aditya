@@ -423,7 +423,7 @@ export const contentItems: ContentItem[] = [
   },
   {
     title: "from passkey to smart wallet (ERC-4337) — wallet creation & first-time transaction flow",
-    type: "essay",
+    type: "thread",
     date: "2025-02",
     link: "https://x.com/adityakrx/status/1954767427415544104?s=20",
   },
