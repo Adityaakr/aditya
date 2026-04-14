@@ -45,9 +45,6 @@ const Footer = () => (
         <span className="text-[11px] text-muted-foreground/30 font-medium">
           &copy; {new Date().getFullYear()} {siteConfig.name}. all rights reserved.
         </span>
-        <span className="text-[11px] text-muted-foreground/30">
-          built with react, tailwind & framer motion
-        </span>
       </div>
     </div>
   </motion.footer>
