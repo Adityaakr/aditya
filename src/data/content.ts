@@ -261,6 +261,14 @@ export interface ContentItem {
 
 export const contentItems: ContentItem[] = [
   {
+    title: "The Six Products the Agentic Economy Needs on Ethereum",
+    type: "thread",
+    date: "2026-04",
+    link: "https://x.com/adityakrx/status/2046818743612031223",
+    featured: true,
+    summary: "A piece on the product stack agentic markets still need on Ethereum, and where autonomous capital, execution, coordination, and interfaces get built next.",
+  },
+  {
     title: "Polybaskets Season 2 is LIVE",
     type: "video",
     date: "2026-04",
