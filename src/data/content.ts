@@ -260,6 +260,13 @@ export interface ContentItem {
 
 export const contentItems: ContentItem[] = [
   {
+    title: "Polybaskets Season 2 is LIVE",
+    type: "video",
+    date: "2026-04",
+    link: "https://x.com/adityakrx/status/2049115914780774564",
+    featured: true,
+  },
+  {
     title: "introducing vara skills — AI agents building dApps autonomously",
     type: "video",
     date: "2026-04",
