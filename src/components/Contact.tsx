@@ -74,23 +74,38 @@ const Contact = () => (
       </AnimatedSection>
 
       <AnimatedSection delay={0.3}>
-        <div className="mt-8 p-6 md:p-8 rounded-xl border border-border/60 bg-card">
-          <p className="text-[11px] font-medium tracking-widest uppercase text-muted-foreground/50 mb-4">
-            github activity
-          </p>
-          <a
-            href={siteConfig.github}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block"
-          >
-            <img
-              src="https://ghchart.rshah.org/10b981/Adityaakr"
-              alt="GitHub contribution chart"
-              className="w-full rounded-lg opacity-80 hover:opacity-100 transition-opacity duration-300 dark:invert dark:opacity-60 dark:hover:opacity-80"
-            />
-          </a>
-          <div className="mt-4 flex items-center gap-4">
+        <div className="mt-10 md:-mx-6 p-6 md:p-10 rounded-[1.5rem] border border-border/60 bg-card overflow-hidden">
+          <div className="flex items-end justify-between gap-4 mb-6">
+            <div>
+              <p className="text-[11px] font-medium tracking-widest uppercase text-muted-foreground/50 mb-3">
+                github
+              </p>
+              <p className="text-2xl md:text-[2rem] font-bold tracking-tight text-foreground">
+                overall activity
+              </p>
+            </div>
+            <span className="text-[12px] text-muted-foreground/45 hidden sm:inline">
+              contribution graph
+            </span>
+          </div>
+          <div className="rounded-2xl border border-border/50 bg-muted/20 p-3 md:p-5">
+            <p className="text-[12px] text-muted-foreground/60 mb-4">
+              public GitHub contribution activity
+            </p>
+            <a
+              href={siteConfig.github}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block"
+            >
+              <img
+                src="https://gh-heat.anishroy.com/api/Adityaakr/svg?theme=green&transparent=true&cellSize=14&cellGap=4&fontSize=12&padding=14"
+                alt="Overall GitHub contribution chart"
+                className="w-full rounded-xl opacity-95 hover:opacity-100 transition-opacity duration-300"
+              />
+            </a>
+          </div>
+          <div className="mt-5 flex items-center gap-4">
             <a
               href={siteConfig.github}
               target="_blank"
