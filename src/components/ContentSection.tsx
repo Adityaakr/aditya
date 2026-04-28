@@ -1,6 +1,6 @@
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { contentItems, type ContentType } from "@/data/content";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, ArrowUpRight } from "lucide-react";
 import AnimatedSection from "./AnimatedSection";
 import { motion, AnimatePresence } from "framer-motion";
 import { staggerContainer, staggerItem } from "./AnimatedSection";
@@ -33,8 +33,9 @@ const INITIAL_COUNT = 12;
 const ContentSection = () => {
   const [activeTab, setActiveTab] = useState<ContentType | "all">("all");
   const [showAll, setShowAll] = useState(false);
+  const [featuredIndex, setFeaturedIndex] = useState(0);
 
-  const featured = useMemo(() => contentItems.filter((i) => i.featured).slice(0, 3), []);
+  const featured = useMemo(() => contentItems.filter((i) => i.featured).slice(0, 4), []);
 
   const filtered = useMemo(() => {
     const items = activeTab === "all"
@@ -54,7 +55,23 @@ const ContentSection = () => {
     return contentItems.filter((i) => i.type === value).length;
   };
 
-  const currentFeatured = featured[0];
+  useEffect(() => {
+    if (activeTab !== "all" || featured.length < 2) return;
+
+    const timer = window.setInterval(() => {
+      setFeaturedIndex((current) => (current + 1) % featured.length);
+    }, 5000);
+
+    return () => window.clearInterval(timer);
+  }, [activeTab, featured.length]);
+
+  const currentFeatured = featured[featuredIndex];
+  const cycleFeatured = (direction: "prev" | "next") => {
+    setFeaturedIndex((current) => {
+      if (direction === "prev") return (current - 1 + featured.length) % featured.length;
+      return (current + 1) % featured.length;
+    });
+  };
 
   return (
     <section id="content" className="py-24 px-6 lg:px-8 border-t border-border/60">
@@ -74,35 +91,81 @@ const ContentSection = () => {
         {activeTab === "all" && (
           <AnimatedSection>
             <div className="relative mb-14 rounded-[2rem] border border-border/60 bg-card shadow-sm dark:shadow-white/[0.02] overflow-hidden">
-              <a
-                href={currentFeatured.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group block min-h-[260px] p-6 md:p-10"
-              >
-                <div className="flex items-center gap-2 mb-5">
-                  <span className={`text-[9px] uppercase tracking-widest font-bold px-3 py-1 rounded-full ${typeStyles[currentFeatured.type]}`}>
-                    {currentFeatured.type}
-                  </span>
-                  <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold">★ featured</span>
-                </div>
-                <h3 className="text-3xl md:text-[2.15rem] font-semibold tracking-tight text-foreground leading-tight max-w-[640px] mb-4 group-hover:text-foreground/80 transition-colors">
-                  {currentFeatured.title}
-                </h3>
-                {currentFeatured.summary && (
-                  <p className="text-[15px] md:text-base text-muted-foreground/72 leading-relaxed max-w-[640px] mb-8">
-                    {currentFeatured.summary}
-                  </p>
-                )}
-                <div className="mt-auto flex items-end justify-between gap-6">
-                  <span className="text-[12px] text-muted-foreground/40 font-medium tabular-nums">
-                    {currentFeatured.date}
-                  </span>
-                  <span className="flex h-11 w-11 items-center justify-center rounded-full border border-border/60 text-muted-foreground/35 group-hover:text-foreground group-hover:border-foreground/20 transition-all duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-                    <ArrowUpRight size={16} />
-                  </span>
-                </div>
-              </a>
+              <div className="absolute top-5 right-5 z-10 flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => cycleFeatured("prev")}
+                  aria-label="Previous featured item"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-border/60 bg-background/90 text-muted-foreground hover:text-foreground hover:border-foreground/20 transition-colors"
+                >
+                  <ArrowLeft size={14} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => cycleFeatured("next")}
+                  aria-label="Next featured item"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-border/60 bg-background/90 text-muted-foreground hover:text-foreground hover:border-foreground/20 transition-colors"
+                >
+                  <ArrowRight size={14} />
+                </button>
+              </div>
+              <AnimatePresence mode="wait">
+                <motion.a
+                  key={currentFeatured.title}
+                  href={currentFeatured.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  initial={{ opacity: 0, rotateX: -4, y: 10 }}
+                  animate={{ opacity: 1, rotateX: 0, y: 0 }}
+                  exit={{ opacity: 0, rotateX: 4, y: -10 }}
+                  transition={{ duration: 0.35, ease: "easeOut" }}
+                  className="group block min-h-[260px] p-6 md:p-10 pr-24"
+                >
+                  <div className="flex items-center gap-2 mb-5">
+                    <span className={`text-[9px] uppercase tracking-widest font-bold px-3 py-1 rounded-full ${typeStyles[currentFeatured.type]}`}>
+                      {currentFeatured.type}
+                    </span>
+                    <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold">★ featured</span>
+                    <span className="text-[10px] text-muted-foreground/35 hidden sm:inline">
+                      {featuredIndex + 1} / {featured.length}
+                    </span>
+                  </div>
+                  <h3 className="text-3xl md:text-[2.15rem] font-semibold tracking-tight text-foreground leading-tight max-w-[640px] mb-4 group-hover:text-foreground/80 transition-colors">
+                    {currentFeatured.title}
+                  </h3>
+                  {currentFeatured.summary && (
+                    <p className="text-[15px] md:text-base text-muted-foreground/72 leading-relaxed max-w-[640px] mb-8">
+                      {currentFeatured.summary}
+                    </p>
+                  )}
+                  <div className="mt-auto flex items-end justify-between gap-6">
+                    <div className="flex items-center gap-2.5">
+                      <span className="text-[12px] text-muted-foreground/40 font-medium tabular-nums">
+                        {currentFeatured.date}
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        {featured.map((item, index) => (
+                          <button
+                            key={item.title}
+                            type="button"
+                            onClick={(event) => {
+                              event.preventDefault();
+                              setFeaturedIndex(index);
+                            }}
+                            aria-label={`Show ${item.title}`}
+                            className={`h-1.5 rounded-full transition-all duration-300 ${
+                              index === featuredIndex ? "w-7 bg-foreground/75" : "w-1.5 bg-foreground/15 hover:bg-foreground/35"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    <span className="flex h-11 w-11 items-center justify-center rounded-full border border-border/60 text-muted-foreground/35 group-hover:text-foreground group-hover:border-foreground/20 transition-all duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+                      <ArrowUpRight size={16} />
+                    </span>
+                  </div>
+                </motion.a>
+              </AnimatePresence>
             </div>
           </AnimatedSection>
         )}
