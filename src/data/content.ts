@@ -231,11 +231,11 @@ export const projects: Project[] = [
     tags: ["MCP", "AI", "vara", "devtools"],
   },
   {
-    title: "vara ecosystem work",
-    description: "builder education, vara-skills, sails tutorials, docs, and ecosystem-facing execution",
+    title: "Varix Perps",
+    description: "Varix is a perpetual futures exchange on Vara built with modular on-chain components for margin, liquidity, oracle pricing, sessions, and market execution. It combines exchange-style trading UX with transparent on-chain settlement to deliver a fast, scalable, and production-ready perps platform.",
     status: "live",
-    link: "https://github.com/gear-foundation/vara-skills",
-    tags: ["devrel", "education", "vara"],
+    link: "https://github.com/Adityaakr/varix-perps",
+    tags: ["perps", "vara", "trading"],
   },
 ];
 
