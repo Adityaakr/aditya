@@ -89,6 +89,11 @@ const ContentSection = () => {
                   <h3 className="text-[14px] font-semibold text-foreground leading-snug mb-3 line-clamp-2 group-hover:text-foreground/80 transition-colors">
                     {item.title}
                   </h3>
+                  {item.summary && (
+                    <p className="text-[12px] text-muted-foreground/65 leading-relaxed mb-4 line-clamp-3">
+                      {item.summary}
+                    </p>
+                  )}
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] text-muted-foreground/40 font-medium tabular-nums">{item.date}</span>
                     <ArrowUpRight size={13} className="text-muted-foreground/30 group-hover:text-foreground transition-all duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
