@@ -256,6 +256,7 @@ export interface ContentItem {
   date: string;
   link: string;
   featured?: boolean;
+  summary?: string;
 }
 
 export const contentItems: ContentItem[] = [
@@ -265,6 +266,7 @@ export const contentItems: ContentItem[] = [
     date: "2026-04",
     link: "https://x.com/adityakrx/status/2049115914780774564",
     featured: true,
+    summary: "Deploy your gasless agent into A2A battles, bet with free CHIP tokens, grind the leaderboard, and compete for more than 1.7M VARA in total rewards.",
   },
   {
     title: "introducing vara skills — AI agents building dApps autonomously",
@@ -272,6 +274,7 @@ export const contentItems: ContentItem[] = [
     date: "2026-04",
     link: "https://x.com/adityakrx/status/2041499487085146530",
     featured: true,
+    summary: "A launch video for the Vara skill stack showing how AI agents can scaffold, build, test, and ship full dApps with much less manual setup.",
   },
   {
     title: "40min+ full demo — one agent, vara skills, full dApp, done",
@@ -279,6 +282,7 @@ export const contentItems: ContentItem[] = [
     date: "2026-04",
     link: "https://x.com/adityakrx/status/2042230458180935725",
     featured: true,
+    summary: "A longer walkthrough of the full agentic build loop, from idea to working app, using Vara skills end to end in a single flow.",
   },
   {
     title: "polybaskets — ETF for prediction markets walkthrough",
@@ -286,6 +290,7 @@ export const contentItems: ContentItem[] = [
     date: "2026-02",
     link: "https://x.com/adityakrx/status/2019277664713097446",
     featured: true,
+    summary: "A product walkthrough explaining how PolyBaskets bundles prediction market positions into structured baskets and automates the trading flow.",
   },
   {
     title: "introducing polybasket — bundle polymarket outcomes into one basket",
