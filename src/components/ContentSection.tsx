@@ -35,7 +35,7 @@ const ContentSection = () => {
   const [showAll, setShowAll] = useState(false);
   const [featuredIndex, setFeaturedIndex] = useState(0);
 
-  const featured = useMemo(() => contentItems.filter((i) => i.featured).slice(0, 4), []);
+  const featured = useMemo(() => contentItems.filter((i) => i.featured), []);
 
   const filtered = useMemo(() => {
     const items = activeTab === "all"
