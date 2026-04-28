@@ -54,6 +54,8 @@ const ContentSection = () => {
     return contentItems.filter((i) => i.type === value).length;
   };
 
+  const currentFeatured = featured[0];
+
   return (
     <section id="content" className="py-24 px-6 lg:px-8 border-t border-border/60">
       <div className="mx-auto max-w-[860px]">
@@ -71,35 +73,36 @@ const ContentSection = () => {
 
         {activeTab === "all" && (
           <AnimatedSection>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-14">
-              {featured.map((item) => (
-                <a
-                  key={item.title}
-                  href={item.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group block p-5 rounded-xl border border-border/60 bg-card hover:border-foreground/15 hover:shadow-md dark:hover:shadow-white/[0.02] transition-all duration-300"
-                >
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className={`text-[9px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-full ${typeStyles[item.type]}`}>
-                      {item.type}
-                    </span>
-                    <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold">★ featured</span>
-                  </div>
-                  <h3 className="text-[14px] font-semibold text-foreground leading-snug mb-3 line-clamp-2 group-hover:text-foreground/80 transition-colors">
-                    {item.title}
-                  </h3>
-                  {item.summary && (
-                    <p className="text-[12px] text-muted-foreground/65 leading-relaxed mb-4 line-clamp-3">
-                      {item.summary}
-                    </p>
-                  )}
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] text-muted-foreground/40 font-medium tabular-nums">{item.date}</span>
-                    <ArrowUpRight size={13} className="text-muted-foreground/30 group-hover:text-foreground transition-all duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                  </div>
-                </a>
-              ))}
+            <div className="relative mb-14 rounded-[2rem] border border-border/60 bg-card shadow-sm dark:shadow-white/[0.02] overflow-hidden">
+              <a
+                href={currentFeatured.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group block min-h-[260px] p-6 md:p-10"
+              >
+                <div className="flex items-center gap-2 mb-5">
+                  <span className={`text-[9px] uppercase tracking-widest font-bold px-3 py-1 rounded-full ${typeStyles[currentFeatured.type]}`}>
+                    {currentFeatured.type}
+                  </span>
+                  <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold">★ featured</span>
+                </div>
+                <h3 className="text-3xl md:text-[2.15rem] font-semibold tracking-tight text-foreground leading-tight max-w-[640px] mb-4 group-hover:text-foreground/80 transition-colors">
+                  {currentFeatured.title}
+                </h3>
+                {currentFeatured.summary && (
+                  <p className="text-[15px] md:text-base text-muted-foreground/72 leading-relaxed max-w-[640px] mb-8">
+                    {currentFeatured.summary}
+                  </p>
+                )}
+                <div className="mt-auto flex items-end justify-between gap-6">
+                  <span className="text-[12px] text-muted-foreground/40 font-medium tabular-nums">
+                    {currentFeatured.date}
+                  </span>
+                  <span className="flex h-11 w-11 items-center justify-center rounded-full border border-border/60 text-muted-foreground/35 group-hover:text-foreground group-hover:border-foreground/20 transition-all duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+                    <ArrowUpRight size={16} />
+                  </span>
+                </div>
+              </a>
             </div>
           </AnimatedSection>
         )}
