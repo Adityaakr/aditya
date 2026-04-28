@@ -187,7 +187,7 @@ export const projects: Project[] = [
   },
   {
     title: "cusp",
-    description: "the execution layer for agentic, event-driven capital — turns event probabilities into executable portfolio actions",
+    description: "Your prediction market positions shouldn't sit idle. Borrow, lend, and leverage your Kalshi positions on Solana. Built on DFlow, secured by regulated event markets - no token, no emissions, real yield.",
     status: "building",
     link: "https://cusp.fi",
     website: "https://dev.cusp.fi",
