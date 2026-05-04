@@ -56,6 +56,10 @@ const About = () => (
           <a href="https://x.com/adityakrx/status/1994392689287262212" target="_blank" rel="noopener noreferrer" className={linkClass}>20+ hackathons</a>,
           and run 35+ workshops across ecosystems including vara, avalanche, stellar, aptos and hedera.
         </motion.p>
+        <motion.p variants={staggerItem} className="text-base md:text-[1.0625rem] text-muted-foreground leading-[1.75]">
+          i'm also a member of{" "}
+          <a href="https://superteam.fun" target="_blank" rel="noopener noreferrer" className={linkClass}>superteam</a>.
+        </motion.p>
         </motion.div>
       </div>
     </div>
