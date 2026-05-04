@@ -5,6 +5,7 @@ import About from "@/components/About";
 import Testimonials from "@/components/Testimonials";
 import Highlights from "@/components/Highlights";
 import SelectedWork from "@/components/SelectedWork";
+import PolybasketsStats from "@/components/PolybasketsStats";
 import Projects from "@/components/Projects";
 import Principles from "@/components/Principles";
 import ContentSection from "@/components/ContentSection";
@@ -21,6 +22,7 @@ const Index = () => (
       <Testimonials />
       <Highlights />
       <SelectedWork />
+      <PolybasketsStats />
       <Projects />
       <ContentSection />
       <Principles />
