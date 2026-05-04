@@ -122,11 +122,8 @@ const ContentSection = () => {
                     <span className={`text-[9px] uppercase tracking-widest font-bold px-3 py-1 rounded-full ${typeStyles[currentFeatured.type]}`}>
                       {currentFeatured.type}
                     </span>
-                    <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold">★ featured</span>
-                    <span className="text-[10px] text-muted-foreground/35 hidden sm:inline">
-                      {featuredIndex + 1} / {featured.length}
-                    </span>
-                  </div>
+                      <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold">★ featured</span>
+                    </div>
                   <h3 className="text-3xl md:text-[2.15rem] font-semibold tracking-tight text-foreground leading-tight max-w-[640px] mb-4 group-hover:text-foreground/80 transition-colors">
                     {currentFeatured.title}
                   </h3>
@@ -135,28 +132,10 @@ const ContentSection = () => {
                       {currentFeatured.summary}
                     </p>
                   )}
-                  <div className="mt-auto flex items-end justify-between gap-6">
-                    <div className="flex items-center gap-2.5">
+                    <div className="mt-auto flex items-end justify-between gap-6">
                       <span className="text-[12px] text-muted-foreground/40 font-medium tabular-nums">
                         {currentFeatured.date}
                       </span>
-                      <div className="flex items-center gap-1.5">
-                        {featured.map((item, index) => (
-                          <button
-                            key={item.title}
-                            type="button"
-                            onClick={(event) => {
-                              event.preventDefault();
-                              setFeaturedIndex(index);
-                            }}
-                            aria-label={`Show ${item.title}`}
-                            className={`h-1.5 rounded-full transition-all duration-300 ${
-                              index === featuredIndex ? "w-7 bg-foreground/75" : "w-1.5 bg-foreground/15 hover:bg-foreground/35"
-                            }`}
-                          />
-                        ))}
-                      </div>
-                    </div>
                     <span className="flex h-11 w-11 items-center justify-center rounded-full border border-border/60 text-muted-foreground/35 group-hover:text-foreground group-hover:border-foreground/20 transition-all duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
                       <ArrowUpRight size={16} />
                     </span>
