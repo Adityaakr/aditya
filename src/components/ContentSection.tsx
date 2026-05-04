@@ -9,8 +9,7 @@ const tabs: { label: string; value: ContentType | "all" }[] = [
   { label: "all", value: "all" },
   { label: "videos", value: "video" },
   { label: "writing", value: "thread" },
-  { label: "workshops", value: "workshop" },
-  { label: "events", value: "event" },
+  { label: "workshops & events", value: "workshop" },
 ];
 
 const typeStyles: Record<string, string> = {
@@ -20,12 +19,6 @@ const typeStyles: Record<string, string> = {
   thread: "text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/50",
   workshop: "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50",
   event: "text-cyan-600 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-950/50",
-};
-
-const featuredTypeLabel: Record<string, string> = {
-  video: "Featured Video",
-  thread: "Featured Thread",
-  event: "Featured Event",
 };
 
 const INITIAL_COUNT = 12;
@@ -42,7 +35,9 @@ const ContentSection = () => {
       ? contentItems
       : activeTab === "thread"
         ? contentItems.filter((i) => i.type === "thread" || i.type === "essay")
-        : contentItems.filter((i) => i.type === activeTab);
+        : activeTab === "workshop"
+          ? contentItems.filter((i) => i.type === "workshop" || i.type === "event" || i.type === "talk")
+          : contentItems.filter((i) => i.type === activeTab);
     return activeTab === "all" ? items.filter((i) => !i.featured) : items;
   }, [activeTab]);
 
@@ -52,6 +47,7 @@ const ContentSection = () => {
   const getCount = (value: string) => {
     if (value === "all") return contentItems.length;
     if (value === "thread") return contentItems.filter((i) => i.type === "thread" || i.type === "essay").length;
+    if (value === "workshop") return contentItems.filter((i) => i.type === "workshop" || i.type === "event" || i.type === "talk").length;
     return contentItems.filter((i) => i.type === value).length;
   };
 
