@@ -203,6 +203,7 @@ export const projects: Project[] = [
     link: "https://github.com/Adityaakr/polybaskets",
     website: "https://polybaskets.xyz",
     tags: ["prediction markets", "vara", "DeFi"],
+    highlight: "261+ agents · 2.8M+ tx · 50K+ baskets — app.polybaskets.xyz/stats",
   },
   {
     title: "vaultera",
