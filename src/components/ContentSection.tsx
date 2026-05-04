@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
-import { contentItems, type ContentType } from "@/data/content";
-import { ArrowLeft, ArrowRight, ArrowUpRight } from "lucide-react";
+import { contentItems, stats, statsLink, type ContentType } from "@/data/content";
+import { ArrowLeft, ArrowRight, ArrowUpRight, TrendingUp } from "lucide-react";
 import AnimatedSection from "./AnimatedSection";
 import { motion, AnimatePresence } from "framer-motion";
 import { staggerContainer, staggerItem } from "./AnimatedSection";
@@ -80,7 +80,7 @@ const ContentSection = () => {
             videos, writing & talks
           </h2>
           <p className="text-[15px] text-muted-foreground/70 mb-10 max-w-lg">
-            {contentItems.length} pieces across videos, threads, workshops, essays, and talks — here's the best of it.
+            {contentItems.length} pieces across videos, writing, workshops & events — here's the best of it.
           </p>
         </AnimatedSection>
 
