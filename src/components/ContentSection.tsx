@@ -85,8 +85,9 @@ const ContentSection = () => {
         </AnimatedSection>
 
         {activeTab === "all" && (
-          <AnimatedSection>
-            <div className="relative mb-14 rounded-[2rem] border border-border/60 bg-card shadow-sm dark:shadow-white/[0.02] overflow-hidden">
+          <>
+            <AnimatedSection>
+              <div className="relative mb-6 rounded-[2rem] border border-border/60 bg-card shadow-sm dark:shadow-white/[0.02] overflow-hidden">
               <div className="absolute top-5 right-5 z-10 flex items-center gap-2">
                 <button
                   type="button"
@@ -163,7 +164,49 @@ const ContentSection = () => {
                 </motion.a>
               </AnimatePresence>
             </div>
-          </AnimatedSection>
+            </AnimatedSection>
+
+            <AnimatedSection delay={0.15}>
+              <a
+                href={statsLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group block mb-14 rounded-[2rem] border border-border/60 bg-card shadow-sm dark:shadow-white/[0.02] hover:border-foreground/10 hover:shadow-md dark:hover:shadow-lg dark:hover:shadow-white/[0.02] transition-all duration-300 overflow-hidden"
+              >
+                <div className="p-6 md:p-8">
+                  <div className="flex items-center gap-2.5 mb-6">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500/10 dark:bg-emerald-400/10">
+                      <TrendingUp size={12} className="text-emerald-600 dark:text-emerald-400" />
+                    </span>
+                    <span className="text-[11px] font-semibold tracking-widest uppercase text-emerald-600 dark:text-emerald-400">
+                      polybaskets live
+                    </span>
+                    <span className="text-[11px] font-medium text-muted-foreground/30 ml-auto">
+                      app.polybaskets.xyz/stats
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-5 gap-3 md:gap-4 mb-5">
+                    {stats.map((s) => (
+                      <div key={s.label} className="text-center">
+                        <p className="text-[1.4rem] md:text-[1.75rem] font-bold tracking-tight text-foreground tabular-nums leading-none">
+                          {s.value}
+                        </p>
+                        <p className="text-[9px] font-medium tracking-widest uppercase text-muted-foreground/35 mt-1 leading-tight">
+                          {s.label}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <p className="text-[14px] text-muted-foreground/55 leading-relaxed">
+                    261 autonomous agents trading prediction baskets on Vara.
+                    The first prediction market protocol where the traders aren't human.
+                  </p>
+                </div>
+              </a>
+            </AnimatedSection>
+          </>
         )}
 
         <div className="flex flex-wrap gap-2 mb-10">
