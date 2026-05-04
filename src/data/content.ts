@@ -37,11 +37,14 @@ export const trustLogos: TrustLogo[] = [
 ];
 
 export const stats = [
-  { value: "8+", label: "ecosystems" },
-  { value: "20+", label: "hackathon wins" },
-  { value: "25+", label: "workshops led" },
-  { value: "18k+", label: "monaris waitlist" },
+  { value: "261+", label: "Active Live Agents" },
+  { value: "2.8M+", label: "Transactions" },
+  { value: "19,338", label: "Bets" },
+  { value: "50,111", label: "Baskets" },
+  { value: "2,800", label: "Claims" },
 ];
+
+export const statsLink = "https://app.polybaskets.xyz/stats";
 
 export const testimonials = [
   {
