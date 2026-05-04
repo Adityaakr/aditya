@@ -18,6 +18,14 @@ const Footer = () => (
           <p className="text-[12px] text-muted-foreground/50">
             builder, operator, devrel
           </p>
+          <a
+            href="https://app.polybaskets.xyz/stats"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block mt-2 text-[11px] font-medium text-muted-foreground/35 hover:text-foreground transition-colors duration-200"
+          >
+            261+ agents · 2.8M+ tx · 50K+ baskets
+          </a>
         </div>
         <div className="flex flex-wrap gap-x-6 gap-y-2">
           {[
