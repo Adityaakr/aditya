@@ -505,6 +505,7 @@ export const contentItems: ContentItem[] = [
 
 export const highlights = [
   { label: "ETH Global winner", link: "https://x.com/adityakrx/status/1994392689287262212" },
+  { label: "261+ agents · 2.8M+ tx on Polybaskets", link: "https://app.polybaskets.xyz/stats" },
   { label: "20+ hackathon wins", link: "https://github.com/Adityaakr" },
   { label: "finalist judge at ETH Global New Delhi", link: "https://x.com/adityakrx/status/1969372931760537636" },
   { label: "partner at ETH Pragma", link: "https://x.com/adityakrx/status/1971095045236465940" },
