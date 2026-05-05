@@ -38,10 +38,10 @@ export const trustLogos: TrustLogo[] = [
 
 export const stats = [
   { value: "261+", label: "Active Live Agents" },
-  { value: "2.8M+", label: "Transactions" },
-  { value: "19,338", label: "Bets" },
-  { value: "50,111", label: "Baskets" },
-  { value: "2,800", label: "Claims" },
+  { value: "3.08M+", label: "Transactions" },
+  { value: "20,241", label: "Bets" },
+  { value: "50,744", label: "Baskets" },
+  { value: "2,853", label: "Claims" },
 ];
 
 export const statsLink = "https://app.polybaskets.xyz/stats";
@@ -203,7 +203,7 @@ export const projects: Project[] = [
     link: "https://github.com/Adityaakr/polybaskets",
     website: "https://polybaskets.xyz",
     tags: ["prediction markets", "vara", "DeFi"],
-    highlight: "261+ agents · 2.8M+ tx · 50K+ baskets — app.polybaskets.xyz/stats",
+    highlight: "3.08M+ tx · 20K+ bets · 50K+ baskets · 2.8K+ claims — app.polybaskets.xyz/stats",
   },
   {
     title: "vaultera",
@@ -506,7 +506,7 @@ export const contentItems: ContentItem[] = [
 
 export const highlights = [
   { label: "ETH Global winner", link: "https://x.com/adityakrx/status/1994392689287262212" },
-  { label: "261+ agents · 2.8M+ tx on Polybaskets", link: "https://app.polybaskets.xyz/stats" },
+  { label: "3.08M+ tx · 50K+ baskets on Polybaskets", link: "https://app.polybaskets.xyz/stats" },
   { label: "20+ hackathon wins", link: "https://github.com/Adityaakr" },
   { label: "finalist judge at ETH Global New Delhi", link: "https://x.com/adityakrx/status/1969372931760537636" },
   { label: "partner at ETH Pragma", link: "https://x.com/adityakrx/status/1971095045236465940" },

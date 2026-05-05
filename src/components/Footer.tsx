@@ -24,7 +24,7 @@ const Footer = () => (
             rel="noopener noreferrer"
             className="inline-block mt-2 text-[11px] font-medium text-muted-foreground/35 hover:text-foreground transition-colors duration-200"
           >
-            261+ agents · 2.8M+ tx · 50K+ baskets
+            3.08M+ tx · 20,241 bets · 50,744 baskets · 2,853 claims
           </a>
         </div>
         <div className="flex flex-wrap gap-x-6 gap-y-2">
