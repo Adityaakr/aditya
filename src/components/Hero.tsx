@@ -45,7 +45,7 @@ const Hero = () => (
         transition={{ duration: 0.6, delay: 0.55, ease: [0.22, 1, 0.36, 1] }}
         className="mt-7 text-base md:text-[1.0625rem] text-muted-foreground/75 leading-[1.7] max-w-[520px]"
       >
-        devrel, product, growth, and web3 execution — helping technical products get adopted and building a few of my own along the way.
+        devrel, product, growth, and web3 execution - helping technical products get adopted and building a few of my own along the way.
       </motion.p>
 
       <motion.div

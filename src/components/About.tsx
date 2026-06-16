@@ -33,7 +33,7 @@ const About = () => (
           className="space-y-5 flex-1"
         >
         <motion.p variants={staggerItem} className="text-base md:text-[1.0625rem] text-muted-foreground leading-[1.75]">
-          currently i work on developer adoption, technical education, ecosystem growth, and builder support across web3 — primarily at{" "}
+          currently i work on developer adoption, technical education, ecosystem growth, and builder support across web3 - primarily at{" "}
           <a href="https://vara.network" target="_blank" rel="noopener noreferrer" className={linkClass}>vara network</a>{" "}
           and{" "}
           <a href="https://gear-tech.io" target="_blank" rel="noopener noreferrer" className={linkClass}>gear foundation</a>.
@@ -43,9 +43,9 @@ const About = () => (
         <motion.p variants={staggerItem} className="text-base md:text-[1.0625rem] text-muted-foreground leading-[1.75]">
           alongside that, i'm building{" "}
           <a href="https://monaris.co" target="_blank" rel="noopener noreferrer" className={linkClass}>monaris</a>{" "}
-          (18,160+ waitlist) — a private finance product for the stablecoin era, and{" "}
+          (18,160+ waitlist) - a private finance product for the stablecoin era, and{" "}
           <a href="https://cusp.fi" target="_blank" rel="noopener noreferrer" className={linkClass}>cusp</a>{" "}
-          — the execution layer for agentic, event-driven capital.
+          - the execution layer for agentic, event-driven capital.
         </motion.p>
         <motion.p variants={staggerItem} className="text-base md:text-[1.0625rem] text-muted-foreground leading-[1.75]">
           i've judged at{" "}

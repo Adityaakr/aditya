@@ -58,7 +58,7 @@ const Contact = () => (
                 schedule a call
               </p>
               <p className="text-[13px] text-muted-foreground/70 mt-1">
-                15-min intro — let's talk about what you're building
+                15-min intro - let's talk about what you're building
               </p>
             </div>
             <a

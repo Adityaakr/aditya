@@ -64,7 +64,7 @@ const PeopleSay = () => (
                 >
                   <img
                     src={t.image}
-                    alt={`${t.name} — "${t.quote}"`}
+                    alt={`${t.name} - "${t.quote}"`}
                     className="w-full h-auto block"
                     loading="lazy"
                   />
@@ -86,7 +86,7 @@ const PeopleSay = () => (
           className="mt-20 text-center"
         >
           <p className="text-[15px] text-muted-foreground/50 max-w-sm mx-auto leading-relaxed">
-            i can't capture every message, reply, or DM — but if something i shipped made your day even 1% easier, that means everything.
+            i can't capture every message, reply, or DM - but if something i shipped made your day even 1% easier, that means everything.
           </p>
           <Link
             to="/"

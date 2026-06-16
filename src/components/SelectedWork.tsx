@@ -20,7 +20,7 @@ const SailsBanner = () => (
           build without any setup using sails framework
         </p>
         <p className="text-[12px] text-muted-foreground/60 mt-0.5">
-          interactive tutorials — learn from hello world to deploying smart contracts in your browser
+          interactive tutorials - learn from hello world to deploying smart contracts in your browser
         </p>
       </div>
       <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400 shrink-0 hidden sm:inline">

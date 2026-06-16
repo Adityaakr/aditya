@@ -80,7 +80,7 @@ const ContentSection = () => {
             videos, writing & talks
           </h2>
           <p className="text-[15px] text-muted-foreground/70 mb-10 max-w-lg">
-            {contentItems.length} pieces across videos, writing, workshops & events — here's the best of it.
+            {contentItems.length} pieces across videos, writing, workshops & events - here's the best of it.
           </p>
         </AnimatedSection>
 
