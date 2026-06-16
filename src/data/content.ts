@@ -37,11 +37,11 @@ export const trustLogos: TrustLogo[] = [
 ];
 
 export const stats = [
-  { value: "261+", label: "Active Live Agents" },
-  { value: "3.08M+", label: "Transactions" },
-  { value: "20,241", label: "Bets" },
-  { value: "50,744", label: "Baskets" },
-  { value: "2,853", label: "Claims" },
+  { value: "574", label: "Active Live Agents" },
+  { value: "4.8M+", label: "Transactions" },
+  { value: "23,395", label: "Bets" },
+  { value: "52,872", label: "Baskets" },
+  { value: "4,096", label: "Claims" },
 ];
 
 export const statsLink = "https://app.polybaskets.xyz/stats";
@@ -128,6 +128,18 @@ export const testimonials = [
 
 export const selectedWork = [
   {
+    title: "monaris private — private by default",
+    description: "one click. zero gas. no new wallet. no friction. pay privately, receive privately, and build cashflow privately. just money that moves the way it should. 🔒",
+    link: "https://x.com/monaris_fi/status/2030575693864882617?s=20",
+  },
+  {
+    title: "cusp — documentation & whitepaper",
+    description: "the capital markets layer for prediction markets — risk, credit, settlement, and liquidation infrastructure for event-driven positions. read the docs and whitepaper.",
+    link: "https://docs.cusp.fi",
+    website: "https://drive.google.com/file/d/1FrhRtRtgE8hl8EqvbibSXJ_LHzzDWwsx/view",
+    websiteLabel: "whitepaper",
+  },
+  {
     title: "vara network documentation & developer education",
     description: "creating interactive learning paths, sails tutorials, and comprehensive docs that onboard developers to vara and gear protocol.",
     link: "https://wiki.vara.network",
@@ -174,6 +186,7 @@ export interface Project {
   status: ProjectStatus;
   link: string;
   website?: string;
+  social?: string;
   tags: string[];
   highlight?: string;
 }
@@ -185,14 +198,15 @@ export const projects: Project[] = [
     status: "building",
     link: "https://x.com/monaris_fi",
     website: "https://monaris.co",
+    social: "https://x.com/monaris_fi",
     tags: ["stablecoins", "payfi", "finance"],
     highlight: "18,160+ waitlist",
   },
   {
     title: "cusp",
-    description: "Your prediction market positions shouldn't sit idle. Borrow, lend, and leverage your Kalshi positions on Solana. Built on DFlow, secured by regulated event markets - no token, no emissions, real yield.",
+    description: "Cusp is the capital markets layer for prediction markets. It provides risk, credit, settlement, and liquidation infrastructure for event-driven positions, and for any short-maturity claim that resolves against a contractual source and pays out after the fact.",
     status: "building",
-    link: "https://cusp.fi",
+    link: "https://beta.cusp.fi",
     website: "https://dev.cusp.fi",
     tags: ["AI agents", "capital", "prediction markets"],
   },
@@ -203,7 +217,7 @@ export const projects: Project[] = [
     link: "https://github.com/Adityaakr/polybaskets",
     website: "https://polybaskets.xyz",
     tags: ["prediction markets", "vara", "DeFi"],
-    highlight: "3.08M+ tx · 20K+ bets · 50K+ baskets · 2.8K+ claims — app.polybaskets.xyz/stats",
+    highlight: "4.8M+ tx · 23K+ bets · 52K+ baskets · 4K+ claims — app.polybaskets.xyz/stats",
   },
   {
     title: "vaultera",
@@ -506,7 +520,7 @@ export const contentItems: ContentItem[] = [
 
 export const highlights = [
   { label: "ETH Global winner", link: "https://x.com/adityakrx/status/1994392689287262212" },
-  { label: "3.08M+ tx · 50K+ baskets on Polybaskets", link: "https://app.polybaskets.xyz/stats" },
+  { label: "4.8M+ tx · 52K+ baskets on Polybaskets", link: "https://app.polybaskets.xyz/stats" },
   { label: "20+ hackathon wins", link: "https://github.com/Adityaakr" },
   { label: "finalist judge at ETH Global New Delhi", link: "https://x.com/adityakrx/status/1969372931760537636" },
   { label: "partner at ETH Pragma", link: "https://x.com/adityakrx/status/1971095045236465940" },

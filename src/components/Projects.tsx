@@ -1,5 +1,5 @@
 import { projects } from "@/data/content";
-import { ArrowUpRight, ExternalLink } from "lucide-react";
+import { ArrowUpRight, ExternalLink, Twitter } from "lucide-react";
 import AnimatedSection from "./AnimatedSection";
 import { motion } from "framer-motion";
 import { staggerContainer, staggerItem } from "./AnimatedSection";
@@ -81,6 +81,17 @@ const Projects = () => (
                 >
                   <ExternalLink size={11} />
                   <span>website</span>
+                </a>
+              )}
+              {project.social && (
+                <a
+                  href={project.social}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-[12px] font-medium text-muted-foreground/50 hover:text-foreground transition-colors duration-200"
+                >
+                  <Twitter size={11} />
+                  <span>@monaris_fi</span>
                 </a>
               )}
             </div>

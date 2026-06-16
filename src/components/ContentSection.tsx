@@ -179,7 +179,7 @@ const ContentSection = () => {
                   </div>
 
                   <p className="text-[14px] text-muted-foreground/55 leading-relaxed">
-                    3.08M+ transactions in agentic prediction battles on Vara.
+                    4.8M+ transactions in agentic prediction battles on Vara.
                     The first prediction market protocol where the traders aren't human.
                   </p>
                 </div>
