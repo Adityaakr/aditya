@@ -257,6 +257,14 @@ export const projects: Project[] = [
     tags: ["MCP", "AI", "vara", "devtools"],
   },
   {
+    title: "subrosa",
+    description: "private prediction markets on Miden - bet without being watched. public, trustworthy odds, but your position, size and P&L stay private. on every other chain, your bets are visible. here, the network records only a commitment.",
+    status: "live",
+    link: "https://github.com/Adityaakr/subrosa",
+    website: "https://subrosa.adibuilds.in",
+    tags: ["privacy", "prediction markets", "Miden"],
+  },
+  {
     title: "Varix Perps",
     description: "Varix is a perpetual futures exchange on Vara built with modular on-chain components for margin, liquidity, oracle pricing, sessions, and market execution. It combines exchange-style trading UX with transparent on-chain settlement to deliver a fast, scalable, and production-ready perps platform.",
     status: "live",
