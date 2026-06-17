@@ -242,11 +242,12 @@ export const projects: Project[] = [
     tags: ["rust", "orderbook", "infra"],
   },
   {
-    title: "vara-mcp-server",
-    description: "MCP server for AI-assisted vara development - scaffold, compile, test, and generate clients 40-100x faster in cursor IDE",
+    title: "quantum migration tool",
+    description: "post-quantum wallet safety. every address that has sent a transaction has published the public key a quantum computer needs to derive its private key. scan it, prove the exposure, and migrate to a hybrid post-quantum account.",
     status: "live",
-    link: "https://github.com/Adityaakr/vara-mcp-server",
-    tags: ["MCP", "AI", "vara", "devtools"],
+    link: "https://github.com/Adityaakr/quantum-migration",
+    website: "https://quantum.adibuilds.in",
+    tags: ["post-quantum", "wallet", "security"],
   },
   {
     title: "Varix Perps",
