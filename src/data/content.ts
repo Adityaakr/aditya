@@ -250,6 +250,13 @@ export const projects: Project[] = [
     tags: ["post-quantum", "wallet", "security"],
   },
   {
+    title: "vara-mcp-server",
+    description: "MCP server for AI-assisted vara development - scaffold, compile, test, and generate clients 40-100x faster in cursor IDE",
+    status: "live",
+    link: "https://github.com/Adityaakr/vara-mcp-server",
+    tags: ["MCP", "AI", "vara", "devtools"],
+  },
+  {
     title: "Varix Perps",
     description: "Varix is a perpetual futures exchange on Vara built with modular on-chain components for margin, liquidity, oracle pricing, sessions, and market execution. It combines exchange-style trading UX with transparent on-chain settlement to deliver a fast, scalable, and production-ready perps platform.",
     status: "live",
