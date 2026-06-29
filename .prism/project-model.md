@@ -77,6 +77,18 @@ with react-router-dom. Single-page app, statically built, deployed from GitHub
     `<iframe>` (full-bleed, with a thin sticky back bar) at `/blog/:slug` — see the
     `kind === "full"` branch in `src/pages/BlogPost.tsx`. Current full posts: `prism`,
     `vara-eth-agentic-economy`, `polybaskets-board` (placeholder dates 2026-06-27..29).
+- **CANONICAL ARTICLE DESIGN** (2026-06-29): all full-page articles share ONE design system,
+  defined by `public/blog/vara-eth-agentic-economy.html` and now matched by `prism.html` +
+  `polybaskets-board.html`. Any NEW full article must reuse the identical `<head>`+`<style>`
+  block: fonts Instrument Serif (h1/h2/callout/diagram-titles) + DM Sans (body/diagram labels)
+  + JetBrains Mono (tag/section-number/caption/code); tokens `--bg #FAFAF8`, `--text #1a1a1a`,
+  `--accent #2563eb`, `--sketch-fill-{blue,green,amber,rose,purple,gray}`; 720px
+  `.article-container`. Components: `.article-tag`, `.section-number`+`h2` (with
+  `.divider-thin` between sections), `.callout`, `.glossary`, `.data-table`, `.cards`,
+  `.diagram-wrapper`+`.diagram-caption`. DIAGRAMS must be clean static inline SVG on a
+  `viewBox="0 0 760 H"` with `fill="var(--diagram-bg)"` bg, sketch-fill boxes + `#1a1a1a`
+  strokes, line+polygon arrows, Instrument Serif titles. FORBIDDEN: rough.js, `<script>`,
+  feTurbulence/feDisplacementMap, Patrick Hand / Newsreader / cursive fonts, marker highlights.
 - **CRITICAL serving rule** (`public/serve.json`, copied to `dist/serve.json`): `cleanUrls:
   false` is REQUIRED. By default `serve` 301-redirects `/blog/x.html` → `/blog/x`, which would
   collide with the React `/blog/:slug` route and break the iframe source (infinite/empty load).
