@@ -3,6 +3,7 @@ import { navLinks, siteConfig } from "@/data/content";
 import { Menu, X, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { motion, AnimatePresence } from "framer-motion";
+import { Link } from "react-router-dom";
 
 const Header = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -38,15 +39,19 @@ const Header = () => {
         </a>
 
         <nav className="hidden md:flex items-center gap-8">
-          {navLinks.map((link) => (
-            <a
-              key={link.label}
-              href={link.href}
-              className="text-[13px] font-medium text-muted-foreground hover:text-foreground transition-colors duration-200 tracking-normal"
-            >
-              {link.label}
-            </a>
-          ))}
+          {navLinks.map((link) => {
+            const cls =
+              "text-[13px] font-medium text-muted-foreground hover:text-foreground transition-colors duration-200 tracking-normal";
+            return link.href.startsWith("/") ? (
+              <Link key={link.label} to={link.href} className={cls}>
+                {link.label}
+              </Link>
+            ) : (
+              <a key={link.label} href={link.href} className={cls}>
+                {link.label}
+              </a>
+            );
+          })}
         </nav>
 
         <div className="hidden md:flex items-center gap-4">
@@ -106,19 +111,32 @@ const Header = () => {
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
             className="md:hidden border-t border-border bg-background/95 backdrop-blur-xl px-6 py-8 space-y-5 overflow-hidden"
           >
-            {navLinks.map((link, i) => (
-              <motion.a
-                key={link.label}
-                href={link.href}
-                onClick={() => setMobileOpen(false)}
-                initial={{ opacity: 0, x: -12 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.05 }}
-                className="block text-[15px] font-medium text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {link.label}
-              </motion.a>
-            ))}
+            {navLinks.map((link, i) => {
+              const cls =
+                "block text-[15px] font-medium text-muted-foreground hover:text-foreground transition-colors";
+              const motionProps = {
+                initial: { opacity: 0, x: -12 },
+                animate: { opacity: 1, x: 0 },
+                transition: { delay: i * 0.05 },
+              };
+              return link.href.startsWith("/") ? (
+                <motion.div key={link.label} {...motionProps}>
+                  <Link to={link.href} onClick={() => setMobileOpen(false)} className={cls}>
+                    {link.label}
+                  </Link>
+                </motion.div>
+              ) : (
+                <motion.a
+                  key={link.label}
+                  href={link.href}
+                  onClick={() => setMobileOpen(false)}
+                  {...motionProps}
+                  className={cls}
+                >
+                  {link.label}
+                </motion.a>
+              );
+            })}
             <div className="pt-5 border-t border-border space-y-4">
               <a
                 href={siteConfig.resumeLink}
