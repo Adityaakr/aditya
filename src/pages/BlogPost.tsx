@@ -13,6 +13,39 @@ const BlogPost = () => {
     window.scrollTo(0, 0);
   }, [slug]);
 
+  // Full standalone documents: show exactly as authored, isolated in an iframe,
+  // with a thin bar to get back into the site.
+  if (post && post.kind === "full") {
+    return (
+      <div className="h-screen flex flex-col bg-background">
+        <header className="shrink-0 backdrop-blur-xl bg-background/80 border-b border-border/40">
+          <div className="mx-auto max-w-[1100px] px-6 lg:px-8 h-14 flex items-center justify-between">
+            <Link
+              to="/blog"
+              className="inline-flex items-center gap-2 text-[13px] font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ArrowLeft size={14} />
+              blog
+            </Link>
+            <a
+              href={post.file}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[12px] font-medium text-muted-foreground/60 hover:text-foreground transition-colors"
+            >
+              open full ↗
+            </a>
+          </div>
+        </header>
+        <iframe
+          src={post.file}
+          title={post.title}
+          className="w-full flex-1 border-0"
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="noise-overlay min-h-screen bg-background">
       <header className="sticky top-0 z-50 backdrop-blur-xl bg-background/80 border-b border-border/40">

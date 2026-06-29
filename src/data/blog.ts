@@ -17,8 +17,44 @@ export interface BlogPost {
   title: string;
   date: string; // ISO yyyy-mm-dd
   excerpt: string;
-  html: string; // article body (metadata comment stripped)
+  // "fragment": content-only HTML rendered inside the site's prose container.
+  // "full": a complete standalone HTML document, shown as-is in an iframe.
+  kind: "fragment" | "full";
+  html?: string; // fragment body (metadata comment stripped)
+  file?: string; // full-page file path, served from public/ e.g. "/blog/prism.html"
 }
+
+// Full standalone articles. Drop the .html file in public/blog/ and add an entry here
+// (title/date/excerpt for the list page). The page itself is shown exactly as authored.
+const fullPosts: BlogPost[] = [
+  {
+    slug: "prism",
+    title: "Prism: a multi-agent harness that measures its own value",
+    date: "2026-06-29",
+    excerpt:
+      "A complete agent workflow — from reading a codebase to shipping and reviewing it — built on grounded claims, compounding memory, and enforced safety.",
+    kind: "full",
+    file: "/blog/prism.html",
+  },
+  {
+    slug: "vara-eth-agentic-economy",
+    title: "What builders can actually build with Vara.eth in the agentic economy",
+    date: "2026-06-28",
+    excerpt:
+      "The first real agent products onchain won't be chat wrappers — they'll be trust layers, policy engines, and service markets.",
+    kind: "full",
+    file: "/blog/vara-eth-agentic-economy.html",
+  },
+  {
+    slug: "polybaskets-board",
+    title: "PolyBaskets — Product & Architecture Board",
+    date: "2026-06-27",
+    excerpt:
+      "How the PolyBaskets product and architecture fit together — and how the new perps feature works.",
+    kind: "full",
+    file: "/blog/polybaskets-board.html",
+  },
+];
 
 // Vite glob: read every article as a raw string at build time.
 const modules = import.meta.glob("/src/content/blog/*.html", {
@@ -44,19 +80,21 @@ function parse(raw: string): { meta: Record<string, string>; body: string } {
   return { meta, body };
 }
 
-export const blogPosts: BlogPost[] = Object.entries(modules)
-  .map(([path, raw]) => {
-    const slug = (path.split("/").pop() || "").replace(/\.html$/, "");
-    const { meta, body } = parse(raw);
-    return {
-      slug,
-      title: meta.title || slug,
-      date: meta.date || "",
-      excerpt: meta.excerpt || "",
-      html: body,
-    };
-  })
-  // newest first (ISO dates sort lexicographically); untitled-date posts sink to the bottom
+const fragmentPosts: BlogPost[] = Object.entries(modules).map(([path, raw]) => {
+  const slug = (path.split("/").pop() || "").replace(/\.html$/, "");
+  const { meta, body } = parse(raw);
+  return {
+    slug,
+    title: meta.title || slug,
+    date: meta.date || "",
+    excerpt: meta.excerpt || "",
+    kind: "fragment" as const,
+    html: body,
+  };
+});
+
+export const blogPosts: BlogPost[] = [...fullPosts, ...fragmentPosts]
+  // newest first (ISO dates sort lexicographically); undated posts sink to the bottom
   .sort((a, b) => (b.date || "").localeCompare(a.date || ""));
 
 export const getPost = (slug: string): BlogPost | undefined =>

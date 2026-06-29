@@ -68,8 +68,21 @@ with react-router-dom. Single-page app, statically built, deployed from GitHub
   eager:true})` auto-discovers articles at build time. Filename = slug. Parses a leading
   `<!-- title: / date: / excerpt: -->` comment; rest of file is the article body. Sorted
   newest-first by ISO date. Exports `blogPosts`, `getPost(slug)`, `formatDate`.
-- **Articles** live in `src/content/blog/*.html` as content-only HTML fragments (no
-  `<html>`/`<head>`). Sample: `src/content/blog/welcome.html`. Drop a file → it appears.
+- **Two post kinds** (`BlogPost.kind` in `src/data/blog.ts`):
+  - `fragment` — content-only HTML in `src/content/blog/*.html`, auto-discovered via glob,
+    rendered inside the `prose` container. (Demo `welcome.html` was removed once real posts
+    were added.)
+  - `full` — complete standalone `<html>` documents in `public/blog/*.html`, listed via the
+    hand-maintained `fullPosts[]` array in `blog.ts`. Shown EXACTLY as authored inside an
+    `<iframe>` (full-bleed, with a thin sticky back bar) at `/blog/:slug` — see the
+    `kind === "full"` branch in `src/pages/BlogPost.tsx`. Current full posts: `prism`,
+    `vara-eth-agentic-economy`, `polybaskets-board` (placeholder dates 2026-06-27..29).
+- **CRITICAL serving rule** (`public/serve.json`, copied to `dist/serve.json`): `cleanUrls:
+  false` is REQUIRED. By default `serve` 301-redirects `/blog/x.html` → `/blog/x`, which would
+  collide with the React `/blog/:slug` route and break the iframe source (infinite/empty load).
+  With cleanUrls off: `/blog/x.html` serves the raw file (iframe target) and `/blog/x` falls
+  back to index.html (React reader). Verified both serve correct content. Adding more full
+  posts = drop file in `public/blog/`, add a `fullPosts` entry; no serve.json change needed.
 - **Pages**: `src/pages/Blog.tsx` (`/blog` list, `max-w-[760px]`) and `src/pages/BlogPost.tsx`
   (`/blog/:slug`, `max-w-[680px]`, renders body via `dangerouslySetInnerHTML` inside a `prose`
   container; scrolls to top on slug change). Both reuse the PeopleSay shell pattern.
