@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inside Monaris x RAILGUN: Private Stablecoin Payments That Feel Like One Tap</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FAFAF8; --text: #1a1a1a; --text-secondary: #555; --accent: #2563eb;
+    --accent-light: #dbeafe; --border: #e5e5e0; --diagram-bg: #fefefe; --diagram-border: #d4d4c8;
+    --sketch-stroke: #1a1a1a; --sketch-fill-blue: #dbeafe; --sketch-fill-green: #dcfce7;
+    --sketch-fill-amber: #fef3c7; --sketch-fill-rose: #ffe4e6; --sketch-fill-purple: #f3e8ff;
+    --sketch-fill-gray: #f3f4f6; --callout-bg: #f8f7f4;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); line-height: 1.72; font-size: 17.5px; -webkit-font-smoothing: antialiased; }
+  .article-container { max-width: 720px; margin: 0 auto; padding: 60px 24px 100px; }
+  .article-tag { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--accent); margin-bottom: 20px; font-weight: 500; }
+  h1 { font-family: 'Instrument Serif', serif; font-size: clamp(32px, 5vw, 46px); line-height: 1.15; font-weight: 400; color: var(--text); margin-bottom: 24px; letter-spacing: -0.5px; }
+  .subtitle { font-size: 19px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 40px; font-weight: 400; }
+  .byline { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: var(--text-secondary); margin-bottom: 8px; }
+  .byline a { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(37,99,235,.32); }
+  .divider { width: 48px; height: 2px; background: var(--text); margin: 40px 0; }
+  .divider-thin { width: 100%; height: 1px; background: var(--border); margin: 48px 0; }
+  h2 { font-family: 'Instrument Serif', serif; font-size: 28px; font-weight: 400; color: var(--text); margin-bottom: 20px; margin-top: 8px; letter-spacing: -0.3px; }
+  .section-number { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--accent); font-weight: 500; margin-bottom: 8px; display: block; letter-spacing: 1px; text-transform: uppercase; }
+  p { margin-bottom: 18px; color: var(--text); }
+  strong { font-weight: 600; color: var(--text); }
+  em { font-style: italic; }
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(37,99,235,.32); transition: border-color .15s; }
+  a:hover { border-bottom-color: var(--accent); }
+  .lead-paragraph { font-size: 19.5px; line-height: 1.65; color: var(--text); }
+  .callout { background: var(--callout-bg); border-left: 3px solid var(--text); padding: 20px 24px; margin: 32px 0; font-family: 'Instrument Serif', serif; font-size: 20px; line-height: 1.55; font-style: italic; color: var(--text); }
+  .callout strong { font-style: normal; font-weight: 600; }
+  ul, ol { margin: 0 0 18px; padding-left: 24px; }
+  li { margin-bottom: 8px; }
+  .diagram-wrapper { margin: 40px -20px; padding: 0; }
+  .diagram-wrapper svg { width: 100%; height: auto; display: block; }
+  .diagram-caption { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--text-secondary); text-align: center; margin-top: 12px; letter-spacing: 0.3px; padding: 0 20px; }
+  .glossary { background: var(--callout-bg); border: 1px solid var(--border); border-radius: 6px; padding: 28px 28px 12px; margin: 36px 0; }
+  .glossary-title { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); margin-bottom: 16px; font-weight: 500; }
+  .glossary-item { margin-bottom: 14px; font-size: 16px; line-height: 1.6; }
+  .glossary-term { font-weight: 600; font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--text); }
+  code, .inline-code { font-family: 'JetBrains Mono', monospace; font-size: 14.5px; background: #f0efe8; padding: 2px 6px; border-radius: 3px; color: var(--text); }
+  .data-table { margin: 32px 0; overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 540px; }
+  thead th { text-align: left; font-family: 'JetBrains Mono', monospace; font-weight: 500; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-secondary); padding: 0 14px 10px; border-bottom: 2px solid var(--diagram-border); }
+  tbody td { padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.55; }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody td:first-child { white-space: nowrap; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin: 32px 0; }
+  .card { background: var(--callout-bg); border: 1px solid var(--border); border-radius: 6px; padding: 18px 20px; }
+  .card-title { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 8px; }
+  .card p { font-size: 14.5px; color: var(--text-secondary); margin: 0; line-height: 1.55; }
+  .punch { font-family: 'Instrument Serif', serif; font-size: clamp(22px,4vw,30px); line-height: 1.3; margin: 36px 0 8px; }
+  .punch .a { color: var(--accent); }
+  .punch .b { color: #16a34a; display: block; }
+  @media (max-width: 600px) {
+    .article-container { padding: 36px 18px 72px; }
+    body { font-size: 16.5px; }
+    h2 { font-size: 24px; }
+    .glossary { padding: 20px 20px 8px; }
+    .diagram-wrapper { margin: 32px -10px; }
+  }
+</style>
+</head>
+<body>
+<article class="article-container">
+
+<div class="article-tag">Privacy Infrastructure · Stablecoins · RAILGUN</div>
+
+<h1>Private payments that feel like one tap</h1>
+
+<p class="subtitle">RAILGUN can hide who paid whom, how much, and what the margin was, all on a public chain. The catch is that almost nobody can use it. Here is how Monaris takes that privacy engine and turns it into an email login and a single tap, without weakening the math underneath.</p>
+
+<div class="byline">A technical walk through Monaris x RAILGUN&nbsp;&nbsp;·&nbsp;&nbsp;<a href="https://monaris.co" target="_blank" rel="noopener">monaris.co</a>&nbsp;&nbsp;·&nbsp;&nbsp;<a href="https://x.com/monaris_fi" target="_blank" rel="noopener">@monaris_fi</a></div>
+
+<div class="divider"></div>
+
+<p class="lead-paragraph">A business sends a supplier 30 USDC. On most chains, that payment is now public forever: the counterparties, the amount, and enough history to reconstruct the margin.</p>
+
+<p>For a consumer buying coffee, that might not matter. For a business, it is a leak. Competitors can see your suppliers, your prices, your volumes, and your cash position. Payroll becomes a public document. The thing that makes a public blockchain trustworthy, that every transaction is visible and verifiable, is the same thing that makes it unusable for ordinary commercial payments.</p>
+
+<p>Privacy systems exist to fix exactly this. RAILGUN is one of the strongest: a privacy layer that lives inside a smart contract on a normal chain, so you keep the chain's settlement and liquidity while hiding the details of each payment. The problem has never really been the cryptography. <strong>The problem is that the cryptography is brutal to use.</strong></p>
+
+<p>To send one private payment by hand, a person normally has to install a wallet extension, write down a seed phrase, buy a gas token, bridge funds to the right chain, run a slow sync of the private pool, shield funds manually, wait for a compliance check, find the recipient's long private address, generate a proof in the browser, and sign. Every one of those is a place to get stuck, overpay, or lose money. A normal business owner stops at step two.</p>
+
+<p>Monaris is a bet that this entire wall can be removed without removing the privacy. The person signs in with an email. The same private payment becomes a few taps. The hard parts still happen, but they happen invisibly, inside the browser, where the user never has to see them.</p>
+
+<!-- DIAGRAM 1 -->
+<div class="diagram-wrapper">
+<svg viewBox="0 0 760 392" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="760" height="392" fill="var(--diagram-bg)" rx="8"/>
+  <text x="380" y="34" text-anchor="middle" font-family="'Instrument Serif', serif" font-size="18" fill="#1a1a1a">Same privacy. Very different experience.</text>
+
+  <!-- left: by hand -->
+  <rect x="38" y="56" width="330" height="312" rx="8" fill="none" stroke="#1a1a1a" stroke-width="1.4" stroke-dasharray="6,4"/>
+  <text x="203" y="80" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#dc2626" letter-spacing="1">BY HAND, TODAY</text>
+
+  <rect x="66" y="94" width="274" height="34" rx="6" fill="var(--sketch-fill-rose)" stroke="#1a1a1a" stroke-width="1.1"/>
+  <text x="203" y="116" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12.5" fill="#1a1a1a">Install a wallet, save a seed phrase</text>
+  <text x="203" y="141" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#888">↓</text>
+  <rect x="66" y="148" width="274" height="34" rx="6" fill="var(--sketch-fill-rose)" stroke="#1a1a1a" stroke-width="1.1"/>
+  <text x="203" y="170" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12.5" fill="#1a1a1a">Buy a gas token, bridge funds</text>
+  <text x="203" y="195" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#888">↓</text>
+  <rect x="66" y="202" width="274" height="34" rx="6" fill="var(--sketch-fill-rose)" stroke="#1a1a1a" stroke-width="1.1"/>
+  <text x="203" y="224" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12.5" fill="#1a1a1a">Sync the pool, shield by hand</text>
+  <text x="203" y="249" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#888">↓</text>
+  <rect x="66" y="256" width="274" height="34" rx="6" fill="var(--sketch-fill-rose)" stroke="#1a1a1a" stroke-width="1.1"/>
+  <text x="203" y="278" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12.5" fill="#1a1a1a">Wait for a compliance check</text>
+  <text x="203" y="303" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#888">↓</text>
+  <rect x="66" y="310" width="274" height="34" rx="6" fill="var(--sketch-fill-rose)" stroke="#1a1a1a" stroke-width="1.1"/>
+  <text x="203" y="332" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12.5" fill="#1a1a1a">Find a 0zk address, prove, sign</text>
+
+  <!-- right: monaris -->
+  <rect x="392" y="56" width="330" height="312" rx="8" fill="none" stroke="#1a1a1a" stroke-width="1.4" stroke-dasharray="6,4"/>
+  <text x="557" y="80" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#2563eb" letter-spacing="1">WITH MONARIS</text>
+
+  <rect x="420" y="100" width="274" height="38" rx="6" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="557" y="124" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13" fill="#1a1a1a" font-weight="600">Sign in with an email</text>
+  <text x="557" y="151" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#888">↓</text>
+  <rect x="420" y="158" width="274" height="38" rx="6" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="557" y="182" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13" fill="#1a1a1a" font-weight="600">Tap: add funds (no gas)</text>
+  <text x="557" y="209" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#888">↓</text>
+  <rect x="420" y="216" width="274" height="38" rx="6" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="557" y="240" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13" fill="#1a1a1a" font-weight="600">Tap: pay privately</text>
+  <text x="557" y="267" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#888">↓</text>
+  <rect x="420" y="274" width="274" height="38" rx="6" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="557" y="298" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13" fill="#1a1a1a" font-weight="600">Done. Nothing posted publicly.</text>
+  <text x="557" y="338" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#555">four taps, identical privacy</text>
+</svg>
+</div>
+<p class="diagram-caption">The cryptography is the same on both sides. What changes is who carries the complexity.</p>
+
+<div class="divider-thin"></div>
+
+<span class="section-number">01 / THE FOUNDATION</span>
+<h2>What RAILGUN actually is</h2>
+
+<p>Most people picture a crypto balance as a number in an account, like a bank balance that goes up and down. RAILGUN does not work that way, and the difference is the key to everything else.</p>
+
+<p>In RAILGUN, value lives as a set of discrete <strong>notes</strong>, the way cash lives as a set of bills. If you hold a 50 and two 20s, you do not have a "90 balance," you have three separate notes that happen to add up to 90. Your private balance is simply the sum of the notes you own. This is the same model that Bitcoin and Zcash use, and it matters because notes can be spent, split, and recombined without ever exposing a running account total.</p>
+
+<p>All of these notes live together in one place: a shielded pool inside a smart contract. Everyone's notes are mixed in the same pool. On chain, a note is not a name or an amount. It is just a hash, sitting next to hundreds of other hashes.</p>
+
+<!-- DIAGRAM 2 -->
+<div class="diagram-wrapper">
+<svg viewBox="0 0 760 360" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="760" height="360" fill="var(--diagram-bg)" rx="8"/>
+  <text x="380" y="34" text-anchor="middle" font-family="'Instrument Serif', serif" font-size="18" fill="#1a1a1a">Value lives as notes, mixed in a shared pool</text>
+
+  <!-- left in/out -->
+  <rect x="40" y="80" width="150" height="58" rx="8" fill="var(--sketch-fill-gray)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="115" y="104" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#555" letter-spacing="0.5">SHIELD (PUBLIC)</text>
+  <text x="115" y="124" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14" fill="#1a1a1a" font-weight="600">100 USDC in</text>
+
+  <rect x="40" y="158" width="150" height="58" rx="8" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="115" y="182" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#2563eb" letter-spacing="0.5">PRIVATE</text>
+  <text x="115" y="202" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14" fill="#1a1a1a" font-weight="600">a note out</text>
+
+  <!-- arrow to pool -->
+  <line x1="192" y1="148" x2="232" y2="148" stroke="#1a1a1a" stroke-width="1.4"/>
+  <polygon points="232,148 224,144 224,152" fill="#1a1a1a"/>
+
+  <!-- pool -->
+  <rect x="240" y="64" width="482" height="232" rx="10" fill="#f4f4ee" stroke="#1a1a1a" stroke-width="1.4"/>
+  <text x="262" y="90" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#2563eb" letter-spacing="1">THE SHIELDED POOL · EVERYONE'S NOTES, MIXED</text>
+
+  <!-- note chips -->
+  <g font-family="'DM Sans', sans-serif">
+    <rect x="262" y="106" width="132" height="50" rx="7" fill="#fff" stroke="#1a1a1a" stroke-width="1.1"/>
+    <text x="276" y="128" font-size="15" fill="#1a1a1a" font-weight="600">50</text>
+    <text x="276" y="146" font-family="'JetBrains Mono', monospace" font-size="9" fill="#888">0x1f3a…c4</text>
+
+    <rect x="408" y="106" width="132" height="50" rx="7" fill="#fff" stroke="#1a1a1a" stroke-width="1.1"/>
+    <text x="422" y="128" font-size="15" fill="#1a1a1a" font-weight="600">120</text>
+    <text x="422" y="146" font-family="'JetBrains Mono', monospace" font-size="9" fill="#888">0x9c47…2b</text>
+
+    <rect x="554" y="106" width="150" height="50" rx="7" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.4"/>
+    <text x="568" y="128" font-size="15" fill="#1a1a1a" font-weight="700">100</text>
+    <text x="568" y="146" font-family="'JetBrains Mono', monospace" font-size="9" fill="#2563eb">your note · 0x8f2e…1b</text>
+
+    <rect x="262" y="170" width="132" height="50" rx="7" fill="#fff" stroke="#1a1a1a" stroke-width="1.1"/>
+    <text x="276" y="192" font-size="15" fill="#1a1a1a" font-weight="600">30</text>
+    <text x="276" y="210" font-family="'JetBrains Mono', monospace" font-size="9" fill="#888">0x2e88…0a</text>
+
+    <rect x="408" y="170" width="132" height="50" rx="7" fill="#fff" stroke="#1a1a1a" stroke-width="1.1"/>
+    <text x="422" y="192" font-size="15" fill="#1a1a1a" font-weight="600">75</text>
+    <text x="422" y="210" font-family="'JetBrains Mono', monospace" font-size="9" fill="#888">0xa051…d7</text>
+
+    <rect x="554" y="170" width="150" height="50" rx="7" fill="#fff" stroke="#1a1a1a" stroke-width="1.1"/>
+    <text x="568" y="192" font-size="15" fill="#1a1a1a" font-weight="600">200</text>
+    <text x="568" y="210" font-family="'JetBrains Mono', monospace" font-size="9" fill="#888">0x77bd…91</text>
+  </g>
+  <text x="262" y="252" font-family="'DM Sans', sans-serif" font-size="12.5" fill="#555">Your note sits among hundreds of others. The crowd is the privacy:</text>
+  <text x="262" y="272" font-family="'DM Sans', sans-serif" font-size="12.5" fill="#555">once mixed in, a later spend cannot be traced back to the money you put in.</text>
+</svg>
+</div>
+<p class="diagram-caption">Shielding is public. Privacy does not come from hiding the deposit. It comes from the crowd you join afterward.</p>
+
+<p>That last point is worth stating plainly, because it is the most common misunderstanding. <strong>Putting money into the pool is public.</strong> Anyone can see that your address shielded 100 USDC. The privacy is not in the deposit. It comes later, from the fact that your note is now mixed with everyone else's, and a future spend cannot be linked back to the money you originally put in. The bigger the pool, the stronger the privacy.</p>
+
+<div class="glossary">
+  <div class="glossary-title">RAILGUN in plain english</div>
+  <p class="glossary-item"><span class="glossary-term">Note (commitment)</span> &nbsp;A unit of private value, like a single bill. On chain it appears only as a hash, called a commitment. It hides the owner, the amount, and the token.</p>
+  <p class="glossary-item"><span class="glossary-term">Shield / unshield</span> &nbsp;Moving public funds into the pool (shield) or back out to a public address (unshield). Both are visible. Everything in between is not.</p>
+  <p class="glossary-item"><span class="glossary-term">Merkle root</span> &nbsp;A single number that is a fingerprint of every note ever added to the pool. If even one note changes, the root changes.</p>
+  <p class="glossary-item"><span class="glossary-term">Nullifier</span> &nbsp;A one-time tag published when a note is spent. It proves "this note is now used" without revealing which note it was, which is how double-spending is blocked.</p>
+  <p class="glossary-item"><span class="glossary-term">0zk address</span> &nbsp;A private receiving address inside RAILGUN. Paying it reveals nothing about the recipient on the public chain.</p>
+  <p class="glossary-item"><span class="glossary-term">Proof of Innocence</span> &nbsp;A compliance gate. Before a note can be spent, aggregator nodes check its history against lists of stolen or sanctioned funds, so the pool cannot quietly become a laundering tool.</p>
+</div>
+
+<div class="divider-thin"></div>
+
+<span class="section-number">02 / THE CRYPTOGRAPHY</span>
+<h2>How a payment becomes private math</h2>
+
+<p>Three pieces make a payment both private and safe: a commitment that hides a note, a proof that spends it without revealing it, and the compliance gate that keeps the pool clean. Let us take the first two, because they are where the real cleverness lives.</p>
+
+<p>When you shield, the contract does not store "you own 100 USDC." It takes the details of your note, the owner key, the token, the amount, and a secret random value, and runs them through a hash function called Poseidon. The output is your <strong>commitment</strong>, a single value like <span class="inline-code">0x8f2e34a1…4c1a91b</span>. That commitment is added as a new leaf in an append-only tree. The whole tree then reduces to one number, the <strong>root</strong>, which is a fingerprint of every note in the pool.</p>
+
+<!-- DIAGRAM 3 -->
+<div class="diagram-wrapper">
+<svg viewBox="0 0 760 348" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="760" height="348" fill="var(--diagram-bg)" rx="8"/>
+  <text x="380" y="34" text-anchor="middle" font-family="'Instrument Serif', serif" font-size="18" fill="#1a1a1a">A note becomes a leaf, and the tree becomes a root</text>
+
+  <!-- note -->
+  <rect x="34" y="92" width="158" height="150" rx="8" fill="var(--sketch-fill-gray)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="113" y="114" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#555">YOUR NOTE</text>
+  <text x="50" y="140" font-family="'DM Sans', sans-serif" font-size="12.5" fill="#1a1a1a">owner key</text>
+  <text x="50" y="162" font-family="'DM Sans', sans-serif" font-size="12.5" fill="#1a1a1a">token</text>
+  <text x="50" y="184" font-family="'DM Sans', sans-serif" font-size="12.5" fill="#1a1a1a">amount</text>
+  <text x="50" y="206" font-family="'DM Sans', sans-serif" font-size="12.5" fill="#1a1a1a">secret salt</text>
+
+  <!-- arrow + poseidon -->
+  <line x1="196" y1="167" x2="232" y2="167" stroke="#1a1a1a" stroke-width="1.4"/>
+  <polygon points="232,167 224,163 224,171" fill="#1a1a1a"/>
+  <rect x="236" y="146" width="92" height="42" rx="8" fill="var(--sketch-fill-purple)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="282" y="172" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#1a1a1a">Poseidon</text>
+
+  <!-- arrow to commitment -->
+  <line x1="332" y1="167" x2="368" y2="167" stroke="#1a1a1a" stroke-width="1.4"/>
+  <polygon points="368,167 360,163 360,171" fill="#1a1a1a"/>
+  <rect x="372" y="148" width="150" height="40" rx="7" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.3"/>
+  <text x="447" y="167" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#1a1a1a" font-weight="600">commitment</text>
+  <text x="447" y="181" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" fill="#555">0x8f2e…1b · leaf #14,237</text>
+
+  <!-- tree -->
+  <text x="636" y="78" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#2563eb">THE MERKLE TREE</text>
+  <!-- root -->
+  <rect x="596" y="88" width="80" height="30" rx="6" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="636" y="108" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#1a1a1a">root</text>
+  <!-- branch nodes -->
+  <line x1="636" y1="118" x2="600" y2="146" stroke="#1a1a1a" stroke-width="1.1"/>
+  <line x1="636" y1="118" x2="672" y2="146" stroke="#1a1a1a" stroke-width="1.1"/>
+  <rect x="576" y="146" width="48" height="24" rx="5" fill="#fff" stroke="#1a1a1a" stroke-width="1"/>
+  <rect x="648" y="146" width="48" height="24" rx="5" fill="#fff" stroke="#1a1a1a" stroke-width="1"/>
+  <!-- leaves -->
+  <line x1="600" y1="170" x2="582" y2="196" stroke="#1a1a1a" stroke-width="1"/>
+  <line x1="600" y1="170" x2="618" y2="196" stroke="#1a1a1a" stroke-width="1"/>
+  <line x1="672" y1="170" x2="654" y2="196" stroke="#1a1a1a" stroke-width="1"/>
+  <line x1="672" y1="170" x2="690" y2="196" stroke="#1a1a1a" stroke-width="1"/>
+  <rect x="566" y="196" width="32" height="22" rx="4" fill="#fff" stroke="#1a1a1a" stroke-width="1"/>
+  <rect x="602" y="196" width="32" height="22" rx="4" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.3"/>
+  <rect x="638" y="196" width="32" height="22" rx="4" fill="#fff" stroke="#1a1a1a" stroke-width="1"/>
+  <rect x="674" y="196" width="32" height="22" rx="4" fill="#fff" stroke="#1a1a1a" stroke-width="1"/>
+  <text x="618" y="234" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" fill="#2563eb">your leaf</text>
+
+  <!-- arrow commitment -> tree -->
+  <line x1="522" y1="168" x2="560" y2="168" stroke="#1a1a1a" stroke-width="1.4" stroke-dasharray="4,3"/>
+  <polygon points="560,168 552,164 552,172" fill="#1a1a1a"/>
+
+  <text x="380" y="288" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13" fill="#555">The note's contents stay secret. Only the hash is published, and only the root</text>
+  <text x="380" y="308" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13" fill="#555">needs to be stored on chain to represent the entire pool.</text>
+</svg>
+</div>
+<p class="diagram-caption">A commitment is a one-way hash. You cannot run it backward to recover the owner, token, or amount.</p>
+
+<p>So far, nothing has been spent. The interesting moment is the payment itself. To spend, your browser builds a <strong>zero knowledge proof</strong>. This is the heart of RAILGUN, and it is generated entirely on your device, never on a server.</p>
+
+<p>A single proof quietly establishes four things at once: that you own a real note in the tree, that the note actually exists in the pool, that the amounts balance so no value is created or destroyed, and that you are not spending a note twice. The elegant part is how membership is proven. Your browser walks a secret path from your leaf up to the root. <strong>Reaching the correct root by that path is itself the proof that your note is in the tree,</strong> without ever revealing which leaf it is.</p>
+
+<!-- DIAGRAM 4 -->
+<div class="diagram-wrapper">
+<svg viewBox="0 0 760 372" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="760" height="372" fill="var(--diagram-bg)" rx="8"/>
+  <text x="380" y="34" text-anchor="middle" font-family="'Instrument Serif', serif" font-size="18" fill="#1a1a1a">Spending a note without revealing it</text>
+
+  <!-- input note -->
+  <rect x="36" y="74" width="150" height="60" rx="8" fill="var(--sketch-fill-gray)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="111" y="98" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#555">INPUT NOTE (100)</text>
+  <text x="111" y="118" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12.5" fill="#1a1a1a">consumed in full</text>
+
+  <!-- proof box -->
+  <rect x="262" y="60" width="236" height="200" rx="10" fill="var(--sketch-fill-purple)" stroke="#1a1a1a" stroke-width="1.4"/>
+  <text x="380" y="88" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#2563eb" letter-spacing="1">ZERO KNOWLEDGE PROOF</text>
+  <text x="380" y="106" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9.5" fill="#555">built in the browser, proves at once:</text>
+
+  <rect x="282" y="120" width="196" height="28" rx="6" fill="#fff" stroke="#1a1a1a" stroke-width="1"/>
+  <text x="380" y="139" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#1a1a1a">1 · you own the note</text>
+  <rect x="282" y="152" width="196" height="28" rx="6" fill="#fff" stroke="#1a1a1a" stroke-width="1"/>
+  <text x="380" y="171" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#1a1a1a">2 · it is in the tree</text>
+  <rect x="282" y="184" width="196" height="28" rx="6" fill="#fff" stroke="#1a1a1a" stroke-width="1"/>
+  <text x="380" y="203" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#1a1a1a">3 · the amounts balance</text>
+  <rect x="282" y="216" width="196" height="28" rx="6" fill="#fff" stroke="#1a1a1a" stroke-width="1"/>
+  <text x="380" y="235" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#1a1a1a">4 · no double spend</text>
+
+  <!-- outputs -->
+  <rect x="574" y="74" width="150" height="54" rx="8" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.3"/>
+  <text x="649" y="96" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#2563eb">OUTPUT · PAYMENT</text>
+  <text x="649" y="115" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12.5" fill="#1a1a1a" font-weight="600">30 to the seller</text>
+
+  <rect x="574" y="138" width="150" height="54" rx="8" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="649" y="160" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#2563eb">OUTPUT · CHANGE</text>
+  <text x="649" y="179" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12.5" fill="#1a1a1a" font-weight="600">70 back to you</text>
+
+  <rect x="574" y="202" width="150" height="42" rx="8" fill="var(--sketch-fill-gray)" stroke="#1a1a1a" stroke-width="1.1"/>
+  <text x="649" y="221" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9.5" fill="#555">NULLIFIER</text>
+  <text x="649" y="235" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#1a1a1a">0x4d9a…e2 published</text>
+
+  <!-- arrows -->
+  <line x1="188" y1="104" x2="258" y2="120" stroke="#1a1a1a" stroke-width="1.4"/>
+  <polygon points="258,120 250,116 251,124" fill="#1a1a1a"/>
+  <line x1="500" y1="120" x2="570" y2="101" stroke="#1a1a1a" stroke-width="1.4"/>
+  <polygon points="570,101 562,99 564,107" fill="#1a1a1a"/>
+  <line x1="500" y1="170" x2="570" y2="165" stroke="#1a1a1a" stroke-width="1.4"/>
+  <polygon points="570,165 562,161 562,169" fill="#1a1a1a"/>
+  <line x1="500" y1="210" x2="570" y2="220" stroke="#1a1a1a" stroke-width="1.4"/>
+  <polygon points="570,220 562,216 561,224" fill="#1a1a1a"/>
+
+  <!-- verification bar -->
+  <rect x="36" y="288" width="688" height="56" rx="8" fill="#f4f4ee" stroke="#1a1a1a" stroke-width="1.3"/>
+  <text x="56" y="312" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#2563eb" letter-spacing="0.5">ON CHAIN, THE CONTRACT CHECKS:</text>
+  <text x="56" y="332" font-family="'DM Sans', sans-serif" font-size="12" fill="#1a1a1a">is the root known?   ·   is the nullifier unused?   ·   does the proof verify against the <tspan font-weight="700">root</tspan>, not a leaf?</text>
+</svg>
+</div>
+<p class="diagram-caption">The contract never sees your note. It checks your proof against the pool's root, marks the nullifier used, and records the new notes.</p>
+
+<p>A spend therefore consumes your input note, publishes a nullifier so it can never be spent again, and creates new output notes: one for the payment, one for your change. The contract verifies the proof against the current root, confirms the nullifier has not been used, and records the new commitments. No amount, no sender, and no recipient is ever revealed. <strong>Monaris's fee is simply a second output note in the very same proof,</strong> so it settles atomically and never disturbs the privacy math.</p>
+
+<div class="callout">When you spend, you do not point at your note. You prove, in secret, that one of the pool's notes is yours, and that it balances. The chain checks the proof against the root and never learns which note you meant.</div>
+
+<div class="divider-thin"></div>
+
+<span class="section-number">03 / THE INTEGRATION</span>
+<h2>Where Monaris comes in</h2>
+
+<p>Everything above is RAILGUN. It is powerful, and on its own it is also exactly the wall that stops normal businesses: seed phrases, gas tokens, manual syncs, raw private addresses. Monaris's contribution is not a new privacy scheme. It is a set of engineering decisions that make this specific machine usable by someone who signs in with Gmail. Two of those decisions are genuinely uncommon.</p>
+
+<p><strong>The first is to derive the private identity, not mint it.</strong> Normally a RAILGUN wallet needs its own seed phrase, one more secret for the user to store and lose. Instead, Monaris asks the user's embedded login wallet to sign one fixed message, hashes that signature into a mnemonic, and builds the RAILGUN wallet from it. Because the same login always produces the same signature, the same private wallet can be recovered from an email login. There is no seed phrase, and privacy survives a forgotten password.</p>
+
+<p><strong>The second is to run the entire engine in the browser.</strong> The prover, the Merkle trees, and the keys all live on the user's device. There is no backend wallet server holding spending power. The device builds the proof and the contract verifies it, which means even Monaris cannot spend a user's funds or forge their proofs. That is a real trust property, and it is the reason the architecture takes on so much extra work to survive inside a browser.</p>
+
+<p>Add gas sponsorship to that, so the user never holds a gas token, and the fee tucked inside the proof, and the result is a payment that looks like a normal app and behaves like a private one underneath.</p>
+
+<!-- DIAGRAM 5 -->
+<div class="diagram-wrapper">
+<svg viewBox="0 0 760 432" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="760" height="432" fill="var(--diagram-bg)" rx="8"/>
+  <text x="380" y="34" text-anchor="middle" font-family="'Instrument Serif', serif" font-size="18" fill="#1a1a1a">The architecture, and where the money never goes</text>
+
+  <!-- browser dashed -->
+  <rect x="34" y="56" width="346" height="190" rx="10" fill="none" stroke="#1a1a1a" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <text x="56" y="80" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#2563eb" letter-spacing="1">THE BROWSER · RUNS ON THE DEVICE</text>
+  <g font-family="'DM Sans', sans-serif" font-size="12" fill="#1a1a1a">
+    <rect x="56" y="92" width="142" height="34" rx="6" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.1"/><text x="127" y="113" text-anchor="middle">React app (UI)</text>
+    <rect x="208" y="92" width="150" height="34" rx="6" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.1"/><text x="283" y="113" text-anchor="middle">RAILGUN engine (WASM)</text>
+    <rect x="56" y="134" width="142" height="34" rx="6" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.1"/><text x="127" y="155" text-anchor="middle">Groth16 prover</text>
+    <rect x="208" y="134" width="150" height="34" rx="6" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.1"/><text x="283" y="155" text-anchor="middle">Merkle trees</text>
+    <rect x="56" y="176" width="302" height="34" rx="6" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.2"/><text x="207" y="197" text-anchor="middle" font-weight="600">spending keys never leave this box</text>
+  </g>
+
+  <!-- supporting services -->
+  <rect x="398" y="56" width="328" height="190" rx="10" fill="none" stroke="#1a1a1a" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <text x="420" y="80" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#555" letter-spacing="1">SUPPORTING SERVICES</text>
+  <g font-family="'DM Sans', sans-serif" font-size="11.5" fill="#1a1a1a">
+    <rect x="420" y="92" width="146" height="34" rx="6" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.1"/><text x="493" y="113" text-anchor="middle">Privy: login + gas</text>
+    <rect x="576" y="92" width="132" height="34" rx="6" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.1"/><text x="642" y="113" text-anchor="middle">Backend RPC proxy</text>
+    <rect x="420" y="134" width="146" height="34" rx="6" fill="var(--sketch-fill-gray)" stroke="#1a1a1a" stroke-width="1.1"/><text x="493" y="155" text-anchor="middle">Supabase: backup</text>
+    <rect x="576" y="134" width="132" height="34" rx="6" fill="var(--sketch-fill-amber)" stroke="#1a1a1a" stroke-width="1.1"/><text x="642" y="155" text-anchor="middle">POI aggregators</text>
+    <rect x="420" y="176" width="288" height="34" rx="6" fill="var(--sketch-fill-gray)" stroke="#1a1a1a" stroke-width="1.1"/><text x="564" y="197" text-anchor="middle">these help, but hold no spending power</text>
+  </g>
+
+  <!-- chain layer -->
+  <rect x="34" y="270" width="692" height="74" rx="10" fill="var(--sketch-fill-amber)" stroke="#1a1a1a" stroke-width="1.4"/>
+  <text x="56" y="294" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#2563eb" letter-spacing="1">ARBITRUM · THE RAILGUN POOL CONTRACT</text>
+  <text x="56" y="318" font-family="'DM Sans', sans-serif" font-size="13" fill="#1a1a1a">The shielded notes live here. The contract verifies proofs and settles. This is the only</text>
+  <text x="56" y="336" font-family="'DM Sans', sans-serif" font-size="13" fill="#1a1a1a">place value actually moves.</text>
+
+  <!-- money flow -->
+  <text x="380" y="372" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#2563eb" letter-spacing="0.5">HOW MONEY FLOWS</text>
+  <g font-family="'DM Sans', sans-serif" font-size="12.5" fill="#1a1a1a">
+    <rect x="150" y="384" width="120" height="32" rx="16" fill="#fff" stroke="#1a1a1a" stroke-width="1.2"/><text x="210" y="404" text-anchor="middle">payer</text>
+    <rect x="320" y="384" width="120" height="32" rx="16" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.3"/><text x="380" y="404" text-anchor="middle" font-weight="600">pool contract</text>
+    <rect x="490" y="384" width="120" height="32" rx="16" fill="#fff" stroke="#1a1a1a" stroke-width="1.2"/><text x="550" y="404" text-anchor="middle">recipient</text>
+  </g>
+  <line x1="270" y1="400" x2="318" y2="400" stroke="#1a1a1a" stroke-width="1.4"/><polygon points="318,400 310,396 310,404" fill="#1a1a1a"/>
+  <line x1="440" y1="400" x2="488" y2="400" stroke="#1a1a1a" stroke-width="1.4"/><polygon points="488,400 480,396 480,404" fill="#1a1a1a"/>
+  <text x="648" y="404" font-family="'JetBrains Mono', monospace" font-size="9.5" fill="#dc2626">no Monaris custody</text>
+</svg>
+</div>
+<p class="diagram-caption">Contracts hold the canonical money. The browser holds the private work. Monaris earns a fee and never holds the funds.</p>
+
+<div class="divider-thin"></div>
+
+<span class="section-number">04 / THE FLOW</span>
+<h2>One payment, end to end</h2>
+
+<p>Putting it together, here is what actually happens when a business pays a supplier privately. The top of each step is what the person experiences. The rest is what the system does for them, invisibly.</p>
+
+<!-- DIAGRAM 6 -->
+<div class="diagram-wrapper">
+<svg viewBox="0 0 760 326" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="760" height="326" fill="var(--diagram-bg)" rx="8"/>
+  <text x="380" y="34" text-anchor="middle" font-family="'Instrument Serif', serif" font-size="18" fill="#1a1a1a">From first login to a settled, private payment</text>
+
+  <!-- 5 stage columns -->
+  <g font-family="'DM Sans', sans-serif">
+    <!-- 1 -->
+    <rect x="28" y="64" width="132" height="44" rx="7" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.2"/>
+    <text x="94" y="84" text-anchor="middle" font-size="12.5" fill="#1a1a1a" font-weight="600">Sign in</text>
+    <text x="94" y="100" text-anchor="middle" font-size="11" fill="#555">with an email</text>
+    <!-- 2 -->
+    <rect x="172" y="64" width="132" height="44" rx="7" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.2"/>
+    <text x="238" y="84" text-anchor="middle" font-size="12.5" fill="#1a1a1a" font-weight="600">Add funds</text>
+    <text x="238" y="100" text-anchor="middle" font-size="11" fill="#555">no gas prompt</text>
+    <!-- 3 -->
+    <rect x="316" y="64" width="132" height="44" rx="7" fill="var(--sketch-fill-amber)" stroke="#1a1a1a" stroke-width="1.2"/>
+    <text x="382" y="84" text-anchor="middle" font-size="12.5" fill="#1a1a1a" font-weight="600">Wait briefly</text>
+    <text x="382" y="100" text-anchor="middle" font-size="11" fill="#555">a few seconds</text>
+    <!-- 4 -->
+    <rect x="460" y="64" width="132" height="44" rx="7" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.2"/>
+    <text x="526" y="84" text-anchor="middle" font-size="12.5" fill="#1a1a1a" font-weight="600">Pay privately</text>
+    <text x="526" y="100" text-anchor="middle" font-size="11" fill="#555">flip the toggle</text>
+    <!-- 5 -->
+    <rect x="604" y="64" width="132" height="44" rx="7" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.2"/>
+    <text x="670" y="84" text-anchor="middle" font-size="12.5" fill="#1a1a1a" font-weight="600">Settled</text>
+    <text x="670" y="100" text-anchor="middle" font-size="11" fill="#555">privately</text>
+  </g>
+
+  <!-- connectors -->
+  <g stroke="#1a1a1a" stroke-width="1.3">
+    <line x1="160" y1="86" x2="170" y2="86"/><line x1="304" y1="86" x2="314" y2="86"/>
+    <line x1="448" y1="86" x2="458" y2="86"/><line x1="592" y1="86" x2="602" y2="86"/>
+  </g>
+
+  <!-- under the hood rail -->
+  <line x1="94" y1="116" x2="94" y2="138" stroke="#c9c9bd" stroke-width="1.2"/>
+  <line x1="238" y1="116" x2="238" y2="138" stroke="#c9c9bd" stroke-width="1.2"/>
+  <line x1="382" y1="116" x2="382" y2="138" stroke="#c9c9bd" stroke-width="1.2"/>
+  <line x1="526" y1="116" x2="526" y2="138" stroke="#c9c9bd" stroke-width="1.2"/>
+  <line x1="670" y1="116" x2="670" y2="138" stroke="#c9c9bd" stroke-width="1.2"/>
+
+  <g font-family="'DM Sans', sans-serif" font-size="10.5" fill="#555">
+    <rect x="24" y="140" width="140" height="150" rx="7" fill="var(--sketch-fill-gray)" stroke="#e0e0d6" stroke-width="1"/>
+    <text x="36" y="159" font-family="'JetBrains Mono', monospace" font-size="9" fill="#2563eb">UNDER THE HOOD</text>
+    <text x="36" y="178">Privy mints an</text><text x="36" y="193">embedded wallet;</text>
+    <text x="36" y="208">one signature is</text><text x="36" y="223">hashed into the</text>
+    <text x="36" y="238">RAILGUN identity.</text><text x="36" y="253">Engine boots,</text>
+    <text x="36" y="268">tree syncs.</text>
+
+    <rect x="168" y="140" width="140" height="150" rx="7" fill="var(--sketch-fill-gray)" stroke="#e0e0d6" stroke-width="1"/>
+    <text x="180" y="159" font-family="'JetBrains Mono', monospace" font-size="9" fill="#2563eb">UNDER THE HOOD</text>
+    <text x="180" y="178">Approve + shield,</text><text x="180" y="193">both gas</text>
+    <text x="180" y="208">sponsored. A</text><text x="180" y="223">commitment is</text>
+    <text x="180" y="238">written as a new</text><text x="180" y="253">leaf in the pool.</text>
+
+    <rect x="312" y="140" width="140" height="150" rx="7" fill="var(--sketch-fill-gray)" stroke="#e0e0d6" stroke-width="1"/>
+    <text x="324" y="159" font-family="'JetBrains Mono', monospace" font-size="9" fill="#2563eb">UNDER THE HOOD</text>
+    <text x="324" y="178">Proof of</text><text x="324" y="193">Innocence: a</text>
+    <text x="324" y="208">quorum of nodes</text><text x="324" y="223">validates the note.</text>
+    <text x="324" y="238">Pending becomes</text><text x="324" y="253">spendable.</text>
+
+    <rect x="456" y="140" width="140" height="150" rx="7" fill="var(--sketch-fill-gray)" stroke="#e0e0d6" stroke-width="1"/>
+    <text x="468" y="159" font-family="'JetBrains Mono', monospace" font-size="9" fill="#2563eb">UNDER THE HOOD</text>
+    <text x="468" y="178">Resolve seller's</text><text x="468" y="193">0zk. Build the</text>
+    <text x="468" y="208">transfer plus fee</text><text x="468" y="223">as outputs. The</text>
+    <text x="468" y="238">Groth16 proof is</text><text x="468" y="253">made on device.</text>
+
+    <rect x="600" y="140" width="140" height="150" rx="7" fill="var(--sketch-fill-gray)" stroke="#1a1a1a" stroke-width="1"/>
+    <text x="612" y="159" font-family="'JetBrains Mono', monospace" font-size="9" fill="#2563eb">UNDER THE HOOD</text>
+    <text x="612" y="178" fill="#555">A nullifier and</text><text x="612" y="193" fill="#555">new commitments,</text>
+    <text x="612" y="208" fill="#555">atomic. No amount</text><text x="612" y="223" fill="#555">or party revealed.</text>
+    <text x="612" y="238" fill="#555">Receipt stored</text><text x="612" y="253" fill="#555">for the user.</text>
+  </g>
+</svg>
+</div>
+<p class="diagram-caption">Four taps and a short wait on top. A full privacy pipeline underneath, none of which the user has to understand.</p>
+
+<p>The whole sequence is the point of the product. A business signs in with an email and pays an invoice. Underneath, a privacy engine derives an identity, syncs a Merkle tree, runs a compliance quorum, generates a zero knowledge proof, and settles on chain with no amount or party revealed. The distance between what the user does and what the system does is the entire value.</p>
+
+<div class="divider-thin"></div>
+
+<span class="section-number">05 / THE HONEST PART</span>
+<h2>What this is, and what it is not</h2>
+
+<p>It would be easy to call this anonymity. That would be the wrong word, and using it would actually be a weakness, not a strength.</p>
+
+<p>Because the private wallet is derived from the login, the privacy is tied to the security of that login. The honest, defensible framing is not maximum anonymity. It is <strong>private by default with selective disclosure</strong>: payments that stay off the public ledger, but that a business can choose to reveal to an auditor when it needs to. For real commercial use, that is not a compromise. It is exactly what businesses want, because pure anonymity and real-world compliance do not coexist.</p>
+
+<p>It is worth being just as clear about what remains. Keeping the keys and the prover on the device is a genuine trust property, but it is not the same as an independent audit of the contracts and the proving artifacts. The design can be excellent and still owe the last stretch to outside review and time in production. Strong cryptography, honestly described, beats strong cryptography oversold.</p>
+
+<div class="punch">Monaris does not make RAILGUN more private. It makes RAILGUN's privacy <span class="a">something an ordinary business can actually reach.</span></div>
+
+<p>That is the whole thesis. The shielded pool, the commitments, the proofs, and the compliance gate are RAILGUN's. The seedless identity, the in-browser engine, the sponsored gas, and the one-tap flow are how Monaris turns that machine into a product. The math stays hard. It just stops being the user's problem.</p>
+
+<div class="divider-thin" style="margin-top:54px;"></div>
+
+<footer>
+  <p class="punch">Monaris is private stablecoin payments that feel like one tap.</p>
+  <p><a class="cta" href="https://waitlist.monaris.co" target="_blank" rel="noopener">Join the waitlist</a></p>
+  <p class="byline"><a href="https://monaris.co" target="_blank" rel="noopener">monaris.co</a> &nbsp;·&nbsp; <a href="https://x.com/monaris_fi" target="_blank" rel="noopener">x.com/monaris_fi</a> &nbsp;·&nbsp; <a href="https://waitlist.monaris.co" target="_blank" rel="noopener">waitlist.monaris.co</a></p>
+  <p class="byline">Monaris · Private stablecoin payments on RAILGUN</p>
+</footer>
+
+</article>
+</body>
+</html>

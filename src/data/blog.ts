@@ -28,6 +28,15 @@ export interface BlogPost {
 // (title/date/excerpt for the list page). The page itself is shown exactly as authored.
 const fullPosts: BlogPost[] = [
   {
+    slug: "monaris-railgun",
+    title: "Inside Monaris × RAILGUN: private payments that feel like one tap",
+    date: "2026-06-29",
+    excerpt:
+      "RAILGUN can hide who paid whom, how much, and the margin — all on a public chain. The catch is almost nobody can use it. Here is how Monaris fixes that.",
+    kind: "full",
+    file: "/blog/monaris-railgun.html",
+  },
+  {
     slug: "secrets-as-a-service",
     title: "Secrets as a Service",
     date: "2026-06-29",
