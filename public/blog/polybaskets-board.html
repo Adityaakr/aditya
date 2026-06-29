@@ -4,485 +4,482 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PolyBaskets — Product & Architecture Board</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Patrick+Hand+SC&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/rough.js/4.6.6/rough.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --ink:#1e1e1e;
-    --paper:#fbfbf6;
-    --dot:#dcdcd2;
+  :root {
+    --bg: #FAFAF8; --text: #1a1a1a; --text-secondary: #555; --accent: #2563eb;
+    --accent-light: #dbeafe; --border: #e5e5e0; --diagram-bg: #fefefe; --diagram-border: #d4d4c8;
+    --sketch-stroke: #1a1a1a; --sketch-fill-blue: #dbeafe; --sketch-fill-green: #dcfce7;
+    --sketch-fill-amber: #fef3c7; --sketch-fill-rose: #ffe4e6; --sketch-fill-purple: #f3e8ff;
+    --sketch-fill-gray: #f3f4f6; --callout-bg: #f8f7f4;
   }
-  *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
-  body{
-    background-color:var(--paper);
-    background-image:radial-gradient(var(--dot) 1.4px, transparent 1.4px);
-    background-size:24px 24px;
-    color:var(--ink);
-    font-family:'Patrick Hand','Comic Sans MS','Segoe Print',cursive;
-    -webkit-font-smoothing:antialiased;
-  }
-  .board{
-    max-width:1180px;
-    margin:0 auto;
-    padding:48px 26px 90px;
-  }
-  .eyebrow{
-    font-family:'Patrick Hand SC','Patrick Hand',cursive;
-    letter-spacing:2px;
-    font-size:16px;
-    color:#6b6b63;
-    margin:0 0 6px;
-    text-transform:uppercase;
-  }
-  h1{
-    font-size:clamp(44px,8vw,72px);
-    line-height:1.02;
-    margin:0 0 14px;
-    font-weight:normal;
-  }
-  h2{
-    font-size:clamp(28px,4.4vw,36px);
-    line-height:1.1;
-    margin:0 0 14px;
-    font-weight:normal;
-  }
-  p{font-size:19px;line-height:1.72;margin:0 0 16px;max-width:78ch;}
-  .lead{font-size:21px;}
-  .hl{
-    background:linear-gradient(180deg,transparent 56%,rgba(255,224,102,.62) 56%);
-    padding:0 .12em;
-  }
-  .hl-b{background:linear-gradient(180deg,transparent 56%,rgba(165,216,255,.62) 56%);padding:0 .12em;}
-  .hl-g{background:linear-gradient(180deg,transparent 56%,rgba(178,242,187,.62) 56%);padding:0 .12em;}
-  .tagline{font-size:clamp(22px,3.4vw,30px);color:#2f9e44;margin:0 0 6px;}
-  .sub{font-size:19px;color:#555;max-width:74ch;}
-  section{margin:64px 0 0;}
-  .divider{height:0;border:none;border-top:2.5px dashed #cfcfc4;margin:60px 0 0;}
-  figure{margin:22px 0 8px;}
-  svg{width:100%;height:auto;display:block;overflow:visible;}
-  svg text{font-family:'Patrick Hand','Comic Sans MS',cursive;}
-  .note{
-    margin:20px 0 4px;
-    border:2.5px dashed #1971c2;
-    border-radius:4px;
-    background:#f3f9ff;
-    padding:16px 20px;
-    font-size:18.5px;
-    line-height:1.6;
-    max-width:84ch;
-  }
-  .note.warn{border-color:#e8590c;background:#fff6ef;}
-  .note b{color:#1971c2;}
-  .note.warn b{color:#d9480f;}
-  .stickies{
-    display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
-    gap:20px;
-    margin:24px 0 8px;
-  }
-  .sticky{
-    background:#fff8c4;
-    border:1.5px solid #e6c200;
-    border-radius:3px;
-    padding:16px 18px;
-    box-shadow:2px 4px 0 rgba(0,0,0,.07);
-    font-size:17.5px;
-    line-height:1.5;
-  }
-  .sticky:nth-child(3n){background:#d3f6e0;border-color:#54c98a;transform:rotate(.5deg);}
-  .sticky:nth-child(3n+1){transform:rotate(-.6deg);}
-  .sticky:nth-child(4n){background:#e7e0ff;border-color:#9d86e0;}
-  .sticky:nth-child(5n){background:#cdeeff;border-color:#69bbe6;}
-  .sticky .t{font-family:'Patrick Hand SC','Patrick Hand',cursive;font-size:19px;letter-spacing:.5px;display:block;margin-bottom:5px;}
-  .punch{
-    font-size:clamp(26px,4vw,38px);
-    line-height:1.2;
-    color:#1e1e1e;
-    margin:30px 0 0;
-  }
-  .punch .a{color:#1971c2;}
-  .punch .b{color:#2f9e44;}
-  footer{margin-top:70px;font-size:16px;color:#8a8a80;}
-  @media (max-width:560px){
-    p{font-size:18px;}
-    .board{padding:34px 18px 70px;}
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); line-height: 1.72; font-size: 17.5px; -webkit-font-smoothing: antialiased; }
+  .article-container { max-width: 720px; margin: 0 auto; padding: 60px 24px 100px; }
+  .article-tag { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--accent); margin-bottom: 20px; font-weight: 500; }
+  h1 { font-family: 'Instrument Serif', serif; font-size: clamp(32px, 5vw, 46px); line-height: 1.15; font-weight: 400; color: var(--text); margin-bottom: 24px; letter-spacing: -0.5px; }
+  .subtitle { font-size: 19px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 40px; font-weight: 400; }
+  .divider { width: 48px; height: 2px; background: var(--text); margin: 40px 0; }
+  .divider-thin { width: 100%; height: 1px; background: var(--border); margin: 48px 0; }
+  h2 { font-family: 'Instrument Serif', serif; font-size: 28px; font-weight: 400; color: var(--text); margin-bottom: 20px; margin-top: 8px; letter-spacing: -0.3px; }
+  .section-number { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--accent); font-weight: 500; margin-bottom: 8px; display: block; letter-spacing: 1px; text-transform: uppercase; }
+  p { margin-bottom: 18px; color: var(--text); }
+  strong { font-weight: 600; color: var(--text); }
+  em { font-style: italic; }
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(37,99,235,.32); transition: border-color .15s; }
+  a:hover { border-bottom-color: var(--accent); }
+  .lead-paragraph { font-size: 19.5px; line-height: 1.65; color: var(--text); }
+  .callout { background: var(--callout-bg); border-left: 3px solid var(--text); padding: 20px 24px; margin: 32px 0; font-family: 'Instrument Serif', serif; font-size: 20px; line-height: 1.55; font-style: italic; color: var(--text); }
+  .callout strong { font-style: normal; font-weight: 600; }
+  ul, ol { margin: 0 0 18px; padding-left: 24px; }
+  li { margin-bottom: 8px; }
+  .diagram-wrapper { margin: 40px -20px; padding: 0; }
+  .diagram-wrapper svg { width: 100%; height: auto; display: block; }
+  .diagram-caption { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--text-secondary); text-align: center; margin-top: 12px; letter-spacing: 0.3px; padding: 0 20px; }
+  .glossary { background: var(--callout-bg); border: 1px solid var(--border); border-radius: 6px; padding: 28px 28px 12px; margin: 36px 0; }
+  .glossary-title { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); margin-bottom: 16px; font-weight: 500; }
+  .glossary-item { margin-bottom: 14px; font-size: 16px; line-height: 1.6; }
+  .glossary-term { font-weight: 600; font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--text); }
+  code, .inline-code { font-family: 'JetBrains Mono', monospace; font-size: 14.5px; background: #f0efe8; padding: 2px 6px; border-radius: 3px; color: var(--text); }
+  .data-table { margin: 32px 0; overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 540px; }
+  thead th { text-align: left; font-family: 'JetBrains Mono', monospace; font-weight: 500; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-secondary); padding: 0 14px 10px; border-bottom: 2px solid var(--diagram-border); }
+  tbody td { padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.55; }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody td:first-child { white-space: nowrap; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin: 32px 0; }
+  .card { background: var(--callout-bg); border: 1px solid var(--border); border-radius: 6px; padding: 18px 20px; }
+  .card-title { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 8px; }
+  .card p { font-size: 14.5px; color: var(--text-secondary); margin: 0; line-height: 1.55; }
+  .punch { font-family: 'Instrument Serif', serif; font-size: clamp(22px,4vw,30px); line-height: 1.3; margin: 36px 0 8px; }
+  .punch .a { color: var(--accent); }
+  .punch .b { color: #16a34a; display: block; }
+  @media (max-width: 600px) {
+    .article-container { padding: 36px 18px 72px; }
+    body { font-size: 16.5px; }
+    h2 { font-size: 24px; }
+    .glossary { padding: 20px 20px 8px; }
+    .diagram-wrapper { margin: 32px -10px; }
   }
 </style>
 </head>
 <body>
-<div class="board">
+<article class="article-container">
 
-  <header>
-    <p class="eyebrow">Product &amp; Architecture Board</p>
-    <h1><span class="hl">PolyBaskets</span></h1>
-    <p class="tagline">Trade conviction, not single outcomes.</p>
-    <p class="sub">The agent native index layer for prediction markets. Built on Polymarket. Powered by Vara. This board lays out how the whole thing fits together and how the new perps feature works, so anyone on the team can see the shape of it at a glance.</p>
-  </header>
+<div class="article-tag">Product &amp; Architecture Board</div>
 
-  <hr class="divider">
+<h1>PolyBaskets</h1>
 
-  <!-- OVERVIEW -->
-  <section>
-    <p class="eyebrow">The big idea</p>
-    <h2>From single bets to a <span class="hl-g">tradable thesis</span></h2>
-    <p class="lead">Polymarket lets you bet on one thing at a time. Will Bitcoin hit $100K. Will this candidate win. That works beautifully for single, dated questions.</p>
-    <p>But most people do not think in single bets. They think in stories. "I am bullish on AI." "I think crypto is going up." "I think the underdogs win this weekend." PolyBaskets lets you bundle many related markets into one basket and trade that whole idea as a single position. A market becomes a bet. A basket becomes an asset.</p>
-    <figure><svg id="dgm-overview" viewBox="0 0 1080 350" role="img" aria-label="From single bets to a basket thesis"></svg></figure>
-  </section>
+<p class="subtitle">Trade conviction, not single outcomes. The agent native index layer for prediction markets. Built on Polymarket. Powered by Vara. This board lays out how the whole thing fits together and how the new perps feature works, so anyone on the team can see the shape of it at a glance.</p>
 
-  <hr class="divider">
+<div class="divider"></div>
 
-  <!-- HOW IT WORKS -->
-  <section>
-    <p class="eyebrow">Overview</p>
-    <h2>How PolyBaskets works: <span class="hl">three layers</span></h2>
-    <p>There are three layers stacked on top of each other. Each one makes the layer below it more powerful. The bottom is where you group markets, the middle turns that group into a live, trackable index, and the top is where AI agents do the work for you.</p>
-    <figure><svg id="dgm-layers" viewBox="0 0 1080 430" role="img" aria-label="The three layers of PolyBaskets"></svg></figure>
-    <p>The agent layer is the part a competitor cannot copy just by adding baskets to their own product. It is also where most of the long term value sits.</p>
-  </section>
+<!-- SECTION 1: OVERVIEW -->
+<span class="section-number">The big idea</span>
+<h2>From single bets to a tradable thesis</h2>
 
-  <hr class="divider">
+<p class="lead-paragraph">Polymarket lets you bet on one thing at a time. Will Bitcoin hit $100K. Will this candidate win. That works beautifully for single, dated questions.</p>
 
-  <!-- ARCHITECTURE -->
-  <section>
-    <p class="eyebrow">Architecture</p>
-    <h2>What happens <span class="hl-b">under the hood</span></h2>
-    <p>This is the part that keeps the product safe and simple to build. When you go long or short a basket, PolyBaskets does not become your betting opponent. It works like a smart router. It takes your thesis, breaks it into the individual markets, and buys the right side of each one on Polymarket's existing order books. The other side of your trade is the open market, one bet at a time.</p>
-    <figure><svg id="dgm-arch" viewBox="0 0 1080 545" role="img" aria-label="PolyBaskets router architecture"></svg></figure>
-    <div class="note"><b>Aggregator, not the house.</b> Through the first three phases there is no counterparty risk by design, because every position is just real bets bought on Polymarket. All of those positions are tracked together as one value, which is your NAV. And markets too thin to trade cleanly are simply not allowed into a tradeable basket. That one rule removes the biggest danger before it can ever appear.</div>
-  </section>
+<p>But most people do not think in single bets. They think in stories. "I am bullish on AI." "I think crypto is going up." "I think the underdogs win this weekend." PolyBaskets lets you bundle many related markets into one basket and trade that whole idea as a single position. A market becomes a bet. A basket becomes an asset.</p>
 
-  <hr class="divider">
+<!-- DIAGRAM 1: overview -->
+<div class="diagram-wrapper">
+<svg viewBox="0 0 760 330" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="760" height="330" fill="var(--diagram-bg)" rx="8"/>
+  <text x="380" y="30" text-anchor="middle" font-family="'Instrument Serif', serif" font-size="18" fill="#1a1a1a">From single bets to a tradable thesis</text>
 
-  <!-- THREE NUMBERS -->
-  <section>
-    <p class="eyebrow">Design choice</p>
-    <h2>Three numbers, <span class="hl">kept honest</span></h2>
-    <p>It is tempting to call a basket an "index fund" and show one line that goes up. That would mislead people, because a prediction market is not a stock. A stock tends to drift up over time as a company grows. A basket of prediction markets has no such drift, since each market is just an odds reading between 0 and 1. So PolyBaskets shows three different numbers and never pretends one is the other.</p>
-    <figure><svg id="dgm-numbers" viewBox="0 0 1080 300" role="img" aria-label="The three numbers PolyBaskets shows"></svg></figure>
-    <p>In one line: the gauge tells you the odds, your NAV tells you your money, and the rolling index is the thing you actually trade.</p>
-  </section>
+  <!-- three single markets -->
+  <rect x="30" y="66" width="220" height="48" rx="7" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.3"/>
+  <text x="140" y="95" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13.5" font-weight="600" fill="#1a1a1a">Will BTC hit $100K?</text>
 
-  <hr class="divider">
+  <rect x="30" y="138" width="220" height="48" rx="7" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.3"/>
+  <text x="140" y="167" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13.5" font-weight="600" fill="#1a1a1a">Will ETH make a new ATH?</text>
 
-  <!-- THE NEW FEATURE -->
-  <section>
-    <p class="eyebrow">The new feature</p>
-    <h2>Perps on PolyBaskets: <span class="hl-g">being right pays rent</span></h2>
-    <p>Here is the heart of the new feature. A normal prediction market pays you once, on settlement day, and then it is over. Being right early earns you almost nothing while your money sits locked up waiting. The rolling index fixes that. Every time a market in your basket settles, we bank the result and roll the money into the next version of that question. Being right keeps paying, again and again, for as long as your thesis holds.</p>
-    <figure><svg id="dgm-roll" viewBox="0 0 1080 360" role="img" aria-label="The roll cycle of the rolling index"></svg></figure>
-    <p>This is what gives the index a real direction. It climbs while your thesis keeps coming true and it falls when the thesis stops working. A plain average of probabilities would just wobble between 0 and 1, and a number like that is not worth trading. The rolling index is.</p>
-  </section>
+  <rect x="30" y="210" width="220" height="48" rx="7" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.3"/>
+  <text x="140" y="239" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13.5" font-weight="600" fill="#1a1a1a">Will a Solana ETF pass?</text>
 
-  <hr class="divider">
+  <text x="140" y="295" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="12" fill="#2563eb">Polymarket = single bets</text>
 
-  <!-- ENGINE -->
-  <section>
-    <p class="eyebrow">The new feature</p>
-    <h2>Long, short, and the <span class="hl-b">perp engine</span></h2>
-    <p>Going long a basket means buying the YES side of every market inside it, weighted the way you set it. Going short means buying the NO side of every market. Both are built entirely from real Polymarket trades, so the early phases stay safe and need no special machinery. Only later, and only on the most liquid baskets, do we add a true perpetual.</p>
-    <figure><svg id="dgm-engine" viewBox="0 0 1080 475" role="img" aria-label="Long, short, and the perp vault engine"></svg></figure>
-    <div class="note warn"><b>Why a basket is safer to perp than a single market.</b> A single yes or no market slams toward 0 or 1 as its deadline nears, which is exactly what breaks funding and margin in normal perp designs. A basket of many markets does not behave that way. Its value moves more smoothly, and that smoothness is precisely what a funding rate and margin need in order to work. So perping the basket is the safer version, not just the easier one to position.</div>
-  </section>
+  <!-- converging arrows -->
+  <line x1="250" y1="90" x2="445" y2="135" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="438,128 448,136 436,138" fill="#1a1a1a"/>
+  <line x1="250" y1="162" x2="445" y2="162" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="443,157 453,162 443,167" fill="#1a1a1a"/>
+  <line x1="250" y1="234" x2="445" y2="190" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="436,187 448,189 438,197" fill="#1a1a1a"/>
 
-  <hr class="divider">
+  <!-- edge label -->
+  <rect x="305" y="150" width="92" height="20" fill="var(--diagram-bg)" opacity="0.95"/>
+  <text x="351" y="164" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#555">bundle them</text>
 
-  <!-- ROADMAP -->
-  <section>
-    <p class="eyebrow">Roadmap</p>
-    <h2>How we build it, <span class="hl">step by step</span></h2>
-    <p>The plan is staged on purpose, so the risky parts come last. Each phase is useful on its own and sets up the next one. You ship most of the product before you ever touch the hard part.</p>
-    <figure><svg id="dgm-phases" viewBox="0 0 1080 520" role="img" aria-label="The five build phases"></svg></figure>
-    <p>Phase one is also the cheapest experiment we can run. If people build baskets, hold them, and come back to redeploy after a market settles, the whole idea is proven before we build anything complicated. If they do not do that, we learn it early and cheaply, and nothing downstream was wasted.</p>
-  </section>
+  <!-- basket -->
+  <rect x="450" y="78" width="280" height="168" rx="7" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.3"/>
+  <text x="590" y="110" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="17" font-weight="600" fill="#1a1a1a">Crypto Bull Index</text>
+  <text x="590" y="142" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#555">BTC $100K   +   ETH new ATH</text>
+  <text x="590" y="164" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#555">Solana ETF   +   more markets</text>
+  <text x="590" y="186" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#555">each one weighted</text>
+  <text x="590" y="208" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#555">one position, one thesis</text>
 
-  <hr class="divider">
+  <text x="590" y="295" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="12" fill="#16a34a">PolyBaskets = the index fund</text>
+</svg>
+</div>
+<p class="diagram-caption">A market becomes a bet. A basket becomes an asset you can trade as one thesis.</p>
 
-  <!-- FEATURES -->
-  <section>
-    <p class="eyebrow">Product features</p>
-    <h2>What people <span class="hl-g">actually use</span></h2>
-    <div class="stickies">
-      <div class="sticky"><span class="t">Basket Builder</span>Pick your markets, set how much each one counts, and name your thesis. Done in a minute.</div>
-      <div class="sticky"><span class="t">Live Index &amp; NAV</span>See everything inside a basket, how each part is weighted, how it is performing, and your own profit and loss.</div>
-      <div class="sticky"><span class="t">One Tap Long or Short</span>Take a position on a whole idea, not a single market, with one tap.</div>
-      <div class="sticky"><span class="t">Liquidity Floor</span>Baskets can only include markets deep enough to trade cleanly. This keeps every position honest and safe.</div>
-      <div class="sticky"><span class="t">Agent Builder</span>Tell an agent your view in plain words. It picks the markets and builds the basket for you.</div>
-      <div class="sticky"><span class="t">Auto Rebalance</span>Agents adjust weights and roll settled markets into fresh ones, so a basket stays alive over time.</div>
-      <div class="sticky"><span class="t">Copy &amp; Compete</span>Follow the best baskets and agents, copy their positions, and climb a leaderboard of real thesis track records.</div>
-      <div class="sticky"><span class="t">Rolling Index Engine</span>The behind the scenes machine that banks each result and rolls it forward, so being right keeps paying.</div>
-      <div class="sticky"><span class="t">Perp Vault (later)</span>A shared, hedged pool that powers funded long and short trades on the most liquid baskets.</div>
-    </div>
-  </section>
+<div class="divider-thin"></div>
 
-  <hr class="divider">
+<!-- SECTION 2: LAYERS -->
+<span class="section-number">Overview</span>
+<h2>How PolyBaskets works: three layers</h2>
 
-  <!-- MOAT -->
-  <section>
-    <p class="eyebrow">Why it wins</p>
-    <h2>Hard to <span class="hl">copy</span></h2>
-    <p>The moat is not the basket idea on its own. Anyone can group markets together. The real edge is the combination of four things working as one: a router sitting on top of Polymarket's liquidity, an ecosystem of agents that build and manage baskets, a copy and compete network with real track records, and the rolling index engine running underneath it all. None of that comes free to a competitor, and none of it is the crowded race to build yet another exchange. PolyBaskets plays on a different field, the strategy and asset management layer.</p>
-    <p class="punch"><span class="a">Polymarket made outcomes tradable.</span><br><span class="b">PolyBaskets makes conviction tradable.</span></p>
-  </section>
+<p>There are three layers stacked on top of each other. Each one makes the layer below it more powerful. The bottom is where you group markets, the middle turns that group into a live, trackable index, and the top is where AI agents do the work for you.</p>
 
-  <footer>PolyBaskets working board. Hand drawn for the team. Diagrams are conceptual, not final spec.</footer>
+<!-- DIAGRAM 2: layers -->
+<div class="diagram-wrapper">
+<svg viewBox="0 0 760 370" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="760" height="370" fill="var(--diagram-bg)" rx="8"/>
+  <text x="380" y="28" text-anchor="middle" font-family="'Instrument Serif', serif" font-size="18" fill="#1a1a1a">Three layers, stacked</text>
 
+  <!-- top: agent layer -->
+  <rect x="200" y="50" width="360" height="84" rx="7" fill="var(--sketch-fill-purple)" stroke="#1a1a1a" stroke-width="1.3"/>
+  <text x="380" y="76" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="15" font-weight="600" fill="#1a1a1a">3.  Agent Layer</text>
+  <text x="380" y="98" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">AI agents build, manage, and rebalance baskets for you.</text>
+  <text x="380" y="116" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">Tell an agent your view and it does the rest.</text>
+
+  <!-- mid: index layer -->
+  <rect x="150" y="158" width="460" height="84" rx="7" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.3"/>
+  <text x="380" y="184" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="15" font-weight="600" fill="#1a1a1a">2.  Index Layer</text>
+  <text x="380" y="206" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">The basket gets a live value. See what is inside, the weight</text>
+  <text x="380" y="224" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">of each market, and whether your thesis is winning.</text>
+
+  <!-- base: basket layer -->
+  <rect x="100" y="266" width="560" height="84" rx="7" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.3"/>
+  <text x="380" y="292" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="15" font-weight="600" fill="#1a1a1a">1.  Basket Layer</text>
+  <text x="380" y="314" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">Group themed prediction markets into one thesis.</text>
+  <text x="380" y="332" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">You pick the markets and how much each one counts.</text>
+
+  <!-- side note -->
+  <text x="690" y="196" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#777">each layer</text>
+  <text x="690" y="212" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#777">sits on the</text>
+  <text x="690" y="228" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#777">one below</text>
+</svg>
+</div>
+<p class="diagram-caption">Baskets at the base, a live index in the middle, agents on top. Each layer powers the one above it.</p>
+
+<p>The agent layer is the part a competitor cannot copy just by adding baskets to their own product. It is also where most of the long term value sits.</p>
+
+<div class="divider-thin"></div>
+
+<!-- SECTION 3: ARCHITECTURE -->
+<span class="section-number">Architecture</span>
+<h2>What happens under the hood</h2>
+
+<p>This is the part that keeps the product safe and simple to build. When you go long or short a basket, PolyBaskets does not become your betting opponent. It works like a smart router. It takes your thesis, breaks it into the individual markets, and buys the right side of each one on Polymarket's existing order books. The other side of your trade is the open market, one bet at a time.</p>
+
+<!-- DIAGRAM 3: arch -->
+<div class="diagram-wrapper">
+<svg viewBox="0 0 760 470" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="760" height="470" fill="var(--diagram-bg)" rx="8"/>
+
+  <!-- user -->
+  <rect x="290" y="20" width="180" height="48" rx="7" fill="var(--sketch-fill-purple)" stroke="#1a1a1a" stroke-width="1.3"/>
+  <text x="380" y="49" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">You or your Agent</text>
+
+  <line x1="380" y1="68" x2="380" y2="100" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="375,98 380,108 385,98" fill="#1a1a1a"/>
+
+  <!-- router -->
+  <rect x="220" y="108" width="320" height="66" rx="7" fill="var(--sketch-fill-amber)" stroke="#1a1a1a" stroke-width="1.3"/>
+  <text x="380" y="135" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="15" font-weight="600" fill="#1a1a1a">PolyBaskets Router</text>
+  <text x="380" y="156" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">splits your thesis into its markets</text>
+
+  <!-- router to legs -->
+  <line x1="320" y1="174" x2="150" y2="210" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="151,202 145,212 159,210" fill="#1a1a1a"/>
+  <line x1="380" y1="174" x2="380" y2="210" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="375,208 380,218 385,208" fill="#1a1a1a"/>
+  <line x1="440" y1="174" x2="610" y2="210" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="601,210 615,212 609,202" fill="#1a1a1a"/>
+
+  <!-- legs -->
+  <rect x="30" y="212" width="210" height="64" rx="7" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.3"/>
+  <text x="135" y="238" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">Market 1</text>
+  <text x="135" y="258" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">buy YES (long) or NO (short)</text>
+
+  <rect x="275" y="212" width="210" height="64" rx="7" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.3"/>
+  <text x="380" y="238" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">Market 2</text>
+  <text x="380" y="258" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">bought by weight</text>
+
+  <rect x="520" y="212" width="210" height="64" rx="7" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.3"/>
+  <text x="625" y="238" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">Market 3</text>
+  <text x="625" y="258" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">bought by weight</text>
+
+  <!-- legs to books -->
+  <line x1="135" y1="276" x2="170" y2="318" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="163,312 173,320 161,322" fill="#1a1a1a"/>
+  <line x1="380" y1="276" x2="380" y2="318" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="375,316 380,326 385,316" fill="#1a1a1a"/>
+  <line x1="625" y1="276" x2="590" y2="318" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="597,312 587,322 599,320" fill="#1a1a1a"/>
+
+  <!-- books -->
+  <rect x="30" y="320" width="700" height="56" rx="7" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.3"/>
+  <text x="380" y="344" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="15" font-weight="600" fill="#1a1a1a">Polymarket order books</text>
+  <text x="380" y="364" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">the other side of every trade lives here, one market at a time</text>
+
+  <line x1="380" y1="376" x2="380" y2="406" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="375,404 380,414 385,404" fill="#1a1a1a"/>
+
+  <!-- vara -->
+  <rect x="30" y="416" width="700" height="40" rx="7" fill="var(--sketch-fill-gray)" stroke="#1a1a1a" stroke-width="1.3"/>
+  <text x="380" y="441" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">Executed and settled on Vara</text>
+</svg>
+</div>
+<p class="diagram-caption">PolyBaskets is a router, not the house. Every leg is a real bet on Polymarket, settled on Vara.</p>
+
+<div class="callout"><strong>Aggregator, not the house.</strong> Through the first three phases there is no counterparty risk by design, because every position is just real bets bought on Polymarket. All of those positions are tracked together as one value, which is your NAV. And markets too thin to trade cleanly are simply not allowed into a tradeable basket. That one rule removes the biggest danger before it can ever appear.</div>
+
+<div class="divider-thin"></div>
+
+<!-- SECTION 4: THREE NUMBERS -->
+<span class="section-number">Design choice</span>
+<h2>Three numbers, kept honest</h2>
+
+<p>It is tempting to call a basket an "index fund" and show one line that goes up. That would mislead people, because a prediction market is not a stock. A stock tends to drift up over time as a company grows. A basket of prediction markets has no such drift, since each market is just an odds reading between 0 and 1. So PolyBaskets shows three different numbers and never pretends one is the other.</p>
+
+<!-- DIAGRAM 4: numbers -->
+<div class="diagram-wrapper">
+<svg viewBox="0 0 760 250" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="760" height="250" fill="var(--diagram-bg)" rx="8"/>
+  <text x="380" y="30" text-anchor="middle" font-family="'Instrument Serif', serif" font-size="18" fill="#1a1a1a">Three numbers, kept honest</text>
+
+  <!-- gauge -->
+  <rect x="30" y="52" width="225" height="172" rx="7" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.3"/>
+  <text x="142" y="84" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14.5" font-weight="600" fill="#1a1a1a">1.  Thesis Gauge</text>
+  <text x="142" y="116" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">A live odds reading, 0 to 1.</text>
+  <text x="142" y="138" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">How likely your thesis</text>
+  <text x="142" y="160" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">is right now.</text>
+  <text x="142" y="190" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">Going up is NOT your profit.</text>
+
+  <!-- nav -->
+  <rect x="268" y="52" width="225" height="172" rx="7" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.3"/>
+  <text x="380" y="84" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14.5" font-weight="600" fill="#1a1a1a">2.  Your NAV</text>
+  <text x="380" y="116" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">Your actual money.</text>
+  <text x="380" y="138" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">Goes up when you buy cheap</text>
+  <text x="380" y="160" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">and markets resolve</text>
+  <text x="380" y="182" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">your way.</text>
+
+  <!-- rolling index -->
+  <rect x="506" y="52" width="225" height="172" rx="7" fill="var(--sketch-fill-amber)" stroke="#1a1a1a" stroke-width="1.3"/>
+  <text x="618" y="84" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14.5" font-weight="600" fill="#1a1a1a">3.  Rolling Index</text>
+  <text x="618" y="116" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">The number you trade.</text>
+  <text x="618" y="138" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">Banks each result and rolls</text>
+  <text x="618" y="160" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">into the next market.</text>
+  <text x="618" y="182" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">Long or short this one.</text>
+</svg>
+</div>
+<p class="diagram-caption">The gauge is the odds, the NAV is your money, the rolling index is the thing you trade.</p>
+
+<p>In one line: the gauge tells you the odds, your NAV tells you your money, and the rolling index is the thing you actually trade.</p>
+
+<div class="divider-thin"></div>
+
+<!-- SECTION 5: THE NEW FEATURE / ROLL -->
+<span class="section-number">The new feature</span>
+<h2>Perps on PolyBaskets: being right pays rent</h2>
+
+<p>Here is the heart of the new feature. A normal prediction market pays you once, on settlement day, and then it is over. Being right early earns you almost nothing while your money sits locked up waiting. The rolling index fixes that. Every time a market in your basket settles, we bank the result and roll the money into the next version of that question. Being right keeps paying, again and again, for as long as your thesis holds.</p>
+
+<!-- DIAGRAM 5: roll -->
+<div class="diagram-wrapper">
+<svg viewBox="0 0 760 300" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="760" height="300" fill="var(--diagram-bg)" rx="8"/>
+
+  <text x="380" y="46" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11.5" fill="#2563eb">and again, while your thesis keeps winning</text>
+
+  <!-- return arc -->
+  <path d="M 655 116 Q 380 28 105 116" fill="none" stroke="#2563eb" stroke-width="1.2" stroke-dasharray="5,4"/>
+  <polygon points="110,108 100,118 113,120" fill="#2563eb"/>
+
+  <!-- boxes -->
+  <rect x="20" y="120" width="160" height="84" rx="7" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.3"/>
+  <text x="100" y="156" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">Hold the thesis</text>
+  <text x="100" y="178" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">you own the basket</text>
+
+  <rect x="205" y="120" width="160" height="84" rx="7" fill="var(--sketch-fill-amber)" stroke="#1a1a1a" stroke-width="1.3"/>
+  <text x="285" y="156" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">A market resolves</text>
+  <text x="285" y="178" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">one bet settles</text>
+
+  <rect x="390" y="120" width="160" height="84" rx="7" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.3"/>
+  <text x="470" y="156" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">Bank the result</text>
+  <text x="470" y="178" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">the payout is locked in</text>
+
+  <rect x="575" y="120" width="165" height="84" rx="7" fill="var(--sketch-fill-purple)" stroke="#1a1a1a" stroke-width="1.3"/>
+  <text x="657" y="156" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">Roll into the next</text>
+  <text x="657" y="178" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">is it still true next month?</text>
+
+  <!-- arrows between -->
+  <line x1="180" y1="162" x2="203" y2="162" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="201,157 211,162 201,167" fill="#1a1a1a"/>
+  <line x1="365" y1="162" x2="388" y2="162" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="386,157 396,162 386,167" fill="#1a1a1a"/>
+  <line x1="550" y1="162" x2="573" y2="162" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="571,157 581,162 571,167" fill="#1a1a1a"/>
+
+  <text x="380" y="262" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12.5" fill="#555">The index climbs as your thesis keeps coming true. That is rent for</text>
+  <text x="380" y="282" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12.5" fill="#555">being right, not a fake upward drift.</text>
+</svg>
+</div>
+<p class="diagram-caption">Hold, settle, bank, roll, repeat. Being right keeps paying for as long as the thesis holds.</p>
+
+<p>This is what gives the index a real direction. It climbs while your thesis keeps coming true and it falls when the thesis stops working. A plain average of probabilities would just wobble between 0 and 1, and a number like that is not worth trading. The rolling index is.</p>
+
+<div class="divider-thin"></div>
+
+<!-- SECTION 6: ENGINE -->
+<span class="section-number">The new feature</span>
+<h2>Long, short, and the perp engine</h2>
+
+<p>Going long a basket means buying the YES side of every market inside it, weighted the way you set it. Going short means buying the NO side of every market. Both are built entirely from real Polymarket trades, so the early phases stay safe and need no special machinery. Only later, and only on the most liquid baskets, do we add a true perpetual.</p>
+
+<!-- DIAGRAM 6: engine -->
+<div class="diagram-wrapper">
+<svg viewBox="0 0 760 410" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="760" height="410" fill="var(--diagram-bg)" rx="8"/>
+
+  <!-- long -->
+  <rect x="70" y="36" width="270" height="80" rx="7" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.3"/>
+  <text x="205" y="70" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="15" font-weight="600" fill="#1a1a1a">Go LONG a basket</text>
+  <text x="205" y="92" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">buy YES across every market, by weight</text>
+
+  <!-- short -->
+  <rect x="420" y="36" width="270" height="80" rx="7" fill="var(--sketch-fill-rose)" stroke="#1a1a1a" stroke-width="1.3"/>
+  <text x="555" y="70" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="15" font-weight="600" fill="#1a1a1a">Go SHORT a basket</text>
+  <text x="555" y="92" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">buy NO across every market, by weight</text>
+
+  <!-- arrows down to band -->
+  <line x1="205" y1="116" x2="240" y2="168" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="233,162 243,170 231,172" fill="#1a1a1a"/>
+  <line x1="555" y1="116" x2="520" y2="168" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="527,162 517,172 529,170" fill="#1a1a1a"/>
+
+  <!-- band -->
+  <rect x="70" y="170" width="620" height="58" rx="7" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.3"/>
+  <text x="380" y="194" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14.5" font-weight="600" fill="#1a1a1a">Built straight from Polymarket's books</text>
+  <text x="380" y="214" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">no house and no inventory risk  (Phases 1 to 3)</text>
+
+  <!-- dashed arrow to perp -->
+  <line x1="380" y1="228" x2="380" y2="288" stroke="#c2410c" stroke-width="1.3" stroke-dasharray="7,6"/>
+  <polygon points="375,286 380,296 385,286" fill="#c2410c"/>
+  <rect x="248" y="248" width="264" height="20" fill="var(--diagram-bg)" opacity="0.95"/>
+  <text x="380" y="262" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#c2410c">only on the most liquid baskets</text>
+
+  <!-- perp -->
+  <rect x="200" y="296" width="360" height="98" rx="7" fill="var(--sketch-fill-amber)" stroke="#1a1a1a" stroke-width="1.3"/>
+  <text x="380" y="324" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="15" font-weight="600" fill="#1a1a1a">Basket Perp  (later phase)</text>
+  <text x="380" y="346" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">A shared Liquidity Vault takes the other side.</text>
+  <text x="380" y="364" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">It holds the real underlying bets as its hedge</text>
+  <text x="380" y="382" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">and earns funding on long vs short imbalance.</text>
+</svg>
+</div>
+<p class="diagram-caption">Long and short are built from real Polymarket trades. A funded perp comes later, only on the deepest baskets.</p>
+
+<div class="callout"><strong>Why a basket is safer to perp than a single market.</strong> A single yes or no market slams toward 0 or 1 as its deadline nears, which is exactly what breaks funding and margin in normal perp designs. A basket of many markets does not behave that way. Its value moves more smoothly, and that smoothness is precisely what a funding rate and margin need in order to work. So perping the basket is the safer version, not just the easier one to position.</div>
+
+<div class="divider-thin"></div>
+
+<!-- SECTION 7: ROADMAP -->
+<span class="section-number">Roadmap</span>
+<h2>How we build it, step by step</h2>
+
+<p>The plan is staged on purpose, so the risky parts come last. Each phase is useful on its own and sets up the next one. You ship most of the product before you ever touch the hard part.</p>
+
+<!-- DIAGRAM 7: phases -->
+<div class="diagram-wrapper">
+<svg viewBox="0 0 760 440" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="760" height="440" fill="var(--diagram-bg)" rx="8"/>
+
+  <text x="380" y="40" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11.5" fill="#777">you ship most of the product before touching anything hard</text>
+
+  <!-- connecting arrows (drawn first, behind boxes) -->
+  <line x1="155" y1="338" x2="175" y2="362" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="168,357 178,364 166,366" fill="#1a1a1a"/>
+  <line x1="305" y1="283" x2="325" y2="307" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="318,302 328,309 316,311" fill="#1a1a1a"/>
+  <line x1="455" y1="228" x2="475" y2="252" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="468,247 478,254 466,256" fill="#1a1a1a"/>
+  <line x1="605" y1="173" x2="625" y2="197" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="618,192 628,199 616,201" fill="#1a1a1a"/>
+
+  <!-- phase 1 -->
+  <rect x="15" y="320" width="140" height="76" rx="7" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.3"/>
+  <text x="85" y="345" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">Phase 1</text>
+  <text x="85" y="365" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">Spot basket indexes.</text>
+  <text x="85" y="381" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">Build, value, track.</text>
+  <text x="85" y="414" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#16a34a">risk: none</text>
+
+  <!-- phase 2 -->
+  <rect x="165" y="265" width="140" height="76" rx="7" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.3"/>
+  <text x="235" y="290" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">Phase 2</text>
+  <text x="235" y="310" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">Tradeable basket shares.</text>
+  <text x="235" y="326" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">Buy or sell as one.</text>
+  <text x="235" y="359" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#16a34a">risk: none</text>
+
+  <!-- phase 3 -->
+  <rect x="315" y="210" width="140" height="76" rx="7" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.3"/>
+  <text x="385" y="235" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">Phase 3</text>
+  <text x="385" y="255" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">Capped long and short</text>
+  <text x="385" y="271" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">on the index.</text>
+  <text x="385" y="304" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#2563eb">risk: low</text>
+
+  <!-- phase 4 -->
+  <rect x="465" y="155" width="140" height="76" rx="7" fill="var(--sketch-fill-amber)" stroke="#1a1a1a" stroke-width="1.3"/>
+  <text x="535" y="180" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">Phase 4</text>
+  <text x="535" y="200" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">Basket perps. Hedged</text>
+  <text x="535" y="216" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">vault, top indexes only.</text>
+  <text x="535" y="249" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#c2410c">risk: contained</text>
+
+  <!-- phase 5 -->
+  <rect x="615" y="100" width="140" height="76" rx="7" fill="var(--sketch-fill-purple)" stroke="#1a1a1a" stroke-width="1.3"/>
+  <text x="685" y="125" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">Phase 5</text>
+  <text x="685" y="145" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">Agent managed indexes.</text>
+  <text x="685" y="161" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">Follow, copy, compete.</text>
+  <text x="685" y="194" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#6741d9">the fun part</text>
+</svg>
+</div>
+<p class="diagram-caption">Five phases climbing from safe spot baskets to agent managed indexes. The risky parts come last.</p>
+
+<p>Phase one is also the cheapest experiment we can run. If people build baskets, hold them, and come back to redeploy after a market settles, the whole idea is proven before we build anything complicated. If they do not do that, we learn it early and cheaply, and nothing downstream was wasted.</p>
+
+<div class="divider-thin"></div>
+
+<!-- SECTION 8: FEATURES -->
+<span class="section-number">Product features</span>
+<h2>What people actually use</h2>
+
+<div class="cards">
+  <div class="card"><div class="card-title">Basket Builder</div><p>Pick your markets, set how much each one counts, and name your thesis. Done in a minute.</p></div>
+  <div class="card"><div class="card-title">Live Index &amp; NAV</div><p>See everything inside a basket, how each part is weighted, how it is performing, and your own profit and loss.</p></div>
+  <div class="card"><div class="card-title">One Tap Long or Short</div><p>Take a position on a whole idea, not a single market, with one tap.</p></div>
+  <div class="card"><div class="card-title">Liquidity Floor</div><p>Baskets can only include markets deep enough to trade cleanly. This keeps every position honest and safe.</p></div>
+  <div class="card"><div class="card-title">Agent Builder</div><p>Tell an agent your view in plain words. It picks the markets and builds the basket for you.</p></div>
+  <div class="card"><div class="card-title">Auto Rebalance</div><p>Agents adjust weights and roll settled markets into fresh ones, so a basket stays alive over time.</p></div>
+  <div class="card"><div class="card-title">Copy &amp; Compete</div><p>Follow the best baskets and agents, copy their positions, and climb a leaderboard of real thesis track records.</p></div>
+  <div class="card"><div class="card-title">Rolling Index Engine</div><p>The behind the scenes machine that banks each result and rolls it forward, so being right keeps paying.</p></div>
+  <div class="card"><div class="card-title">Perp Vault (later)</div><p>A shared, hedged pool that powers funded long and short trades on the most liquid baskets.</p></div>
 </div>
 
-<script>
-(function(){
-  var SVGNS="http://www.w3.org/2000/svg";
-  var INK="#1e1e1e", PAPER="#fbfbf6";
-  var THEME={
-    blue:{s:"#1971c2",f:"#a5d8ff"},
-    green:{s:"#2f9e44",f:"#b2f2bb"},
-    yellow:{s:"#e8920c",f:"#ffe98a"},
-    red:{s:"#e03131",f:"#ffc9c9"},
-    violet:{s:"#6741d9",f:"#d8c9ff"},
-    grey:{s:"#495057",f:"#e9ecef"},
-    teal:{s:"#0c8599",f:"#bdf3ea"}
-  };
-  var RC=null;
+<div class="divider-thin"></div>
 
-  function el(svg,name,attrs){
-    var n=document.createElementNS(SVGNS,name);
-    for(var k in attrs){ n.setAttribute(k,attrs[k]); }
-    svg.appendChild(n);
-    return n;
-  }
-  function theme(t){ return THEME[t]||THEME.grey; }
+<!-- SECTION 9: MOAT -->
+<span class="section-number">Why it wins</span>
+<h2>Hard to copy</h2>
 
-  function box(svg,x,y,w,h,t){
-    var c=theme(t);
-    if(RC){
-      var g=RC.rectangle(x,y,w,h,{stroke:c.s,strokeWidth:1.8,roughness:1.05,bowing:1.3,fill:c.f,fillStyle:"solid"});
-      svg.appendChild(g);
-    } else {
-      el(svg,"rect",{x:x,y:y,width:w,height:h,rx:7,fill:c.f,stroke:c.s,"stroke-width":1.8});
-    }
-  }
-  function line(svg,x1,y1,x2,y2,opt){
-    opt=opt||{};
-    var col=opt.stroke||INK, sw=opt.strokeWidth||1.7;
-    if(RC){
-      var g=RC.line(x1,y1,x2,y2,{stroke:col,strokeWidth:sw,roughness:1.1});
-      if(opt.dash){ var ps=g.querySelectorAll("path"); for(var i=0;i<ps.length;i++){ps[i].setAttribute("stroke-dasharray",opt.dash);} }
-      svg.appendChild(g);
-    } else {
-      var l=el(svg,"line",{x1:x1,y1:y1,x2:x2,y2:y2,stroke:col,"stroke-width":sw});
-      if(opt.dash){ l.setAttribute("stroke-dasharray",opt.dash); }
-    }
-  }
-  function arrowHead(svg,x1,y1,x2,y2,col){
-    var ang=Math.atan2(y2-y1,x2-x1), len=13, sp=0.42;
-    line(svg,x2,y2,x2-len*Math.cos(ang-sp),y2-len*Math.sin(ang-sp),{stroke:col,strokeWidth:1.7});
-    line(svg,x2,y2,x2-len*Math.cos(ang+sp),y2-len*Math.sin(ang+sp),{stroke:col,strokeWidth:1.7});
-  }
-  function arrow(svg,x1,y1,x2,y2,opt){
-    opt=opt||{};
-    var col=opt.stroke||INK;
-    line(svg,x1,y1,x2,y2,opt);
-    arrowHead(svg,x1,y1,x2,y2,col);
-  }
-  function arc(svg,x1,y1,x2,y2,bend,opt){
-    opt=opt||{};
-    var col=opt.stroke||INK, sw=opt.strokeWidth||1.7;
-    var mx=(x1+x2)/2, my=(y1+y2)/2 - bend;
-    var d="M "+x1+" "+y1+" Q "+mx+" "+my+" "+x2+" "+y2;
-    if(RC){
-      var g=RC.path(d,{stroke:col,strokeWidth:sw,roughness:1.05,fill:"none"});
-      svg.appendChild(g);
-    } else {
-      el(svg,"path",{d:d,fill:"none",stroke:col,"stroke-width":sw});
-    }
-    arrowHead(svg,mx,my,x2,y2,col);
-  }
-  function txt(svg,x,y,str,size,fill,anchor){
-    var t=el(svg,"text",{x:x,y:y,"font-size":size,fill:fill||INK,"text-anchor":anchor||"middle","dominant-baseline":"middle"});
-    t.textContent=str;
-    return t;
-  }
-  function elabel(svg,x,y,str,col){
-    var w=str.length*7.4+10;
-    el(svg,"rect",{x:x-w/2,y:y-12,width:w,height:24,fill:PAPER,opacity:"0.95"});
-    txt(svg,x,y,str,14,col||"#555");
-  }
-  // node with centered title + body lines
-  function node(svg,n){
-    box(svg,n.x,n.y,n.w,n.h,n.t);
-    var c=theme(n.t);
-    var lines=n.lines||[];
-    var titleH=n.label?26:0;
-    var bodyH=lines.length*21;
-    var total=titleH+bodyH;
-    var top=n.y+(n.h-total)/2;
-    var cx=n.x+n.w/2;
-    if(n.label){ txt(svg,cx,top+13,n.label,n.ts||21,c.s); top+=titleH; }
-    for(var i=0;i<lines.length;i++){
-      txt(svg,cx,top+11,lines[i],n.bs||15.5,"#333");
-      top+=21;
-    }
-  }
-  function edgeOf(a,b){
-    var ac={x:a.x+a.w/2,y:a.y+a.h/2}, bc={x:b.x+b.w/2,y:b.y+b.h/2};
-    var dx=bc.x-ac.x, dy=bc.y-ac.y, p1,p2;
-    if(Math.abs(dx)>=Math.abs(dy)){
-      if(dx>=0){p1={x:a.x+a.w,y:ac.y};p2={x:b.x,y:bc.y};}
-      else{p1={x:a.x,y:ac.y};p2={x:b.x+b.w,y:bc.y};}
-    } else {
-      if(dy>=0){p1={x:ac.x,y:a.y+a.h};p2={x:bc.x,y:b.y};}
-      else{p1={x:ac.x,y:a.y};p2={x:bc.x,y:b.y+b.h};}
-    }
-    return [p1,p2];
-  }
-  function connect(svg,a,b,opt){
-    var e=edgeOf(a,b);
-    arrow(svg,e[0].x,e[0].y,e[1].x,e[1].y,opt);
-    if(opt&&opt.label){ elabel(svg,(e[0].x+e[1].x)/2,(e[0].y+e[1].y)/2,opt.label,opt.labelColor); }
-  }
+<p>The moat is not the basket idea on its own. Anyone can group markets together. The real edge is the combination of four things working as one: a router sitting on top of Polymarket's liquidity, an ecosystem of agents that build and manage baskets, a copy and compete network with real track records, and the rolling index engine running underneath it all. None of that comes free to a competitor, and none of it is the crowded race to build yet another exchange. PolyBaskets plays on a different field, the strategy and asset management layer.</p>
 
-  function get(id){ return document.getElementById(id); }
+<p class="punch"><span class="a">Polymarket made outcomes tradable.</span><span class="b">PolyBaskets makes conviction tradable.</span></p>
 
-  function drawOverview(){
-    var s=get("dgm-overview"); if(!s)return;
-    var m1={x:40,y:54,w:250,h:60,t:"blue",label:"Will BTC hit $100K?",ts:18};
-    var m2={x:40,y:142,w:250,h:60,t:"blue",label:"Will ETH make a new ATH?",ts:18};
-    var m3={x:40,y:230,w:250,h:60,t:"blue",label:"Will a Solana ETF pass?",ts:18};
-    [m1,m2,m3].forEach(function(n){node(s,n);});
-    txt(s,165,318,"Polymarket = single bets",17,"#1971c2");
-    var basket={x:640,y:64,w:380,h:228,t:"green",label:"Crypto Bull Index",ts:24,bs:16,
-      lines:["BTC $100K   +   ETH new ATH","Solana ETF   +   more markets","each one weighted","one position, one thesis"]};
-    node(s,basket);
-    txt(s,830,318,"PolyBaskets = the index fund",17,"#2f9e44");
-    // converging arrows
-    arrow(s,300,84,636,150,{}); 
-    arrow(s,300,172,636,178,{});
-    arrow(s,300,260,636,206,{});
-    elabel(s,468,150,"bundle them","#555");
-  }
+<p style="font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--text-secondary);margin-top:40px;">PolyBaskets working board · diagrams are conceptual, not final spec.</p>
 
-  function drawLayers(){
-    var s=get("dgm-layers"); if(!s)return;
-    var base={x:110,y:300,w:860,h:96,t:"blue",label:"1.  Basket Layer",ts:22,bs:16.5,
-      lines:["Group themed prediction markets into one thesis.","You pick the markets and how much each one counts."]};
-    var mid={x:170,y:185,w:740,h:96,t:"green",label:"2.  Index Layer",ts:22,bs:16.5,
-      lines:["The basket gets a live value. See what is inside, the weight","of each market, and whether your thesis is winning."]};
-    var top={x:235,y:70,w:610,h:96,t:"violet",label:"3.  Agent Layer",ts:22,bs:16.5,
-      lines:["AI agents build, manage, and rebalance baskets for you.","Tell an agent your view and it does the rest."]};
-    node(s,base); node(s,mid); node(s,top);
-    txt(s,1015,235,"each layer",16,"#777");
-    txt(s,1015,256,"sits on the",16,"#777");
-    txt(s,1015,277,"one below",16,"#777");
-  }
-
-  function drawArch(){
-    var s=get("dgm-arch"); if(!s)return;
-    var user={x:440,y:24,w:200,h:58,t:"violet",label:"You or your Agent",ts:19};
-    var router={x:360,y:130,w:360,h:78,t:"yellow",label:"PolyBaskets Router",ts:22,bs:15.5,
-      lines:["splits your thesis into its markets"]};
-    var l1={x:60,y:268,w:270,h:74,t:"blue",label:"Market 1",ts:19,bs:14.5,lines:["buy YES (long) or NO (short)"]};
-    var l2={x:405,y:268,w:270,h:74,t:"blue",label:"Market 2",ts:19,bs:14.5,lines:["bought by weight"]};
-    var l3={x:750,y:268,w:270,h:74,t:"blue",label:"Market 3",ts:19,bs:14.5,lines:["bought by weight"]};
-    var books={x:60,y:392,w:960,h:62,t:"green",label:"Polymarket order books",ts:21,bs:15.5,
-      lines:["the other side of every trade lives here, one market at a time"]};
-    var vara={x:60,y:486,w:960,h:46,t:"grey",label:"Executed and settled on Vara",ts:19};
-    [user,router,l1,l2,l3,books,vara].forEach(function(n){node(s,n);});
-    connect(s,user,router,{});
-    // router to legs
-    arrow(s,520,208,195,268,{});
-    arrow(s,540,208,540,268,{});
-    arrow(s,560,208,885,268,{});
-    // legs to books
-    arrow(s,195,342,250,392,{});
-    arrow(s,540,342,540,392,{});
-    arrow(s,885,342,830,392,{});
-    arrow(s,540,454,540,486,{});
-  }
-
-  function drawNumbers(){
-    var s=get("dgm-numbers"); if(!s)return;
-    var g={x:40,y:54,w:320,h:200,t:"teal",label:"1.  Thesis Gauge",ts:21,bs:15.5,
-      lines:["A live odds reading, 0 to 1.","How likely your thesis","is right now.","Going up is NOT your profit."]};
-    var nav={x:380,y:54,w:320,h:200,t:"green",label:"2.  Your NAV",ts:21,bs:15.5,
-      lines:["Your actual money.","Goes up when you buy cheap","and markets resolve","your way."]};
-    var idx={x:720,y:54,w:320,h:200,t:"yellow",label:"3.  Rolling Index",ts:21,bs:15.5,
-      lines:["The number you trade.","Banks each result and rolls","into the next market.","Long or short this one."]};
-    [g,nav,idx].forEach(function(n){node(s,n);});
-  }
-
-  function drawRoll(){
-    var s=get("dgm-roll"); if(!s)return;
-    var s1={x:40,y:150,w:215,h:92,t:"blue",label:"Hold the thesis",ts:20,bs:15,lines:["you own the basket"]};
-    var s2={x:288,y:150,w:215,h:92,t:"yellow",label:"A market resolves",ts:20,bs:15,lines:["one bet settles"]};
-    var s3={x:536,y:150,w:215,h:92,t:"green",label:"Bank the result",ts:20,bs:15,lines:["the payout is locked in"]};
-    var s4={x:784,y:150,w:256,h:92,t:"violet",label:"Roll into the next",ts:20,bs:15,lines:["is it still true next month?"]};
-    [s1,s2,s3,s4].forEach(function(n){node(s,n);});
-    arrow(s,255,196,288,196,{});
-    arrow(s,503,196,536,196,{});
-    arrow(s,751,196,784,196,{});
-    // return arc from s4 top to s1 top
-    arc(s,912,150,147,150,96,{stroke:"#6741d9"});
-    txt(s,530,46,"and again, while your thesis keeps winning",16,"#6741d9");
-    txt(s,540,310,"The index climbs as your thesis keeps coming true. That is rent for being right, not a fake upward drift.",16.5,"#555");
-  }
-
-  function drawEngine(){
-    var s=get("dgm-engine"); if(!s)return;
-    var lng={x:120,y:36,w:360,h:92,t:"green",label:"Go LONG a basket",ts:21,bs:15.5,lines:["buy YES across every market, by weight"]};
-    var sht={x:600,y:36,w:360,h:92,t:"red",label:"Go SHORT a basket",ts:21,bs:15.5,lines:["buy NO across every market, by weight"]};
-    var band={x:120,y:178,w:840,h:64,t:"blue",label:"Built straight from Polymarket's books",ts:20,bs:15,lines:["no house and no inventory risk  (Phases 1 to 3)"]};
-    var perp={x:290,y:300,w:500,h:118,t:"yellow",label:"Basket Perp  (later phase)",ts:21,bs:15.5,
-      lines:["A shared Liquidity Vault takes the other side.","It holds the real underlying bets as its hedge","and earns funding on long vs short imbalance."]};
-    [lng,sht,band,perp].forEach(function(n){node(s,n);});
-    arrow(s,300,128,360,178,{});
-    arrow(s,780,128,720,178,{});
-    arrow(s,540,242,540,300,{dash:"7 6",label:"only on the most liquid baskets",labelColor:"#d9480f"});
-  }
-
-  function drawPhases(){
-    var s=get("dgm-phases"); if(!s)return;
-    var p=[
-      {x:18,y:382,w:202,h:86,t:"green",label:"Phase 1",ts:21,bs:14.5,lines:["Spot basket indexes.","Build, value, track."],tag:"risk: none",tagc:"#2f9e44"},
-      {x:230,y:320,w:202,h:86,t:"green",label:"Phase 2",ts:21,bs:14.5,lines:["Tradeable basket shares.","Buy or sell as one."],tag:"risk: none",tagc:"#2f9e44"},
-      {x:442,y:255,w:202,h:86,t:"blue",label:"Phase 3",ts:21,bs:14.5,lines:["Capped long and short","on the index."],tag:"risk: low",tagc:"#1971c2"},
-      {x:654,y:185,w:202,h:86,t:"yellow",label:"Phase 4",ts:21,bs:14.5,lines:["Basket perps. Hedged","vault, top indexes only."],tag:"risk: contained",tagc:"#d9480f"},
-      {x:866,y:110,w:202,h:86,t:"violet",label:"Phase 5",ts:21,bs:14.5,lines:["Agent managed indexes.","Follow, copy, compete."],tag:"the fun part",tagc:"#6741d9"}
-    ];
-    p.forEach(function(n){ node(s,n); txt(s,n.x+n.w/2,n.y+n.h+18,n.tag,16,n.tagc); });
-    for(var i=0;i<p.length-1;i++){
-      arrow(s,p[i].x+p[i].w,p[i].y+18,p[i+1].x,p[i+1].y+p[i+1].h-18,{});
-    }
-    txt(s,250,60,"you ship most of the product before touching anything hard",16.5,"#777","middle");
-  }
-
-  function drawAll(){
-    drawOverview(); drawLayers(); drawArch(); drawNumbers();
-    drawRoll(); drawEngine(); drawPhases();
-  }
-
-  var tries=0;
-  function init(){
-    if(typeof rough!=="undefined"){
-      try{ RC=rough.svg(document.querySelector("svg")); }catch(e){ RC=null; }
-      // rough.svg must be created per svg; create lazily inside helpers instead
-    }
-    // create a per-svg rough instance map is overkill; rough.svg(any svg) draws nodes we append to target svg, so a single generator works if we append returned nodes to the right svg. It does. Proceed.
-    if(typeof rough==="undefined" && tries<25){ tries++; return setTimeout(init,80); }
-    if(typeof rough!=="undefined"){
-      // Build a generator bound to a detached svg; nodes are appended to target svgs explicitly.
-      var holder=document.createElementNS(SVGNS,"svg");
-      RC=rough.svg(holder);
-    } else {
-      RC=null;
-    }
-    drawAll();
-  }
-  if(document.readyState==="complete"){ init(); }
-  else { window.addEventListener("load",init); }
-})();
-</script>
+</article>
 </body>
 </html>
