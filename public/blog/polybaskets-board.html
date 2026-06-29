@@ -18,7 +18,9 @@
   .article-container { max-width: 720px; margin: 0 auto; padding: 60px 24px 100px; }
   .article-tag { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--accent); margin-bottom: 20px; font-weight: 500; }
   h1 { font-family: 'Instrument Serif', serif; font-size: clamp(32px, 5vw, 46px); line-height: 1.15; font-weight: 400; color: var(--text); margin-bottom: 24px; letter-spacing: -0.5px; }
-  .subtitle { font-size: 19px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 40px; font-weight: 400; }
+  .subtitle { font-size: 19px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 14px; font-weight: 400; }
+  .byline { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: var(--text-secondary); margin-bottom: 40px; }
+  .byline a { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(37,99,235,.32); }
   .divider { width: 48px; height: 2px; background: var(--text); margin: 40px 0; }
   .divider-thin { width: 100%; height: 1px; background: var(--border); margin: 48px 0; }
   h2 { font-family: 'Instrument Serif', serif; font-size: 28px; font-weight: 400; color: var(--text); margin-bottom: 20px; margin-top: 8px; letter-spacing: -0.3px; }
@@ -72,6 +74,8 @@
 
 <p class="subtitle">Trade conviction, not single outcomes. The agent native index layer for prediction markets. Built on Polymarket. Powered by Vara. This board lays out how the whole thing fits together and how the new perps feature works, so anyone on the team can see the shape of it at a glance.</p>
 
+<p class="byline">A working board · <a href="https://polybaskets.xyz" target="_blank" rel="noopener noreferrer">polybaskets.xyz</a> · <a href="https://x.com/poly_baskets" target="_blank" rel="noopener noreferrer">@poly_baskets</a></p>
+
 <div class="divider"></div>
 
 <!-- SECTION 1: OVERVIEW -->
@@ -86,6 +90,7 @@
 <div class="diagram-wrapper">
 <svg viewBox="0 0 760 330" xmlns="http://www.w3.org/2000/svg">
   <rect x="0" y="0" width="760" height="330" fill="var(--diagram-bg)" rx="8"/>
+  <defs><marker id="arw1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="11" markerHeight="11" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#1a1a1a"/></marker></defs>
   <text x="380" y="30" text-anchor="middle" font-family="'Instrument Serif', serif" font-size="18" fill="#1a1a1a">From single bets to a tradable thesis</text>
 
   <!-- three single markets -->
@@ -101,12 +106,9 @@
   <text x="140" y="295" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="12" fill="#2563eb">Polymarket = single bets</text>
 
   <!-- converging arrows -->
-  <line x1="250" y1="90" x2="445" y2="135" stroke="#1a1a1a" stroke-width="1.2"/>
-  <polygon points="438,128 448,136 436,138" fill="#1a1a1a"/>
-  <line x1="250" y1="162" x2="445" y2="162" stroke="#1a1a1a" stroke-width="1.2"/>
-  <polygon points="443,157 453,162 443,167" fill="#1a1a1a"/>
-  <line x1="250" y1="234" x2="445" y2="190" stroke="#1a1a1a" stroke-width="1.2"/>
-  <polygon points="436,187 448,189 438,197" fill="#1a1a1a"/>
+  <line x1="250" y1="92" x2="447" y2="134" stroke="#1a1a1a" stroke-width="1.2" marker-end="url(#arw1)"/>
+  <line x1="250" y1="162" x2="447" y2="162" stroke="#1a1a1a" stroke-width="1.2" marker-end="url(#arw1)"/>
+  <line x1="250" y1="232" x2="447" y2="190" stroke="#1a1a1a" stroke-width="1.2" marker-end="url(#arw1)"/>
 
   <!-- edge label -->
   <rect x="305" y="150" width="92" height="20" fill="var(--diagram-bg)" opacity="0.95"/>
@@ -179,13 +181,13 @@
 <div class="diagram-wrapper">
 <svg viewBox="0 0 760 470" xmlns="http://www.w3.org/2000/svg">
   <rect x="0" y="0" width="760" height="470" fill="var(--diagram-bg)" rx="8"/>
+  <defs><marker id="arw3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="11" markerHeight="11" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#1a1a1a"/></marker></defs>
 
   <!-- user -->
   <rect x="290" y="20" width="180" height="48" rx="7" fill="var(--sketch-fill-purple)" stroke="#1a1a1a" stroke-width="1.3"/>
   <text x="380" y="49" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">You or your Agent</text>
 
-  <line x1="380" y1="68" x2="380" y2="100" stroke="#1a1a1a" stroke-width="1.2"/>
-  <polygon points="375,98 380,108 385,98" fill="#1a1a1a"/>
+  <line x1="380" y1="68" x2="380" y2="107" stroke="#1a1a1a" stroke-width="1.2" marker-end="url(#arw3)"/>
 
   <!-- router -->
   <rect x="220" y="108" width="320" height="66" rx="7" fill="var(--sketch-fill-amber)" stroke="#1a1a1a" stroke-width="1.3"/>
@@ -193,12 +195,9 @@
   <text x="380" y="156" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">splits your thesis into its markets</text>
 
   <!-- router to legs -->
-  <line x1="320" y1="174" x2="150" y2="210" stroke="#1a1a1a" stroke-width="1.2"/>
-  <polygon points="151,202 145,212 159,210" fill="#1a1a1a"/>
-  <line x1="380" y1="174" x2="380" y2="210" stroke="#1a1a1a" stroke-width="1.2"/>
-  <polygon points="375,208 380,218 385,208" fill="#1a1a1a"/>
-  <line x1="440" y1="174" x2="610" y2="210" stroke="#1a1a1a" stroke-width="1.2"/>
-  <polygon points="601,210 615,212 609,202" fill="#1a1a1a"/>
+  <line x1="320" y1="174" x2="140" y2="210" stroke="#1a1a1a" stroke-width="1.2" marker-end="url(#arw3)"/>
+  <line x1="380" y1="174" x2="380" y2="210" stroke="#1a1a1a" stroke-width="1.2" marker-end="url(#arw3)"/>
+  <line x1="440" y1="174" x2="620" y2="210" stroke="#1a1a1a" stroke-width="1.2" marker-end="url(#arw3)"/>
 
   <!-- legs -->
   <rect x="30" y="212" width="210" height="64" rx="7" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.3"/>
@@ -214,20 +213,16 @@
   <text x="625" y="258" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">bought by weight</text>
 
   <!-- legs to books -->
-  <line x1="135" y1="276" x2="170" y2="318" stroke="#1a1a1a" stroke-width="1.2"/>
-  <polygon points="163,312 173,320 161,322" fill="#1a1a1a"/>
-  <line x1="380" y1="276" x2="380" y2="318" stroke="#1a1a1a" stroke-width="1.2"/>
-  <polygon points="375,316 380,326 385,316" fill="#1a1a1a"/>
-  <line x1="625" y1="276" x2="590" y2="318" stroke="#1a1a1a" stroke-width="1.2"/>
-  <polygon points="597,312 587,322 599,320" fill="#1a1a1a"/>
+  <line x1="135" y1="276" x2="175" y2="318" stroke="#1a1a1a" stroke-width="1.2" marker-end="url(#arw3)"/>
+  <line x1="380" y1="276" x2="380" y2="318" stroke="#1a1a1a" stroke-width="1.2" marker-end="url(#arw3)"/>
+  <line x1="625" y1="276" x2="585" y2="318" stroke="#1a1a1a" stroke-width="1.2" marker-end="url(#arw3)"/>
 
   <!-- books -->
   <rect x="30" y="320" width="700" height="56" rx="7" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.3"/>
   <text x="380" y="344" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="15" font-weight="600" fill="#1a1a1a">Polymarket order books</text>
   <text x="380" y="364" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">the other side of every trade lives here, one market at a time</text>
 
-  <line x1="380" y1="376" x2="380" y2="406" stroke="#1a1a1a" stroke-width="1.2"/>
-  <polygon points="375,404 380,414 385,404" fill="#1a1a1a"/>
+  <line x1="380" y1="376" x2="380" y2="415" stroke="#1a1a1a" stroke-width="1.2" marker-end="url(#arw3)"/>
 
   <!-- vara -->
   <rect x="30" y="416" width="700" height="40" rx="7" fill="var(--sketch-fill-gray)" stroke="#1a1a1a" stroke-width="1.3"/>
@@ -293,12 +288,12 @@
 <div class="diagram-wrapper">
 <svg viewBox="0 0 760 300" xmlns="http://www.w3.org/2000/svg">
   <rect x="0" y="0" width="760" height="300" fill="var(--diagram-bg)" rx="8"/>
+  <defs><marker id="arw5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="11" markerHeight="11" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#1a1a1a"/></marker><marker id="arw5b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="11" markerHeight="11" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker></defs>
 
   <text x="380" y="46" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11.5" fill="#2563eb">and again, while your thesis keeps winning</text>
 
   <!-- return arc -->
-  <path d="M 655 116 Q 380 28 105 116" fill="none" stroke="#2563eb" stroke-width="1.2" stroke-dasharray="5,4"/>
-  <polygon points="110,108 100,118 113,120" fill="#2563eb"/>
+  <path d="M 655 116 Q 380 30 112 116" fill="none" stroke="#2563eb" stroke-width="1.2" stroke-dasharray="5,4" marker-end="url(#arw5b)"/>
 
   <!-- boxes -->
   <rect x="20" y="120" width="160" height="84" rx="7" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.3"/>
@@ -318,12 +313,9 @@
   <text x="657" y="178" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">is it still true next month?</text>
 
   <!-- arrows between -->
-  <line x1="180" y1="162" x2="203" y2="162" stroke="#1a1a1a" stroke-width="1.2"/>
-  <polygon points="201,157 211,162 201,167" fill="#1a1a1a"/>
-  <line x1="365" y1="162" x2="388" y2="162" stroke="#1a1a1a" stroke-width="1.2"/>
-  <polygon points="386,157 396,162 386,167" fill="#1a1a1a"/>
-  <line x1="550" y1="162" x2="573" y2="162" stroke="#1a1a1a" stroke-width="1.2"/>
-  <polygon points="571,157 581,162 571,167" fill="#1a1a1a"/>
+  <line x1="180" y1="162" x2="204" y2="162" stroke="#1a1a1a" stroke-width="1.2" marker-end="url(#arw5)"/>
+  <line x1="365" y1="162" x2="389" y2="162" stroke="#1a1a1a" stroke-width="1.2" marker-end="url(#arw5)"/>
+  <line x1="550" y1="162" x2="574" y2="162" stroke="#1a1a1a" stroke-width="1.2" marker-end="url(#arw5)"/>
 
   <text x="380" y="262" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12.5" fill="#555">The index climbs as your thesis keeps coming true. That is rent for</text>
   <text x="380" y="282" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12.5" fill="#555">being right, not a fake upward drift.</text>
@@ -345,6 +337,7 @@
 <div class="diagram-wrapper">
 <svg viewBox="0 0 760 410" xmlns="http://www.w3.org/2000/svg">
   <rect x="0" y="0" width="760" height="410" fill="var(--diagram-bg)" rx="8"/>
+  <defs><marker id="arw6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="11" markerHeight="11" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#1a1a1a"/></marker><marker id="arw6o" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="11" markerHeight="11" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#c2410c"/></marker></defs>
 
   <!-- long -->
   <rect x="70" y="36" width="270" height="80" rx="7" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.3"/>
@@ -357,10 +350,8 @@
   <text x="555" y="92" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">buy NO across every market, by weight</text>
 
   <!-- arrows down to band -->
-  <line x1="205" y1="116" x2="240" y2="168" stroke="#1a1a1a" stroke-width="1.2"/>
-  <polygon points="233,162 243,170 231,172" fill="#1a1a1a"/>
-  <line x1="555" y1="116" x2="520" y2="168" stroke="#1a1a1a" stroke-width="1.2"/>
-  <polygon points="527,162 517,172 529,170" fill="#1a1a1a"/>
+  <line x1="205" y1="116" x2="244" y2="169" stroke="#1a1a1a" stroke-width="1.2" marker-end="url(#arw6)"/>
+  <line x1="555" y1="116" x2="516" y2="169" stroke="#1a1a1a" stroke-width="1.2" marker-end="url(#arw6)"/>
 
   <!-- band -->
   <rect x="70" y="170" width="620" height="58" rx="7" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.3"/>
@@ -368,8 +359,7 @@
   <text x="380" y="214" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">no house and no inventory risk  (Phases 1 to 3)</text>
 
   <!-- dashed arrow to perp -->
-  <line x1="380" y1="228" x2="380" y2="288" stroke="#c2410c" stroke-width="1.3" stroke-dasharray="7,6"/>
-  <polygon points="375,286 380,296 385,286" fill="#c2410c"/>
+  <line x1="380" y1="228" x2="380" y2="295" stroke="#c2410c" stroke-width="1.3" stroke-dasharray="7,6" marker-end="url(#arw6o)"/>
   <rect x="248" y="248" width="264" height="20" fill="var(--diagram-bg)" opacity="0.95"/>
   <text x="380" y="262" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#c2410c">only on the most liquid baskets</text>
 
@@ -397,18 +387,15 @@
 <div class="diagram-wrapper">
 <svg viewBox="0 0 760 440" xmlns="http://www.w3.org/2000/svg">
   <rect x="0" y="0" width="760" height="440" fill="var(--diagram-bg)" rx="8"/>
+  <defs><marker id="arw7" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="11" markerHeight="11" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#1a1a1a"/></marker></defs>
 
   <text x="380" y="40" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11.5" fill="#777">you ship most of the product before touching anything hard</text>
 
   <!-- connecting arrows (drawn first, behind boxes) -->
-  <line x1="155" y1="338" x2="175" y2="362" stroke="#1a1a1a" stroke-width="1.2"/>
-  <polygon points="168,357 178,364 166,366" fill="#1a1a1a"/>
-  <line x1="305" y1="283" x2="325" y2="307" stroke="#1a1a1a" stroke-width="1.2"/>
-  <polygon points="318,302 328,309 316,311" fill="#1a1a1a"/>
-  <line x1="455" y1="228" x2="475" y2="252" stroke="#1a1a1a" stroke-width="1.2"/>
-  <polygon points="468,247 478,254 466,256" fill="#1a1a1a"/>
-  <line x1="605" y1="173" x2="625" y2="197" stroke="#1a1a1a" stroke-width="1.2"/>
-  <polygon points="618,192 628,199 616,201" fill="#1a1a1a"/>
+  <line x1="155" y1="356" x2="163" y2="305" stroke="#1a1a1a" stroke-width="1.2" marker-end="url(#arw7)"/>
+  <line x1="305" y1="301" x2="313" y2="250" stroke="#1a1a1a" stroke-width="1.2" marker-end="url(#arw7)"/>
+  <line x1="455" y1="246" x2="463" y2="195" stroke="#1a1a1a" stroke-width="1.2" marker-end="url(#arw7)"/>
+  <line x1="605" y1="191" x2="613" y2="140" stroke="#1a1a1a" stroke-width="1.2" marker-end="url(#arw7)"/>
 
   <!-- phase 1 -->
   <rect x="15" y="320" width="140" height="76" rx="7" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.3"/>
