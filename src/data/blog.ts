@@ -28,6 +28,15 @@ export interface BlogPost {
 // (title/date/excerpt for the list page). The page itself is shown exactly as authored.
 const fullPosts: BlogPost[] = [
   {
+    slug: "secrets-as-a-service",
+    title: "Secrets as a Service",
+    date: "2026-06-29",
+    excerpt:
+      "A way for a public blockchain to keep a secret and open it exactly on time — nobody can read it early, nobody can hold it back.",
+    kind: "full",
+    file: "/blog/secrets-as-a-service.html",
+  },
+  {
     slug: "prism",
     title: "Prism: a multi-agent harness that measures its own value",
     date: "2026-06-29",
