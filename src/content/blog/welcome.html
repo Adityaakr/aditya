@@ -1,0 +1,46 @@
+<!--
+title: Welcome to the blog
+date: 2026-06-29
+excerpt: How this blog works — and how new posts get added in seconds.
+-->
+<p>
+  This is the first post on the blog. It exists to show how the system works: this
+  whole article is a single content-only HTML file dropped into
+  <code>src/content/blog/</code>, and it showed up here automatically.
+</p>
+
+<h2>How a new post gets added</h2>
+<p>
+  Every file in <code>src/content/blog/</code> becomes a post. The filename turns into
+  the URL — this one is <code>welcome.html</code>, so it lives at <code>/blog/welcome</code>.
+  The list page and this reader page are generated from the files; there's no index to
+  maintain by hand.
+</p>
+
+<h2>The metadata block</h2>
+<p>
+  Each file starts with a small comment at the very top. That's where the title, date, and
+  one-line excerpt come from:
+</p>
+<pre><code>&lt;!--
+title: Welcome to the blog
+date: 2026-06-29
+excerpt: How this blog works.
+--&gt;
+&lt;p&gt;...your article...&lt;/p&gt;</code></pre>
+
+<h2>Writing the article</h2>
+<p>
+  After the comment, just write normal HTML — <strong>headings</strong>, paragraphs,
+  <a href="https://github.com/Adityaakr">links</a>, lists, images, and code all get styled
+  to match the rest of the site automatically:
+</p>
+<ul>
+  <li>No need to add fonts, colors, or layout — the page wraps your content.</li>
+  <li>Newest posts sort to the top by date.</li>
+  <li>Hand the HTML to Claude, or write it yourself — either way it just drops in.</li>
+</ul>
+
+<blockquote>
+  <p>Drop a file, commit, deploy — the post is live.</p>
+</blockquote>
