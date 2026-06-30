@@ -99,7 +99,7 @@
 <div class="divider-thin"></div>
 
 <span class="section-number">03</span>
-<h2>The nine commands</h2>
+<h2>The eleven commands</h2>
 
 <p>Prism is a workflow, and each stage is its own command.</p>
 
@@ -117,12 +117,14 @@
       <tr><td><code>/prism-retro</code></td><td>Learn from a shipped plan</td><td>Compare predicted against actual, consume telemetry, write measured lessons back into memory.</td></tr>
       <tr><td><code>/prism-prune</code></td><td>Keep memory trustworthy</td><td>Re-verify cited invariants against live code, prune or correct stale entries.</td></tr>
       <tr><td><code>/prism-eval</code></td><td>Prove the fleet beats one pass</td><td>Divergence threshold, grounding precision and recall, fleet-vs-single win rate, injected-flaw detection, find-the-floor.</td></tr>
+      <tr><td><code>/prism-write</code></td><td>Write human docs for what you built</td><td>Turns code and project memory into a README, a change summary, retroactive comments, or a self-contained HTML article with an architecture diagram. Every claim is re-derived from the real files, no slop.</td></tr>
+      <tr><td><code>/prism-ship</code></td><td>Drive an idea to a working app in one command</td><td>Chains the whole lifecycle: frame, architect on a lean fleet, decompose, build each milestone in self-correcting loops, attack with the full feedback fleet, retro. Pauses only at scope, the architecture, and irreversible doors.</td></tr>
       <tr><td><code>/prism</code></td><td>Route the task</td><td>Auto-classify the request and run the right stage.</td></tr>
     </tbody>
   </table>
 </div>
 
-<p>The heavy commands (plan, build, implement, and feedback) all run on one shared engine. That engine is where most of Prism's interesting decisions live.</p>
+<p>The heavy commands (plan, build, implement, and feedback) all run on one shared engine, and <code>/prism-ship</code> chains them end to end. That engine is where most of Prism's interesting decisions live.</p>
 
 <div class="divider-thin"></div>
 
@@ -280,6 +282,10 @@
 <p><strong>Loop and persist</strong> - Prism then re-attacks its own draft in critique mode, folds in only the fixes that survive, and repeats until a full round changes nothing material, capped at three rounds. The final result is saved to <code>docs/</code>, the project memory is updated, and telemetry records the divergence score, the model pool that ran, and how each claim survived.</p>
 
 <p>One label matters here. Surviving the skeptics is marked <code>cross-tier-survived</code>, which ranks below <code>grounded</code> (re-checked against live code or docs). The panel uses different Claude tiers, not different model families, so it lowers the chance the reviewers share an error without removing the blind spots baked into Claude itself. Grounding outranks survival, and every decision doc says which is which. A lot of AI systems blur "we checked this" with "nobody objected to this." Prism keeps the two apart.</p>
+
+<p>Two recent additions extend that engine to bigger, messier work. The first is a repo map for large codebases. Differential context only helps if the right files reach the right lens, which gets hard at scale, so Prism caches the project's structure, not its code claims, in <code>.prism/repo-map.md</code>: the directory tree, the workspace roots, and cheap concern tags. A sizing gate then picks the approach, with flat explorers under about 150 files, concern-bucketed fan-out up to 800, and a structure-map-first pass beyond that. Staleness is checked by git blob hashes rather than file counts, and ranking only decides how deeply a file is read, never whether it is read at all.</p>
+
+<p>The second is a craft floor for code Prism writes on a blank page: intent-revealing names, one job per function, no dead code, and comments that explain why. It stays subordinate to conforming with the existing codebase, which always wins, and it is a writing standard, not a new gate. Prism deliberately kept these checks out of <code>prism-gate.sh</code>, because language-blind heuristics cry wolf, and a gate that cries wolf gets ignored.</p>
 
 <div class="divider-thin"></div>
 

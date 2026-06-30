@@ -169,6 +169,12 @@ with react-router-dom. Single-page app, statically built, deployed from GitHub
   than chasing exact assembly on the fast-moving `next` branch.
 
 ## Decision log
+- 2026-06-30 — `prism-plan` (sync content): updated `prism.html` to the latest Prism (grounded in
+  `prism-claude-code/` OVERVIEW + command specs + docs/01-three-improvements). Added 2 commands
+  (`/prism-write`, `/prism-ship`) → "nine" became "eleven"; added two §4 paragraphs (Repo Map for
+  large codebases: structure-only cache, sizing gate, OID staleness, depth-not-inclusion ranking;
+  Craft Floor for greenfield code, subordinate to conform-first, no new gate). Eval numbers + engine
+  + hooks unchanged (verified against EVAL-REPORT.md: 5-3-4, 0.42, ~4.6×). Folded, no new section.
 - 2026-06-30 — `prism-plan` (writing voice, MODERATE chosen): refined `prism.html` to the house
   voice. 3-editor deliberation (structure/AI-tells/voice). Applied: §2 failure cascade de-monotoned,
   cut throat-clearing + 2 restatements, 5 bold lead-ins → " - ", Jaccard in plain words, skeptic
