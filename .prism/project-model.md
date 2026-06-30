@@ -1,6 +1,6 @@
 # Project Model — aditya-portfolio
 
-_Last updated: 2026-06-29 by `prism-understand` (blog section investigation)_
+_Last updated: 2026-06-30 by `prism-understand`/`prism-feedback` (Kohaku article fact-check + fixes)_
 
 A personal portfolio site. Vite + React 18 + TypeScript + Tailwind + shadcn/ui, client-routed
 with react-router-dom. Single-page app, statically built, deployed from GitHub
@@ -126,10 +126,38 @@ with react-router-dom. Single-page app, statically built, deployed from GitHub
   `/blog/:slug` deep links and refreshes return 200 (also fixes `/people-say` refresh).
   Verified locally: `/`, `/blog`, `/blog/welcome` all 200.
 
+## Blog content accuracy (fact-check, 2026-06-30)
+- **`public/blog/kohaku-for-miden.html` reviewed** (5 parallel verifiers grounding against live
+  docs). Conceptual framing, thesis, and honesty are strong; Kohaku is a real EF project
+  (`github.com/ethereum/kohaku`, packages `@kohaku-eth/*` exist, Helios + colibri real). Protocol
+  facts mostly correct: ERC-4337 `PackedUserOperation` v0.7 exact, Privacy Pools ASP+ragequit,
+  Miden nullifier formula + P2ID + RPO-Falcon512 default, 0zk 73-byte Bech32m (XOR-"railgun") all
+  verified accurate. Initial rating **7/10** — dragged down by fabricated code symbols; fixed to ~9.
+- **VERIFIED real `@demox-labs/miden-sdk` surface** (v0.12.5 — use these in any future Miden
+  article, do NOT invent ergonomic calls): `WebClient.createClient(rpcUrl?, noteTransportUrl?,
+  seed?)`, `client.syncState()`, send = `client.newSendTransactionRequest(sender, target, faucet,
+  NoteType.private(), amount)` then `client.submitNewTransaction(sender, req)`,
+  `client.newWallet(AccountStorageMode.private(), mutable, auth_scheme_id:number/*0=RPO-Falcon512*/,
+  initSeed?: Uint8Array|null)`, `SecretKey.rpoFalconWithRNG(seed)` → `.publicKey()`,
+  `AccountComponent.createAuthComponentFromCommitment(word, id)`, balance =
+  `account.vault().getBalance(faucetId)` (AssetVault), prover =
+  `TransactionProver.newRemoteProver(url)`/`newLocalProver()`. FABRICATED (never use):
+  `client.transactions.send({…noteType:"private"})`, `client.accounts.getBalance`,
+  `AuthScheme.AuthRpoFalcon512`, `getPublicKeyAsWord`, `getTransactionSummary`,
+  `submitWithSignatures`, `new RemoteTransactionProver`. MASM: `exec.tx::get_output_notes_info`
+  does NOT exist (no single "total out" call — iterate output notes); `exec.account::incr_nonce`
+  and the `export.auth__<name>` convention ARE real.
+- **LESSON for blog work**: SDK/protocol code in articles must be grounded against live docs, not
+  recalled — Miden's TS API moves fast. Label any proposed/aspirational facade code "illustrative."
+
 ## Decision log
 - 2026-06-29 — Blog implemented (this session). Format chosen: content-only HTML rendered
   inside the React shell (not raw `public/` files), auto-discovered via glob; auto-publish on
   Railway via committed `railway.json`. No `docs/NN-*.md` written.
+- 2026-06-30 — Kohaku article fact-checked + corrected (7 fixes: real Miden TS API, MASM
+  spend-cap, Railgun 4-key model spending/viewing/nullifying/master, PPOI→"Private Proofs of
+  Innocence" attributed to Railgun, commitment operand order, note-tag sync nuance, Tornado
+  `_refund`). Same SDK-grounding pass should run on `fiscus.html` (also has Miden TS/MASM).
 
 ## Lessons
 _(reserved for prism-retro)_

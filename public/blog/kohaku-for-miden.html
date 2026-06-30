@@ -397,7 +397,7 @@
   <tbody>
     <tr><td class="comp">railgun</td><td>shielded-pool contracts plus a 4-key 0zk account plus Groth16 proofs</td><td>a private account plus private notes, proven client-side</td></tr>
     <tr><td class="comp">tornado</td><td>fixed-denomination mixer contract plus a relayer</td><td>equal-value private notes, no relayer needed</td></tr>
-    <tr><td class="comp">privacy-pools</td><td>pool plus approved association sets (PPOI)</td><td>provenance checks inside the note script (FPI)</td></tr>
+    <tr><td class="comp">privacy-pools</td><td>pool plus approved association sets (ASP)</td><td>provenance checks inside the note script (FPI)</td></tr>
     <tr><td class="comp">pq-account</td><td>ERC-4337 account with a Falcon / ML-DSA verifier</td><td>native: Falcon is the default signature</td></tr>
     <tr><td class="comp">provider</td><td>ethers / viem / helios, with light-client verification</td><td>the Miden client; pull-only sync is private by design</td></tr>
   </tbody>
@@ -502,10 +502,11 @@
 <div class="code-tab">miden · ts</div>
 <pre><code><span class="cm">// on Miden you deploy none of that. a private transfer IS the pattern:</span>
 <span class="cm">// the note is the commitment, the nullifier is native, the proof is the STARK.</span>
-<span class="kw">const</span> txId = <span class="kw">await</span> client.transactions.send({
-  account: wallet, to: recipientId, token: faucetId, amount: 100n,
-  noteType: <span class="str">"private"</span>, <span class="cm">// only a commitment is published on-chain</span>
-});
+<span class="cm">// build a private-note send request, then submit it (NoteType.private()</span>
+<span class="cm">// means only a commitment is published on-chain).</span>
+<span class="kw">const</span> req = client.newSendTransactionRequest(
+  wallet, recipientId, faucetId, NoteType.private(), 100n);
+<span class="kw">const</span> txId = <span class="kw">await</span> client.submitNewTransaction(wallet, req);
 <span class="cm">// consuming the note nullifies it; the kernel computes the nullifier from the</span>
 <span class="cm">// note's serial number + script root + inputs. there is no nullifier mapping</span>
 <span class="cm">// for you to deploy, and no verifier contract: the client-side proof is checked</span>
@@ -522,7 +523,7 @@
 <span class="cm">//   inputs     - arguments passed to that script (e.g. the recipient id)</span>
 <span class="cm">//   serial_num - a secret that makes the nullifier unlinkable</span>
 <span class="cm">//</span>
-<span class="cm">// commitment = hash(assets, recipient)   &lt;- this is all the chain stores</span>
+<span class="cm">// commitment = hash(recipient, asset_commitment)   &lt;- all the chain stores</span>
 <span class="cm">// nullifier  = hash(serial_num, script_root, input_commitment, asset_hash)</span>
 <span class="cm">//</span>
 <span class="cm">// the operator of a PRIVATE note only ever sees the commitment and, on spend,</span>
@@ -544,13 +545,15 @@
 
 <div class="code-block">
 <div class="code-tab">kohaku · ts</div>
-<pre><code><span class="kw">import</span> { RailgunAccount } <span class="kw">from</span> <span class="str">"@kohaku-eth/railgun"</span>;
+<pre><code><span class="cm">// illustrative API — the real @kohaku-eth/railgun surface is WASM bindings</span>
+<span class="cm">// plus a RailgunSigner / RailgunAddress; the names here are schematic.</span>
+<span class="kw">import</span> { RailgunAccount } <span class="kw">from</span> <span class="str">"@kohaku-eth/railgun"</span>;
 
-<span class="cm">// a Railgun account derives FOUR keys from one credential:</span>
-<span class="cm">//   spending - sign txs and decrypt your own notes</span>
-<span class="cm">//   viewing  - decrypt note metadata</span>
-<span class="cm">//   master   - your public identity, encoded in the 0zk address</span>
-<span class="cm">//   signer   - sign messages (Ed25519)</span>
+<span class="cm">// a Railgun account derives its keys from two roots (spending + viewing):</span>
+<span class="cm">//   spending   - sign / prove ownership of your notes</span>
+<span class="cm">//   viewing    - decrypt your notes' metadata (ECDH -&gt; AES-GCM)</span>
+<span class="cm">//   nullifying - derived from viewing; produces note nullifiers</span>
+<span class="cm">//   master     - public identity (spending + nullifying), in the 0zk address</span>
 <span class="kw">const</span> account = <span class="kw">await</span> RailgunAccount.fromMnemonic(mnemonic, provider);
 
 <span class="cm">// the 0zk address is Bech32m (BIP350): version + masterPubKey +</span>
@@ -561,10 +564,10 @@
 <table>
   <thead><tr><th>Key</th><th>Job</th></tr></thead>
   <tbody>
-    <tr><td class="comp">spending</td><td>sign transactions, decrypt your own notes</td></tr>
-    <tr><td class="comp">viewing</td><td>decrypt transaction metadata (who can see your activity)</td></tr>
-    <tr><td class="comp">master</td><td>your public identity, in the 0zk address</td></tr>
-    <tr><td class="comp">signer</td><td>sign arbitrary messages (Ed25519)</td></tr>
+    <tr><td class="comp">spending</td><td>sign transactions, prove ownership of your notes</td></tr>
+    <tr><td class="comp">viewing</td><td>decrypt your notes' metadata (who can see your activity)</td></tr>
+    <tr><td class="comp">nullifying</td><td>derived from the viewing key; produces note nullifiers</td></tr>
+    <tr><td class="comp">master</td><td>your public identity (spending + nullifying), in the 0zk address</td></tr>
   </tbody>
 </table>
 
@@ -594,16 +597,17 @@
 <div class="code-tab">miden · ts</div>
 <pre><code><span class="cm">// Miden: your private account IS your private balance. no pool, no 0zk address,</span>
 <span class="cm">// no separate shield step. and post-quantum auth is native (RPO-Falcon512).</span>
+<span class="cm">// auth_scheme_id 0 = the native RPO-Falcon512 auth component; init seed is a</span>
+<span class="cm">// Uint8Array (or null). private storage keeps the account state off-chain.</span>
 <span class="kw">const</span> wallet = <span class="kw">await</span> client.newWallet(
-  AccountStorageMode.private(), true, AuthScheme.AuthRpoFalcon512, seed
+  AccountStorageMode.private(), true, 0, seed
 );
 
 <span class="cm">// "shield"   -&gt; just receive value into the private account (consume a note)</span>
 <span class="cm">// "transfer" -&gt; create a PRIVATE note to the recipient</span>
-<span class="kw">const</span> txId = <span class="kw">await</span> client.transactions.send({
-  account: wallet, to: recipientId, token: faucetId, amount: value,
-  noteType: <span class="str">"private"</span>,
-});
+<span class="kw">const</span> req = client.newSendTransactionRequest(
+  wallet, recipientId, faucetId, NoteType.private(), value);
+<span class="kw">const</span> txId = <span class="kw">await</span> client.submitNewTransaction(wallet, req);
 
 <span class="cm">// "unshield" -&gt; send to a PUBLIC account/note instead of a private one.</span>
 <span class="cm">// the four key types collapse: one Falcon key signs; "viewing" becomes the</span>
@@ -626,7 +630,7 @@
 <span class="kw">begin</span>
     <span class="cm"># load the target account id from the note's inputs  -&gt; [target_id]</span>
     push.0 exec.note::get_inputs drop
-    mem_loadw
+    mem_load
 
     <span class="cm"># compare it against the account executing this transaction</span>
     exec.account::get_id
@@ -652,9 +656,10 @@
 <pre><code><span class="cm">// Tornado's two additions over the base pool: FIXED denominations (so every</span>
 <span class="cm">// note looks identical) and a RELAYER (so the withdrawer's address never appears).</span>
 <span class="kw">function</span> withdraw(bytes calldata proof, bytes32 root, bytes32 nullifierHash,
-                  address payable to, address payable relayer, uint256 fee) external {
+                  address payable to, address payable relayer, uint256 fee,
+                  uint256 refund) external {    <span class="cm">// refund: ETH sub-payment for gas</span>
     require(isKnownRoot(root) &amp;&amp; !nullifierSpent[nullifierHash]);
-    require(verifier.verify(proof, root, nullifierHash, to, relayer, fee));
+    require(verifier.verify(proof, root, nullifierHash, to, relayer, fee, refund));
     nullifierSpent[nullifierHash] = true;
     to.transfer(DENOMINATION - fee);    <span class="cm">// recipient gets the rest</span>
     if (fee &gt; 0) relayer.transfer(fee); <span class="cm">// relayer is paid out of the note</span>
@@ -708,11 +713,11 @@
     <span class="cm">// exit your own deposit without the association-set proof</span>
     <span class="kw">function</span> ragequit(bytes calldata proof, bytes32 nullifierHash) external { }
 }
-<span class="cm">// PPOI (Private Proof of Innocence): prove your funds are NOT in a known-bad</span>
-<span class="cm">// set, without revealing which note is yours.</span></code></pre>
+<span class="cm">// the same goal appears as Railgun's PPOI (Private Proofs of Innocence): prove</span>
+<span class="cm">// your funds are NOT in a known-bad set, without revealing which note is yours.</span></code></pre>
 </div>
 
-<p>Railgun and Privacy Pools both lean on PPOI, Private Proof of Innocence: prove your funds are not in a flagged set, without revealing which note is yours. This is the compliance-aware direction the whole space is moving in.</p>
+<p>Two takes on the same idea sit underneath this: Privacy Pools' <strong>association sets</strong> (the ASP root) and Railgun's <strong>PPOI</strong> (Private Proofs of Innocence) — both let you prove your funds are not in a flagged set, without revealing which note is yours. This is the compliance-aware direction the whole space is moving in.</p>
 
 <h3><span class="h3-num">5.1</span> on Miden <span class="h3-kw">provenance in the note itself</span></h3>
 <p>Miden lets you push this logic into the note. Because a note carries an executable script and can call into other accounts with foreign procedure invocation, a note can require an inclusion proof, against an approved-set root held by a registry account, before it will release its assets. Compliance becomes a property the note enforces, not a gate a central pool keeps.</p>
@@ -797,10 +802,10 @@
 <span class="cm">// signature. there is no EntryPoint, no bundler, no Solidity verifier: account</span>
 <span class="cm">// abstraction is simply how every Miden account works.</span>
 <span class="kw">const</span> wallet = <span class="kw">await</span> client.newWallet(
-  AccountStorageMode.private(), true, AuthScheme.AuthRpoFalcon512, seed
+  AccountStorageMode.private(), true, 0, seed   <span class="cm">// 0 = RPO-Falcon512 auth</span>
 );
-<span class="kw">const</span> key = AuthSecretKey.rpoFalconWithRNG(seed);
-<span class="kw">const</span> commitment = key.getPublicKeyAsWord();
+<span class="kw">const</span> key = SecretKey.rpoFalconWithRNG(seed);          <span class="cm">// native RPO-Falcon512 key</span>
+<span class="kw">const</span> commitment = key.publicKey().toWord();           <span class="cm">// public key as a Word</span>
 <span class="kw">const</span> auth = AccountComponent.createAuthComponentFromCommitment(commitment, 0);
 
 <span class="cm">// the "spending policy" from pq-account becomes programmable auth: the account's</span>
@@ -826,9 +831,10 @@
     <span class="cm"># 1. verify the RPO-Falcon512 signature over the transaction summary</span>
     <span class="cm">#    (the standard auth check, run for you)</span>
 
-    <span class="cm"># 2. introspect outgoing value: sum asset amounts across the output notes</span>
-    exec.tx::get_output_notes_info   <span class="cm"># -&gt; total value leaving the vault</span>
-    <span class="cm"># ... accumulate into total_out ...</span>
+    <span class="cm"># 2. introspect outgoing value: walk this tx's output notes and sum their</span>
+    <span class="cm">#    asset amounts. there is no single "total out" call — the kernel exposes</span>
+    <span class="cm">#    the output notes (and get_output_notes_hash as a commitment); you</span>
+    <span class="cm">#    accumulate the amounts into total_out yourself.</span>
 
     <span class="cm"># 3. abort the WHOLE transaction if it is over the cap</span>
     push.SPEND_CAP lte assert.err=<span class="str">"spend cap exceeded"</span>
@@ -848,21 +854,16 @@
 
 <div class="code-block">
 <div class="code-tab">miden · ts</div>
-<pre><code><span class="cm">// Miden supports async transaction execution: while building a tx, the executor</span>
-<span class="cm">// can call back into an authenticator. that callback is where a co-signer (a</span>
-<span class="cm">// Guardian-style service) verifies the work and returns a signature.</span>
+<pre><code><span class="cm">// Miden supports async execution: while building a tx the executor can call</span>
+<span class="cm">// back into an authenticator (an external keystore). that callback is where a</span>
+<span class="cm">// co-signer (a Guardian-style service) verifies the work and returns a signature.</span>
+<span class="cm">// illustrative — the real surface is the SDK's external-keystore / sign-callback.</span>
 
-<span class="cm">// 1. build the tx; the executor produces a TransactionSummary</span>
-<span class="kw">const</span> summary = <span class="kw">await</span> client.getTransactionSummary(request);
-
+<span class="cm">// 1. the executor produces a TransactionSummary describing the tx's effects</span>
 <span class="cm">// 2. distribute the summary to the co-signers (it carries deltas, not keys)</span>
-<span class="kw">await</span> guardian.requestSignature(summary);
-
 <span class="cm">// 3. each co-signer re-derives the summary, checks it against chain state, and</span>
-<span class="cm">//    signs only if it matches. it never holds a key that can move funds alone.</span>
-
-<span class="cm">// 4. collect the threshold of signatures, attach them, and submit</span>
-<span class="kw">const</span> txId = <span class="kw">await</span> client.submitWithSignatures(request, signatures);</code></pre>
+<span class="cm">//    signs only if it matches — it never holds a key that can move funds alone</span>
+<span class="cm">// 4. collect the threshold of signatures, attach them, and submit the tx</span></code></pre>
 </div>
 
 <div class="mapsto"><span class="lbl">maps to →</span> Kohaku's multi-key accounts and recovery. On Miden this is private-state sync plus threshold signing through Guardian, where every co-signer is a verifier, never a custodian.</div>
@@ -902,15 +903,15 @@
 </div>
 
 <h3><span class="h3-num">8.1</span> on Miden <span class="h3-kw">pull-only sync is the private query</span></h3>
-<p>Miden's client is the provider, and its sync model is already a privacy feature. The node does not push you data. You sync and receive only the notes addressed to you, which is exactly the private token discovery Kohaku has to engineer around centralized indexers. The remaining concern, not pinning a user to one observable endpoint, maps onto Miden's own node-trust and transport choices.</p>
+<p>Miden's client is the provider, and its sync model is already a privacy feature. The node does not push you a feed. You pull notes that match your account's <strong>note tags</strong> and filter them locally. The tags are deliberately coarse — a tag can also match other users' notes — and that fuzziness is part of the privacy, while still giving you the local, indexer-free token discovery Kohaku has to engineer around centralized services. The remaining concern, not pinning a user to one observable endpoint, maps onto Miden's own node-trust and transport choices.</p>
 
 <div class="code-block">
 <div class="code-tab">miden · ts</div>
-<pre><code><span class="cm">// Miden: the client is the provider, and "pull only your notes" IS private token</span>
-<span class="cm">// discovery. the node never pushes your data; you sync and receive only the notes</span>
-<span class="cm">// addressed to you, so there is no centralized indexer watching your balances.</span>
+<pre><code><span class="cm">// Miden: the client is the provider, and tag-based pull sync IS private token</span>
+<span class="cm">// discovery. the node never pushes your data; you pull notes matching your note</span>
+<span class="cm">// tags and filter locally, so there is no centralized indexer watching balances.</span>
 <span class="kw">const</span> client = <span class="kw">await</span> WebClient.createClient(ENDPOINT);
-<span class="kw">await</span> client.syncState(); <span class="cm">// pulls only notes addressed to you, not the chain</span></code></pre>
+<span class="kw">await</span> client.syncState(); <span class="cm">// pulls notes matching your tags, then filters locally</span></code></pre>
 </div>
 
 <div class="mapsto"><span class="lbl">maps to →</span> the provider abstraction plus Helios plus private token discovery. The verifying-provider idea carries over; pull-only sync gives you private discovery without a separate indexer.</div>
@@ -976,8 +977,8 @@
 
 <div class="code-block">
 <div class="code-tab">kohaku-for-miden · ts</div>
-<pre><code><span class="cm">// the Kohaku-for-Miden facade. each capability from this guide is a plugin behind</span>
-<span class="cm">// one surface; the app never touches a note, a proof, a nullifier, or a key.</span>
+<pre><code><span class="cm">// the Kohaku-for-Miden facade (illustrative): each capability from this guide is</span>
+<span class="cm">// a plugin behind one surface; the app never touches a note, proof, nullifier, or key.</span>
 <span class="kw">class</span> MidenPrivacy {
   <span class="kw">static</span> <span class="kw">async</span> connect(o) {
     <span class="kw">const</span> client = <span class="kw">await</span> WebClient.createClient(o.endpoint);
@@ -986,19 +987,20 @@
   }
   <span class="kw">async</span> createPrivateAccount() {                       <span class="cm">// account plugin</span>
     <span class="kw">return</span> this.client.newWallet(
-      AccountStorageMode.private(), true,
-      AuthScheme.AuthRpoFalcon512, this.seed);
+      AccountStorageMode.private(), true, 0, this.seed);  <span class="cm">// 0 = RPO-Falcon512</span>
   }
   <span class="kw">async</span> privateTransfer({ to, token, amount, delegate = false }) {  <span class="cm">// protocol plugin</span>
     <span class="kw">const</span> prover = delegate
-      ? { prover: <span class="kw">new</span> RemoteTransactionProver(this.proverUrl) }     <span class="cm">// proving plugin</span>
-      : undefined;
-    <span class="kw">return</span> this.client.transactions.send(
-      { account: this.account, to, token, amount, noteType: <span class="str">"private"</span> }, prover);
+      ? TransactionProver.newRemoteProver(this.proverUrl)   <span class="cm">// proving plugin</span>
+      : TransactionProver.newLocalProver();
+    <span class="kw">const</span> req = this.client.newSendTransactionRequest(
+      this.account, to, token, NoteType.private(), amount);
+    <span class="kw">return</span> this.client.submitNewTransaction(this.account, req, prover);
   }
-  <span class="kw">async</span> balance(token) {
+  <span class="kw">async</span> balance(faucetId) {
     <span class="kw">await</span> this.client.syncState();
-    <span class="kw">return</span> this.client.accounts.getBalance(this.account, token);
+    <span class="kw">const</span> account = <span class="kw">await</span> this.client.getAccount(this.account);
+    <span class="kw">return</span> account.vault().getBalance(faucetId);
   }
 }</code></pre>
 </div>
