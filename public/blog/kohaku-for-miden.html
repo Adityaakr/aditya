@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kohaku for Miden — Deep Implementation Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FAFAF8;
+    --text: #1a1a1a;
+    --text-secondary: #555;
+    --accent: #2563eb;
+    --accent-light: #dbeafe;
+    --border: #e5e5e0;
+    --diagram-bg: #fefefe;
+    --diagram-border: #d4d4c8;
+    --sketch-stroke: #1a1a1a;
+    --sketch-fill-blue: #dbeafe;
+    --sketch-fill-green: #dcfce7;
+    --sketch-fill-amber: #fef3c7;
+    --sketch-fill-rose: #ffe4e6;
+    --sketch-fill-purple: #f3e8ff;
+    --sketch-fill-gray: #f3f4f6;
+    --callout-bg: #f8f7f4;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.72;
+    font-size: 17.5px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .article-container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 60px 24px 100px;
+  }
+
+  .article-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 20px;
+    font-weight: 500;
+  }
+
+  h1 {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(32px, 5vw, 46px);
+    line-height: 1.15;
+    font-weight: 400;
+    color: var(--text);
+    margin-bottom: 24px;
+    letter-spacing: -0.5px;
+  }
+
+  .subtitle {
+    font-size: 19px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 40px;
+    font-weight: 400;
+  }
+
+  .divider {
+    width: 48px;
+    height: 2px;
+    background: var(--text);
+    margin: 40px 0;
+  }
+
+  .divider-thin {
+    width: 100%;
+    height: 1px;
+    background: var(--border);
+    margin: 48px 0;
+  }
+
+  h2 {
+    font-family: 'Instrument Serif', serif;
+    font-size: 28px;
+    font-weight: 400;
+    color: var(--text);
+    margin-bottom: 20px;
+    margin-top: 8px;
+    letter-spacing: -0.3px;
+  }
+
+  h3 {
+    font-family: 'Instrument Serif', serif;
+    font-size: 22px;
+    font-weight: 400;
+    color: var(--text);
+    margin: 34px 0 14px;
+    letter-spacing: -0.2px;
+  }
+
+  .h3-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--accent);
+    margin-right: 6px;
+  }
+
+  .h3-kw {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    background: var(--accent-light);
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-left: 8px;
+    vertical-align: middle;
+    letter-spacing: 0.3px;
+  }
+
+  .section-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 500;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  p {
+    margin-bottom: 18px;
+    color: var(--text);
+  }
+
+  strong {
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .lead-paragraph {
+    font-size: 19.5px;
+    line-height: 1.65;
+    color: var(--text);
+  }
+
+  ul, ol {
+    margin: 0 0 18px;
+    padding-left: 22px;
+    color: var(--text);
+  }
+
+  li { margin-bottom: 11px; }
+  ol.steps li { margin-bottom: 15px; }
+
+  .callout {
+    background: var(--callout-bg);
+    border-left: 3px solid var(--text);
+    padding: 20px 24px;
+    margin: 32px 0;
+    font-family: 'Instrument Serif', serif;
+    font-size: 20px;
+    line-height: 1.55;
+    font-style: italic;
+    color: var(--text);
+  }
+
+  .callout strong {
+    font-style: normal;
+    font-family: 'Instrument Serif', serif;
+    font-weight: 400;
+  }
+
+  .mapsto {
+    background: var(--callout-bg);
+    border-left: 3px solid var(--accent);
+    padding: 14px 18px;
+    margin: 24px 0;
+    font-size: 15.5px;
+    line-height: 1.55;
+    color: var(--text-secondary);
+  }
+
+  .mapsto .lbl {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--accent);
+    font-weight: 500;
+    margin-right: 6px;
+  }
+
+  .inline-code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14.5px;
+    background: #f0efe8;
+    padding: 2px 6px;
+    border-radius: 3px;
+    color: var(--text);
+  }
+
+  /* ---- dark code blocks ---- */
+  .code-block { margin: 28px 0; }
+
+  .code-tab {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    color: #c9c0ae;
+    background: #2a2723;
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 9px 9px 0 0;
+  }
+
+  pre {
+    margin: 0;
+    background: #1f1d1a;
+    color: #e9e2d4;
+    border-radius: 0 10px 10px 10px;
+    padding: 16px 18px;
+    overflow-x: auto;
+  }
+
+  pre code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #e9e2d4;
+    white-space: pre;
+    display: block;
+  }
+
+  pre code .cm { color: #8a8270; }
+  pre code .str { color: #d8a657; }
+  pre code .kw { color: #7daee0; }
+
+  /* ---- tables ---- */
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 28px 0;
+    font-size: 15px;
+  }
+
+  thead th {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-align: left;
+    padding: 11px 14px;
+    border: 1px solid var(--border);
+    background: var(--callout-bg);
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  tbody td {
+    padding: 11px 14px;
+    border: 1px solid var(--border);
+    vertical-align: top;
+    line-height: 1.5;
+    color: var(--text-secondary);
+  }
+
+  tbody td.comp {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  .diagram-wrapper {
+    margin: 40px -20px;
+    padding: 0;
+  }
+
+  .diagram-wrapper svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .diagram-caption {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    color: var(--text-secondary);
+    text-align: center;
+    margin-top: 12px;
+    letter-spacing: 0.3px;
+    padding: 0 20px;
+  }
+
+  @media (max-width: 600px) {
+    .article-container { padding: 36px 18px 72px; }
+    body { font-size: 16.5px; }
+    h2 { font-size: 24px; }
+    h3 { font-size: 20px; }
+    .diagram-wrapper { margin: 32px -10px; }
+    tbody td.comp { white-space: normal; }
+    pre code { font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+<article class="article-container">
+
+<div class="article-tag">Privacy · Miden · ZK</div>
+
+<h1>Kohaku for Miden — Deep Implementation Guide</h1>
+
+<p class="subtitle">The whole stack. Not just the SDK surface, but the protocol contracts, the post-quantum account, the providers, the plugins, and the Miden implementation of every one.</p>
+
+<div class="divider"></div>
+
+<p class="lead-paragraph">Kohaku is an orchestration layer over several shielded-pool protocols, each of which is a tower of contracts: commitments, nullifiers, Merkle trees, and SNARK verifiers. On Miden almost all of that disappears into the base layer. This guide goes component by component, with real code on both sides. The deep version of the claim is simple: building Kohaku for Miden is less about porting contracts and more about re-expressing the same guarantees with primitives Miden already has.</p>
+
+<div class="divider-thin"></div>
+
+<!-- ===================== SECTION 1 ===================== -->
+<span class="section-number">01</span>
+<h2>What this covers, and the one reframe</h2>
+
+<p>The earlier notes stayed near the SDK surface. This one goes underneath, because that is where the real question lives. Kohaku does not invent privacy. It orchestrates existing privacy protocols, namely Railgun, Tornado Cash, and Privacy Pools, and adds a post-quantum account, a verifying provider layer, and a plugin system that lets a wallet adopt any of it piece by piece.</p>
+
+<p>Each of those privacy protocols is, underneath, a set of on-chain contracts: a Merkle tree of commitments, a set of spent nullifiers, and a zero-knowledge verifier. That is the part that changes most on Miden. Miden gives you private accounts, private notes, commitments, nullifiers, and client-side proofs as base-layer features. So the contract stack that Kohaku spends most of its effort wrapping is, on Miden, mostly already there.</p>
+
+<!-- DIAGRAM 1: dual stack -->
+<div class="diagram-wrapper">
+<svg viewBox="0 0 760 452" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="760" height="452" fill="var(--diagram-bg)" rx="8"/>
+  <line x1="380" y1="48" x2="380" y2="410" stroke="var(--border)" stroke-width="1"/>
+
+  <!-- LEFT: Ethereum -->
+  <text x="195" y="40" text-anchor="middle" font-family="'Instrument Serif', serif" font-size="20" fill="#1a1a1a">Ethereum</text>
+  <text x="195" y="60" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#2563eb">privacy added on top</text>
+
+  <rect x="60" y="80" width="270" height="38" rx="6" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="195" y="104" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13" fill="#1a1a1a">your wallet</text>
+  <line x1="195" y1="120" x2="195" y2="138" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="190,134 195,142 200,134" fill="#1a1a1a"/>
+
+  <rect x="60" y="144" width="270" height="48" rx="6" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="195" y="165" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13" font-weight="600" fill="#1a1a1a">Kohaku SDK</text>
+  <text x="195" y="182" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">unifies the privacy protocols</text>
+  <line x1="195" y1="194" x2="195" y2="212" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="190,208 195,216 200,208" fill="#1a1a1a"/>
+
+  <text x="195" y="232" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#888">bolt-on privacy protocols</text>
+  <rect x="60" y="240" width="84" height="42" rx="6" fill="var(--sketch-fill-purple)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="102" y="266" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#1a1a1a">Railgun</text>
+  <rect x="153" y="240" width="84" height="42" rx="6" fill="var(--sketch-fill-purple)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="195" y="263" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#1a1a1a">Privacy</text>
+  <text x="195" y="276" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#1a1a1a">Pools</text>
+  <rect x="246" y="240" width="84" height="42" rx="6" fill="var(--sketch-fill-purple)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="288" y="266" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#1a1a1a">Tornado</text>
+  <line x1="195" y1="284" x2="195" y2="302" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="190,298 195,306 200,298" fill="#1a1a1a"/>
+
+  <rect x="60" y="308" width="270" height="50" rx="6" fill="var(--sketch-fill-amber)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="195" y="330" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13" font-weight="600" fill="#1a1a1a">transparent base chain</text>
+  <text x="195" y="347" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">everything public by default</text>
+
+  <!-- RIGHT: Miden -->
+  <text x="565" y="40" text-anchor="middle" font-family="'Instrument Serif', serif" font-size="20" fill="#1a1a1a">Miden</text>
+  <text x="565" y="60" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#16a34a">privacy already there</text>
+
+  <rect x="430" y="80" width="270" height="38" rx="6" fill="var(--sketch-fill-gray)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="565" y="104" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13" fill="#1a1a1a">your wallet / app</text>
+  <line x1="565" y1="120" x2="565" y2="138" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="560,134 565,142 570,134" fill="#1a1a1a"/>
+
+  <rect x="430" y="144" width="270" height="48" rx="6" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="565" y="165" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13" font-weight="600" fill="#1a1a1a">Kohaku for Miden</text>
+  <text x="565" y="182" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">native privacy usable in one call</text>
+  <line x1="565" y1="194" x2="565" y2="212" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="560,208 565,216 570,208" fill="#1a1a1a"/>
+
+  <text x="565" y="244" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#888">no bolt-on protocols needed</text>
+  <text x="565" y="258" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#888">(privacy lives in the base layer)</text>
+
+  <rect x="430" y="272" width="270" height="62" rx="6" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="565" y="295" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13" font-weight="600" fill="#1a1a1a">private base layer</text>
+  <text x="565" y="312" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">accounts &amp; notes private</text>
+  <text x="565" y="327" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">client-side proving</text>
+</svg>
+</div>
+<p class="diagram-caption">The familiar picture. This guide is the detailed version of the right-hand side, one component at a time.</p>
+
+<table>
+  <thead><tr><th>Kohaku component</th><th>What it really is on Ethereum</th><th>On Miden</th></tr></thead>
+  <tbody>
+    <tr><td class="comp">railgun</td><td>shielded-pool contracts plus a 4-key 0zk account plus Groth16 proofs</td><td>a private account plus private notes, proven client-side</td></tr>
+    <tr><td class="comp">tornado</td><td>fixed-denomination mixer contract plus a relayer</td><td>equal-value private notes, no relayer needed</td></tr>
+    <tr><td class="comp">privacy-pools</td><td>pool plus approved association sets (PPOI)</td><td>provenance checks inside the note script (FPI)</td></tr>
+    <tr><td class="comp">pq-account</td><td>ERC-4337 account with a Falcon / ML-DSA verifier</td><td>native: Falcon is the default signature</td></tr>
+    <tr><td class="comp">provider</td><td>ethers / viem / helios, with light-client verification</td><td>the Miden client; pull-only sync is private by design</td></tr>
+  </tbody>
+</table>
+
+<div class="divider-thin"></div>
+
+<!-- ===================== SECTION 2 ===================== -->
+<span class="section-number">02</span>
+<h2>The shared anatomy of a shielded pool</h2>
+
+<p>Railgun, Tornado, and Privacy Pools differ in features, but they share one skeleton. Understanding it once explains all three, and explains exactly what Miden replaces. A shielded pool is a contract that holds three things: a Merkle tree of commitments, a set of spent nullifiers, and a proof verifier. You deposit by adding a commitment. You withdraw by proving, in zero knowledge, that you own a leaf and have not spent it.</p>
+
+<div class="code-block">
+<div class="code-tab">solidity</div>
+<pre><code><span class="cm">// the canonical shielded-pool shape, simplified (Tornado-style)</span>
+<span class="kw">contract</span> ShieldedPool {
+    mapping(bytes32 =&gt; bool) public nullifierSpent; <span class="cm">// double-spend guard</span>
+    bytes32[] public roots;                         <span class="cm">// recent Merkle roots</span>
+    IVerifier public verifier;                      <span class="cm">// a Groth16 verifier</span>
+
+    <span class="cm">// deposit: insert a commitment as a new leaf in the Merkle tree</span>
+    <span class="kw">function</span> deposit(bytes32 commitment) external payable {
+        require(msg.value == DENOMINATION);
+        _insert(commitment);                        <span class="cm">// updates tree + root</span>
+        emit Deposit(commitment, nextIndex);
+    }
+
+    <span class="cm">// withdraw: prove you own a leaf, reveal only its nullifier hash</span>
+    <span class="kw">function</span> withdraw(bytes calldata proof, bytes32 root,
+                      bytes32 nullifierHash, address payable to) external {
+        require(isKnownRoot(root), <span class="str">"bad root"</span>);
+        require(!nullifierSpent[nullifierHash], <span class="str">"already spent"</span>);
+        require(verifier.verify(proof, root, nullifierHash, to), <span class="str">"bad proof"</span>);
+        nullifierSpent[nullifierHash] = true;       <span class="cm">// burn the note</span>
+        to.transfer(DENOMINATION);
+    }
+}</code></pre>
+</div>
+
+<p>Every privacy protocol in Kohaku is a richer version of that contract, and every line of it is something a team has to deploy, audit, and maintain. Here is the part that matters: <strong>Miden provides all three pieces natively.</strong> A private note is a commitment in the chain's note tree. The nullifier is computed by the transaction kernel when you consume the note. And the client-side STARK proof replaces the SNARK verifier. You write no pool contract at all.</p>
+
+<!-- DIAGRAM 2: shielded pool vs Miden native -->
+<div class="diagram-wrapper">
+<svg viewBox="0 0 760 432" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="760" height="432" fill="var(--diagram-bg)" rx="8"/>
+  <line x1="380" y1="48" x2="380" y2="400" stroke="var(--border)" stroke-width="1"/>
+
+  <!-- LEFT -->
+  <text x="195" y="40" text-anchor="middle" font-family="'Instrument Serif', serif" font-size="19" fill="#1a1a1a">A shielded pool</text>
+  <text x="195" y="60" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#2563eb">contracts you deploy &amp; maintain</text>
+
+  <rect x="50" y="74" width="290" height="34" rx="6" fill="var(--sketch-fill-gray)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="195" y="96" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="12" fill="#1a1a1a">deposit( commitment )</text>
+  <line x1="195" y1="110" x2="195" y2="128" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="190,124 195,132 200,124" fill="#1a1a1a"/>
+
+  <rect x="50" y="132" width="290" height="186" rx="8" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="195" y="153" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13" font-weight="600" fill="#1a1a1a">the pool contract</text>
+  <rect x="66" y="162" width="258" height="42" rx="6" fill="var(--sketch-fill-purple)" stroke="#1a1a1a" stroke-width="1"/>
+  <text x="195" y="180" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#1a1a1a">commitment Merkle tree</text>
+  <text x="195" y="196" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="10.5" fill="#555">every note is a leaf</text>
+  <rect x="66" y="210" width="258" height="42" rx="6" fill="var(--sketch-fill-purple)" stroke="#1a1a1a" stroke-width="1"/>
+  <text x="195" y="228" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#1a1a1a">nullifier set</text>
+  <text x="195" y="244" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="10.5" fill="#555">spent-note tracking</text>
+  <rect x="66" y="258" width="258" height="42" rx="6" fill="var(--sketch-fill-purple)" stroke="#1a1a1a" stroke-width="1"/>
+  <text x="195" y="276" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#1a1a1a">SNARK verifier (Groth16)</text>
+  <text x="195" y="292" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="10.5" fill="#555">checks every proof on-chain</text>
+  <line x1="195" y1="320" x2="195" y2="338" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="190,334 195,342 200,334" fill="#1a1a1a"/>
+
+  <rect x="50" y="344" width="290" height="34" rx="6" fill="var(--sketch-fill-gray)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="195" y="366" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#1a1a1a">withdraw( proof, nullifierHash )</text>
+
+  <!-- RIGHT -->
+  <text x="565" y="40" text-anchor="middle" font-family="'Instrument Serif', serif" font-size="19" fill="#1a1a1a">Miden, native</text>
+  <text x="565" y="60" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#16a34a">the base layer already does this</text>
+
+  <rect x="420" y="74" width="290" height="48" rx="6" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="565" y="96" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13" font-weight="600" fill="#1a1a1a">a private note</text>
+  <text x="565" y="113" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="10.5" fill="#555">= a commitment in the note tree (native)</text>
+  <line x1="565" y1="124" x2="565" y2="142" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="560,138 565,146 570,138" fill="#1a1a1a"/>
+
+  <rect x="420" y="148" width="290" height="48" rx="6" fill="var(--sketch-fill-gray)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="565" y="170" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13" font-weight="600" fill="#1a1a1a">the nullifier</text>
+  <text x="565" y="187" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="10.5" fill="#555">computed by the kernel on consume (native)</text>
+  <line x1="565" y1="198" x2="565" y2="216" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="560,212 565,220 570,212" fill="#1a1a1a"/>
+
+  <rect x="420" y="222" width="290" height="48" rx="6" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="565" y="244" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13" font-weight="600" fill="#1a1a1a">a client-side STARK proof</text>
+  <text x="565" y="261" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="10.5" fill="#555">proves the spend on your device (native)</text>
+
+  <text x="565" y="312" text-anchor="middle" font-family="'Instrument Serif', serif" font-size="20" fill="#1a1a1a">nothing to deploy.</text>
+  <text x="565" y="336" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" font-style="italic" fill="#555">same guarantees, from the base layer.</text>
+</svg>
+</div>
+<p class="diagram-caption">The left side is a contract you deploy and maintain. The right side is the Miden base layer.</p>
+
+<div class="code-block">
+<div class="code-tab">miden · ts</div>
+<pre><code><span class="cm">// on Miden you deploy none of that. a private transfer IS the pattern:</span>
+<span class="cm">// the note is the commitment, the nullifier is native, the proof is the STARK.</span>
+<span class="kw">const</span> txId = <span class="kw">await</span> client.transactions.send({
+  account: wallet, to: recipientId, token: faucetId, amount: 100n,
+  noteType: <span class="str">"private"</span>, <span class="cm">// only a commitment is published on-chain</span>
+});
+<span class="cm">// consuming the note nullifies it; the kernel computes the nullifier from the</span>
+<span class="cm">// note's serial number + script root + inputs. there is no nullifier mapping</span>
+<span class="cm">// for you to deploy, and no verifier contract: the client-side proof is checked</span>
+<span class="cm">// by the network itself.</span></code></pre>
+</div>
+
+<p>It is worth being concrete about what a note is, because it is the single primitive that replaces the entire pool contract. A note is a bundle of assets, an executable script, the inputs to that script, and a secret serial number. The chain stores only a hash of it.</p>
+
+<div class="code-block">
+<div class="code-tab">miden note model</div>
+<pre><code><span class="cm">// what "a note" actually is on Miden (the fields the commitment is built from):</span>
+<span class="cm">//   assets     - the fungible / non-fungible assets the note carries</span>
+<span class="cm">//   script     - MASM code that must succeed for the note to be consumed</span>
+<span class="cm">//   inputs     - arguments passed to that script (e.g. the recipient id)</span>
+<span class="cm">//   serial_num - a secret that makes the nullifier unlinkable</span>
+<span class="cm">//</span>
+<span class="cm">// commitment = hash(assets, recipient)   &lt;- this is all the chain stores</span>
+<span class="cm">// nullifier  = hash(serial_num, script_root, input_commitment, asset_hash)</span>
+<span class="cm">//</span>
+<span class="cm">// the operator of a PRIVATE note only ever sees the commitment and, on spend,</span>
+<span class="cm">// the nullifier. it never sees assets, script, inputs, or the serial number.</span></code></pre>
+</div>
+
+<div class="callout"><strong>The deep reframe, precisely.</strong> On Ethereum a privacy protocol is a contract that re-implements commitments, nullifiers, and a verifier on top of a transparent chain. On Miden those three are the chain. So Kohaku for Miden mostly means mapping each protocol's behaviour onto the native note model, not redeploying its contracts.</div>
+
+<div class="divider-thin"></div>
+
+<!-- ===================== SECTION 3 ===================== -->
+<span class="section-number">03</span>
+<h2>Railgun, in depth</h2>
+
+<p>Railgun is the protocol Kohaku ships first, and the most complete. It is worth seeing in real detail, because its structure is what you are mapping. Railgun has two main contracts: <code class="inline-code">RailgunSmartWallet</code>, the shielded pool that holds commitments and nullifiers and verifies proofs, and <code class="inline-code">RelayAdapt</code>, a helper that wraps and unwraps native ETH to WETH and composes actions with a multicall.</p>
+
+<h3><span class="h3-num">3.1</span> the account <span class="h3-kw">four keys, one 0zk address</span></h3>
+<p>A Railgun account is not an Ethereum account. From one credential it derives four keys, each with a distinct job, and encodes two of their public halves into a Bech32m address.</p>
+
+<div class="code-block">
+<div class="code-tab">kohaku · ts</div>
+<pre><code><span class="kw">import</span> { RailgunAccount } <span class="kw">from</span> <span class="str">"@kohaku-eth/railgun"</span>;
+
+<span class="cm">// a Railgun account derives FOUR keys from one credential:</span>
+<span class="cm">//   spending - sign txs and decrypt your own notes</span>
+<span class="cm">//   viewing  - decrypt note metadata</span>
+<span class="cm">//   master   - your public identity, encoded in the 0zk address</span>
+<span class="cm">//   signer   - sign messages (Ed25519)</span>
+<span class="kw">const</span> account = <span class="kw">await</span> RailgunAccount.fromMnemonic(mnemonic, provider);
+
+<span class="cm">// the 0zk address is Bech32m (BIP350): version + masterPubKey +</span>
+<span class="cm">// (chainId XOR "railgun") + viewingPubKey, ~73 bytes, prefix "0zk".</span>
+<span class="kw">const</span> addr = account.getRailgunAddress(); <span class="cm">// 0zk1qy...</span></code></pre>
+</div>
+
+<table>
+  <thead><tr><th>Key</th><th>Job</th></tr></thead>
+  <tbody>
+    <tr><td class="comp">spending</td><td>sign transactions, decrypt your own notes</td></tr>
+    <tr><td class="comp">viewing</td><td>decrypt transaction metadata (who can see your activity)</td></tr>
+    <tr><td class="comp">master</td><td>your public identity, in the 0zk address</td></tr>
+    <tr><td class="comp">signer</td><td>sign arbitrary messages (Ed25519)</td></tr>
+  </tbody>
+</table>
+
+<h3><span class="h3-num">3.2</span> the operations <span class="h3-kw">shield, transfer, unshield</span></h3>
+<p>All three operations build notes and Groth16 proofs through one pipeline. Note selection (<code class="inline-code">getTransactNotes</code>) gathers unspent input notes, creates a change note for the remainder, and a send note for the recipient. The on-chain commitment is encrypted with AES-GCM under the recipient's viewing key, so only they can read it.</p>
+
+<div class="code-block">
+<div class="code-tab">kohaku · ts</div>
+<pre><code><span class="cm">// shield: public ERC20 -&gt; a private note. builds a ShieldNoteERC20 with your</span>
+<span class="cm">// master public key, encrypts the note (AES-GCM) under your viewing key, and</span>
+<span class="cm">// calls RailgunSmartWallet. native ETH is wrapped to WETH via RelayAdapt first.</span>
+<span class="kw">const</span> shieldTx = <span class="kw">await</span> account.createShieldTx(token, value);
+
+<span class="cm">// private transfer: 0zk -&gt; 0zk. getTransactNotes() selects unspent input notes,</span>
+<span class="cm">// makes a change Note for you + a SendNote for the receiver, then transact()</span>
+<span class="cm">// produces a Groth16 proof. unshieldType = 0, nothing leaves the private set.</span>
+<span class="kw">const</span> transferTx = <span class="kw">await</span> account.createPrivateTransferTx(token, value, <span class="str">"0zk1..."</span>);
+
+<span class="cm">// unshield: private -&gt; public 0x. same proof machinery, unshieldType = 1.</span>
+<span class="kw">const</span> unshieldTx = <span class="kw">await</span> account.createUnshieldTx(token, value, <span class="str">"0xRecipient"</span>);</code></pre>
+</div>
+
+<h3><span class="h3-num">3.3</span> on Miden <span class="h3-kw">the pool collapses into the account</span></h3>
+<p>On Miden, the 0zk balance is simply your private account, and the four keys collapse to one native Falcon key plus the note details you hand the recipient off-band. Shield, transfer, and unshield become three uses of the same native note mechanism.</p>
+
+<div class="code-block">
+<div class="code-tab">miden · ts</div>
+<pre><code><span class="cm">// Miden: your private account IS your private balance. no pool, no 0zk address,</span>
+<span class="cm">// no separate shield step. and post-quantum auth is native (RPO-Falcon512).</span>
+<span class="kw">const</span> wallet = <span class="kw">await</span> client.newWallet(
+  AccountStorageMode.private(), true, AuthScheme.AuthRpoFalcon512, seed
+);
+
+<span class="cm">// "shield"   -&gt; just receive value into the private account (consume a note)</span>
+<span class="cm">// "transfer" -&gt; create a PRIVATE note to the recipient</span>
+<span class="kw">const</span> txId = <span class="kw">await</span> client.transactions.send({
+  account: wallet, to: recipientId, token: faucetId, amount: value,
+  noteType: <span class="str">"private"</span>,
+});
+
+<span class="cm">// "unshield" -&gt; send to a PUBLIC account/note instead of a private one.</span>
+<span class="cm">// the four key types collapse: one Falcon key signs; "viewing" becomes the</span>
+<span class="cm">// note details you deliver to the recipient off-band (encrypted by you).</span></code></pre>
+</div>
+
+<div class="mapsto"><span class="lbl">maps to →</span> RailgunSmartWallet plus RelayAdapt plus the transact() Groth16 proof. All three become a private account, a private note, and a native client-side STARK proof.</div>
+
+<h3><span class="h3-num">3.4</span> what a private note is <span class="h3-kw">in real code</span></h3>
+<p>None of the above is hand-waving about a magic note. A note is a small MASM program. Here is the canonical one, pay-to-ID, which is exactly what runs when the recipient consumes a private transfer: it checks that the consuming account is the intended recipient, then moves the assets into their vault. A privacy SDK ships notes like this so an app never writes MASM.</p>
+
+<div class="code-block">
+<div class="code-tab">miden · masm</div>
+<pre><code><span class="kw">use</span>.miden::account
+<span class="kw">use</span>.miden::note
+<span class="kw">use</span>.miden::contracts::wallets::basic-&gt;wallet
+
+<span class="cm"># Pay-to-ID: the canonical note. only the intended account can consume it.</span>
+<span class="cm"># this is what "a private transfer" actually runs on the recipient's side.</span>
+<span class="kw">begin</span>
+    <span class="cm"># load the target account id from the note's inputs  -&gt; [target_id]</span>
+    push.0 exec.note::get_inputs drop
+    mem_loadw
+
+    <span class="cm"># compare it against the account executing this transaction</span>
+    exec.account::get_id
+    assert_eq.err=<span class="str">"P2ID: not the intended recipient"</span>
+
+    <span class="cm"># move each asset the note carries into the account's vault</span>
+    exec.note::get_assets            <span class="cm"># -&gt; [num_assets, assets_ptr]</span>
+    <span class="cm"># loop over the assets, calling the wallet to receive each one:</span>
+    <span class="cm">#   call.wallet::receive_asset</span>
+<span class="kw">end</span></code></pre>
+</div>
+
+<div class="divider-thin"></div>
+
+<!-- ===================== SECTION 4 ===================== -->
+<span class="section-number">04</span>
+<h2>Tornado Cash, in depth</h2>
+
+<p>Tornado is the simplest shielded pool, and the clearest contrast. It adds two things to the base contract from section 2: fixed denominations, so every note in a pool is indistinguishable, and a relayer, so the person withdrawing never has to submit a transaction from their own address, which would otherwise need ETH and reveal them.</p>
+
+<div class="code-block">
+<div class="code-tab">solidity</div>
+<pre><code><span class="cm">// Tornado's two additions over the base pool: FIXED denominations (so every</span>
+<span class="cm">// note looks identical) and a RELAYER (so the withdrawer's address never appears).</span>
+<span class="kw">function</span> withdraw(bytes calldata proof, bytes32 root, bytes32 nullifierHash,
+                  address payable to, address payable relayer, uint256 fee) external {
+    require(isKnownRoot(root) &amp;&amp; !nullifierSpent[nullifierHash]);
+    require(verifier.verify(proof, root, nullifierHash, to, relayer, fee));
+    nullifierSpent[nullifierHash] = true;
+    to.transfer(DENOMINATION - fee);    <span class="cm">// recipient gets the rest</span>
+    if (fee &gt; 0) relayer.transfer(fee); <span class="cm">// relayer is paid out of the note</span>
+}</code></pre>
+</div>
+
+<p>The relayer exists only because, on Ethereum, submitting a withdrawal is itself a public act tied to an address that needs gas. The anonymity set is the count of identical deposits not yet withdrawn.</p>
+
+<h3><span class="h3-num">4.1</span> on Miden <span class="h3-kw">no relayer, by construction</span></h3>
+<p>On Miden, the relayer problem largely vanishes. You prove the spend on your own device, and a withdrawal is just a fresh transaction against your own account, so there is no separate public actor whose address leaks. A fixed-denomination mixer becomes a note script that only accepts and releases equal-value private notes.</p>
+
+<div class="code-block">
+<div class="code-tab">miden · masm</div>
+<pre><code><span class="cm">// Miden: you do not need a relayer. you prove the spend locally, and the note</span>
+<span class="cm">// model already breaks the link (a withdraw is a fresh tx against your account).</span>
+<span class="cm">// a fixed-denomination anonymity pool becomes a note SCRIPT that only accepts</span>
+<span class="cm">// and releases equal-value private notes:</span>
+<span class="kw">use</span>.miden::note
+<span class="kw">use</span>.miden::contracts::wallets::basic-&gt;wallet
+
+<span class="cm"># (sketch) accept only the fixed denomination, then route assets to the consumer.</span>
+<span class="cm"># the anonymity set is everyone who has deposited an identical note.</span></code></pre>
+</div>
+
+<div class="mapsto"><span class="lbl">maps to →</span> MerkleTreeWithHistory plus the Verifier plus the relayer. The tree and verifier are native; the relayer is unnecessary because proving is local and the note model breaks the link.</div>
+
+<div class="callout"><strong>One honest nuance.</strong> An anonymity set still has to come from somewhere: many identical private notes. On Miden you get unlinkability from the note model for free, but a large mixing set is still a function of how many people use the same denomination. The primitive is easier; the network effect is the same.</div>
+
+<div class="divider-thin"></div>
+
+<!-- ===================== SECTION 5 ===================== -->
+<span class="section-number">05</span>
+<h2>Privacy Pools and compliance</h2>
+
+<p>Privacy Pools is the most interesting of the three, because it answers the obvious objection to mixers. Instead of all-or-nothing anonymity, a withdrawal proves two things: that your note is in the pool, and that it is in an approved subset of the pool, an association set chosen to exclude known-bad deposits. You get privacy and provenance at once. You can also ragequit, withdrawing your own deposit with no association proof.</p>
+
+<div class="code-block">
+<div class="code-tab">solidity</div>
+<pre><code><span class="cm">// Privacy Pools = a pool PLUS an approved association set. a withdrawal proves</span>
+<span class="cm">// your note is in the pool AND in an approved subset (the ASP root), giving you</span>
+<span class="cm">// privacy with provenance. you can also "ragequit" your own deposit with no ASP.</span>
+<span class="kw">contract</span> PrivacyPool {
+    <span class="kw">function</span> withdraw(
+        bytes calldata proof,
+        bytes32 stateRoot,      <span class="cm">// membership in the pool's commitment tree</span>
+        bytes32 aspRoot,        <span class="cm">// membership in the APPROVED set (compliance)</span>
+        bytes32 nullifierHash,
+        address recipient
+    ) external { <span class="cm">/* verify both roots + nullifier, then pay out */</span> }
+
+    <span class="cm">// exit your own deposit without the association-set proof</span>
+    <span class="kw">function</span> ragequit(bytes calldata proof, bytes32 nullifierHash) external { }
+}
+<span class="cm">// PPOI (Private Proof of Innocence): prove your funds are NOT in a known-bad</span>
+<span class="cm">// set, without revealing which note is yours.</span></code></pre>
+</div>
+
+<p>Railgun and Privacy Pools both lean on PPOI, Private Proof of Innocence: prove your funds are not in a flagged set, without revealing which note is yours. This is the compliance-aware direction the whole space is moving in.</p>
+
+<h3><span class="h3-num">5.1</span> on Miden <span class="h3-kw">provenance in the note itself</span></h3>
+<p>Miden lets you push this logic into the note. Because a note carries an executable script and can call into other accounts with foreign procedure invocation, a note can require an inclusion proof, against an approved-set root held by a registry account, before it will release its assets. Compliance becomes a property the note enforces, not a gate a central pool keeps.</p>
+
+<div class="code-block">
+<div class="code-tab">miden · masm</div>
+<pre><code><span class="cm"># Miden: compliance lives in the note's own logic. a note script can require an</span>
+<span class="cm"># inclusion proof that its provenance is in an approved set before it releases its</span>
+<span class="cm"># assets, using foreign procedure invocation (FPI) to read an approved-set root</span>
+<span class="cm"># from a registry account. the note refuses to consume unless provenance checks out.</span>
+<span class="kw">use</span>.miden::note
+<span class="kw">use</span>.miden::tx
+
+<span class="cm"># read the approved-set root from the registry via FPI, verify an inclusion proof</span>
+<span class="cm"># for this note's origin against it (passed in via the advice provider), then</span>
+<span class="cm"># release the assets. compliance is enforced by the note, not a central pool.</span></code></pre>
+</div>
+
+<div class="mapsto"><span class="lbl">maps to →</span> the Entrypoint plus association sets plus PPOI. On Miden the approved-set check moves into the note script and FPI, so the note refuses to consume unless its provenance is approved.</div>
+
+<div class="divider-thin"></div>
+
+<!-- ===================== SECTION 6 ===================== -->
+<span class="section-number">06</span>
+<h2>Post-quantum accounts</h2>
+
+<p>This is the component closest to dedicated post-quantum account work, and the one where Miden has the biggest head start. Kohaku's pq-account is an ERC-4337 smart account whose signature check is a post-quantum scheme, Falcon or Dilithium (ML-DSA), verified by an optimized Solidity verifier instead of <code class="inline-code">ecrecover</code>. It also ships a killswitch to migrate an account from ECDSA to post-quantum, and per-signer spending policies.</p>
+
+<p>The account itself overrides just one thing, the signature check. Here is that override, verifying a lattice signature where a normal account would call <code class="inline-code">ecrecover</code>.</p>
+
+<div class="code-block">
+<div class="code-tab">solidity</div>
+<pre><code><span class="cm">// the ERC-4337 machinery pq-account plugs into. a UserOperation is a transaction</span>
+<span class="cm">// the EntryPoint validates and executes on the smart account's behalf.</span>
+<span class="kw">struct</span> PackedUserOperation {
+    address sender;           <span class="cm">// the smart account</span>
+    uint256 nonce;
+    bytes initCode;           <span class="cm">// deploys the account if it does not exist yet</span>
+    bytes callData;           <span class="cm">// what the account should do</span>
+    bytes32 accountGasLimits;
+    uint256 preVerificationGas;
+    bytes32 gasFees;
+    bytes paymasterAndData;   <span class="cm">// optional: someone else pays gas (gas abstraction)</span>
+    bytes signature;          <span class="cm">// the post-quantum signature pq-account verifies</span>
+}
+<span class="cm">// EntryPoint.handleOps(ops, beneficiary): for each op, call validateUserOp()</span>
+<span class="cm">// then execute callData. a separate off-chain bundler relays ops to the EntryPoint.</span></code></pre>
+</div>
+
+<div class="code-block">
+<div class="code-tab">solidity</div>
+<pre><code><span class="cm">// Kohaku's pq-account: an ERC-4337 account that verifies a POST-QUANTUM signature</span>
+<span class="cm">// instead of ECDSA. validateUserOp is called by the EntryPoint singleton.</span>
+<span class="kw">contract</span> PQAccount is BaseAccount {
+    bytes public pqPublicKey;       <span class="cm">// Falcon or Dilithium (ML-DSA) public key</span>
+    IPQVerifier public verifier;    <span class="cm">// an optimized Solidity PQ verifier</span>
+
+    <span class="kw">function</span> validateUserOp(PackedUserOperation calldata op, bytes32 opHash,
+                            uint256 missingFunds) external override
+        returns (uint256 validationData)
+    {
+        <span class="cm">// verify a lattice signature over the userOp hash (not ecrecover)</span>
+        if (!verifier.verify(pqPublicKey, opHash, op.signature))
+            <span class="kw">return</span> SIG_VALIDATION_FAILED;
+        _payPrefund(missingFunds);
+        <span class="kw">return</span> 0; <span class="cm">// 0 == valid</span>
+    }
+
+    <span class="cm">// PQ killswitch: migrate the active validator from ECDSA to post-quantum.</span>
+    <span class="cm">// spending policy: enforce a per-signer cap inside the account itself.</span>
+}</code></pre>
+</div>
+
+<p>On Ethereum this is real work: you need the EntryPoint singleton, a bundler, and an expensive on-chain lattice verifier. Account abstraction itself is a standard bolted on top of accounts that are otherwise just keys.</p>
+
+<h3><span class="h3-num">6.1</span> on Miden <span class="h3-kw">this is the default</span></h3>
+<p>Miden is post-quantum at its core. Every account is already programmable, account abstraction is not a standard you opt into, it is how accounts work, and the native signature is RPO-Falcon512. So the entire pq-account package reduces to choosing the native auth, with no EntryPoint, no bundler, and no Solidity verifier.</p>
+
+<div class="code-block">
+<div class="code-tab">miden · ts</div>
+<pre><code><span class="cm">// Miden: post-quantum is the DEFAULT, not an add-on. RPO-Falcon512 is the native</span>
+<span class="cm">// signature. there is no EntryPoint, no bundler, no Solidity verifier: account</span>
+<span class="cm">// abstraction is simply how every Miden account works.</span>
+<span class="kw">const</span> wallet = <span class="kw">await</span> client.newWallet(
+  AccountStorageMode.private(), true, AuthScheme.AuthRpoFalcon512, seed
+);
+<span class="kw">const</span> key = AuthSecretKey.rpoFalconWithRNG(seed);
+<span class="kw">const</span> commitment = key.getPublicKeyAsWord();
+<span class="kw">const</span> auth = AccountComponent.createAuthComponentFromCommitment(commitment, 0);
+
+<span class="cm">// the "spending policy" from pq-account becomes programmable auth: the account's</span>
+<span class="cm">// auth code runs INSIDE the tx and, using transaction introspection, can read</span>
+<span class="cm">// what is leaving the vault and abort if it is over a cap. (this is the Subrosa</span>
+<span class="cm">// agent cap.) ECDSA is also supported when you must reuse existing keys.</span></code></pre>
+</div>
+
+<div class="mapsto"><span class="lbl">maps to →</span> the whole pq-account package. validateUserOp plus the lattice verifier plus spending policies become native Falcon auth plus programmable auth that reads the vault and caps spend in-transaction.</div>
+
+<h3><span class="h3-num">6.2</span> the spending policy <span class="h3-kw">as native auth code</span></h3>
+<p>The per-signer spending policy that pq-account enforces in Solidity becomes a few lines of account auth on Miden. Because auth runs inside the transaction and can introspect what is leaving the vault, the cap is enforced by the chain, not trusted to the app. This is the exact mechanism behind a confidential agent that may trade up to a limit and no further.</p>
+
+<div class="code-block">
+<div class="code-tab">miden · masm</div>
+<pre><code><span class="kw">use</span>.miden::account
+<span class="kw">use</span>.miden::tx
+
+<span class="cm"># a custom auth component: check the signature, then enforce a per-tx spend cap</span>
+<span class="cm"># by inspecting how much value leaves the vault this transaction. this is the</span>
+<span class="cm"># Subrosa agent cap, enforced by the account itself instead of the app.</span>
+<span class="kw">export</span>.auth__spend_cap
+    <span class="cm"># 1. verify the RPO-Falcon512 signature over the transaction summary</span>
+    <span class="cm">#    (the standard auth check, run for you)</span>
+
+    <span class="cm"># 2. introspect outgoing value: sum asset amounts across the output notes</span>
+    exec.tx::get_output_notes_info   <span class="cm"># -&gt; total value leaving the vault</span>
+    <span class="cm"># ... accumulate into total_out ...</span>
+
+    <span class="cm"># 3. abort the WHOLE transaction if it is over the cap</span>
+    push.SPEND_CAP lte assert.err=<span class="str">"spend cap exceeded"</span>
+
+    <span class="cm"># 4. finalize by incrementing the account nonce</span>
+    exec.account::incr_nonce
+<span class="kw">end</span></code></pre>
+</div>
+
+<div class="divider-thin"></div>
+
+<!-- ===================== SECTION 7 ===================== -->
+<span class="section-number">07</span>
+<h2>Private state and multisig</h2>
+
+<p>The last account-level capability is coordination. When two parties or two devices share private state, something has to keep them in sync and gather signatures. Kohaku approaches this through multi-key accounts and recovery. On Miden it becomes private-state sync plus threshold signing, and it is where the Guardian role lives. Miden supports async transaction execution: while the executor builds a transaction it can call back into an authenticator, and it can hand a transaction summary to several co-signers who each verify it against chain state before signing.</p>
+
+<div class="code-block">
+<div class="code-tab">miden · ts</div>
+<pre><code><span class="cm">// Miden supports async transaction execution: while building a tx, the executor</span>
+<span class="cm">// can call back into an authenticator. that callback is where a co-signer (a</span>
+<span class="cm">// Guardian-style service) verifies the work and returns a signature.</span>
+
+<span class="cm">// 1. build the tx; the executor produces a TransactionSummary</span>
+<span class="kw">const</span> summary = <span class="kw">await</span> client.getTransactionSummary(request);
+
+<span class="cm">// 2. distribute the summary to the co-signers (it carries deltas, not keys)</span>
+<span class="kw">await</span> guardian.requestSignature(summary);
+
+<span class="cm">// 3. each co-signer re-derives the summary, checks it against chain state, and</span>
+<span class="cm">//    signs only if it matches. it never holds a key that can move funds alone.</span>
+
+<span class="cm">// 4. collect the threshold of signatures, attach them, and submit</span>
+<span class="kw">const</span> txId = <span class="kw">await</span> client.submitWithSignatures(request, signatures);</code></pre>
+</div>
+
+<div class="mapsto"><span class="lbl">maps to →</span> Kohaku's multi-key accounts and recovery. On Miden this is private-state sync plus threshold signing through Guardian, where every co-signer is a verifier, never a custodian.</div>
+
+<div class="callout"><strong>Why this matters for the SDK.</strong> This is the piece that unlocks multi-party and multi-device apps: shared treasuries, social recovery, an agent whose large actions need a human co-sign. The SDK's job is to make a co-sign feel like one approval, while the Guardian never holds a key that can move funds on its own.</div>
+
+<div class="divider-thin"></div>
+
+<!-- ===================== SECTION 8 ===================== -->
+<span class="section-number">08</span>
+<h2>Providers and the connection layer</h2>
+
+<p>Privacy is not only on-chain. Kohaku treats the connection itself as a leak. Its provider package puts one interface over ethers, viem, helios, and colibri, and recommends a strict hierarchy: a local node first, then your own RPC, then the Helios light client wrapping an untrusted RPC and verifying its answers on-device, and only as a last resort a default endpoint, with a warning. The point is to never let a single RPC silently watch every balance query and tie it to your IP.</p>
+
+<div class="code-block">
+<div class="code-tab">kohaku · ts</div>
+<pre><code><span class="cm">// Kohaku's provider: one interface over ethers / viem / helios / colibri, with</span>
+<span class="cm">// a privacy hierarchy -&gt; (1) local node (2) your own RPC (3) Helios light</span>
+<span class="cm">// client wrapping an untrusted RPC and verifying it on-device (4) default (warn).</span>
+<span class="kw">import</span> { createProvider } <span class="kw">from</span> <span class="str">"@kohaku-eth/provider"</span>;
+<span class="kw">const</span> provider = createProvider({ backend: <span class="str">"helios"</span> }); <span class="cm">// verify, don't trust</span></code></pre>
+</div>
+
+<p>In code, that hierarchy is a verifying wrapper around an untrusted RPC, plus local token discovery instead of a centralized indexer.</p>
+
+<div class="code-block">
+<div class="code-tab">kohaku · ts</div>
+<pre><code><span class="cm">// the connection-layer privacy, in code: wrap an untrusted RPC in Helios so every</span>
+<span class="cm">// response is verified on-device (checkpoint sync), and discover tokens by scanning</span>
+<span class="cm">// the user's OWN events locally instead of trusting a centralized indexer.</span>
+<span class="kw">import</span> { createProvider } <span class="kw">from</span> <span class="str">"@kohaku-eth/provider"</span>;
+<span class="kw">const</span> provider = createProvider({
+  backend: <span class="str">"helios"</span>,          <span class="cm">// verify RPC answers locally, do not trust them</span>
+  checkpoint: TRUSTED_BLOCK,  <span class="cm">// start from a recent trusted state, not genesis</span>
+});
+<span class="kw">const</span> tokens = <span class="kw">await</span> provider.discoverTokensLocally(account); <span class="cm">// no indexer</span></code></pre>
+</div>
+
+<h3><span class="h3-num">8.1</span> on Miden <span class="h3-kw">pull-only sync is the private query</span></h3>
+<p>Miden's client is the provider, and its sync model is already a privacy feature. The node does not push you data. You sync and receive only the notes addressed to you, which is exactly the private token discovery Kohaku has to engineer around centralized indexers. The remaining concern, not pinning a user to one observable endpoint, maps onto Miden's own node-trust and transport choices.</p>
+
+<div class="code-block">
+<div class="code-tab">miden · ts</div>
+<pre><code><span class="cm">// Miden: the client is the provider, and "pull only your notes" IS private token</span>
+<span class="cm">// discovery. the node never pushes your data; you sync and receive only the notes</span>
+<span class="cm">// addressed to you, so there is no centralized indexer watching your balances.</span>
+<span class="kw">const</span> client = <span class="kw">await</span> WebClient.createClient(ENDPOINT);
+<span class="kw">await</span> client.syncState(); <span class="cm">// pulls only notes addressed to you, not the chain</span></code></pre>
+</div>
+
+<div class="mapsto"><span class="lbl">maps to →</span> the provider abstraction plus Helios plus private token discovery. The verifying-provider idea carries over; pull-only sync gives you private discovery without a separate indexer.</div>
+
+<div class="divider-thin"></div>
+
+<!-- ===================== SECTION 9 ===================== -->
+<span class="section-number">09</span>
+<h2>The plugin system, and one surface</h2>
+
+<p>Kohaku is deliberately a modular toolkit with a plugin system: a wallet team takes the pieces it wants and leaves the rest, without rewriting its app. The same shape works on Miden. Each capability from this guide is a plugin behind one facade: protocol plugins (note scripts), account plugins (auth components), proving plugins (local or delegated), and provider plugins. The app sees one ergonomic call per intent.</p>
+
+<!-- DIAGRAM 3: plugin surface -->
+<div class="diagram-wrapper">
+<svg viewBox="0 0 760 426" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="760" height="426" fill="var(--diagram-bg)" rx="8"/>
+
+  <text x="380" y="32" text-anchor="middle" font-family="'Instrument Serif', serif" font-size="18" fill="#1a1a1a">One surface over the Miden base layer</text>
+
+  <!-- App / Wallet -->
+  <rect x="130" y="50" width="500" height="58" rx="8" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="380" y="74" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="13" font-weight="600" fill="#1a1a1a">APP / WALLET</text>
+  <text x="380" y="94" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#555">one call: privateTransfer() · privateInteract() · createPrivateAccount()</text>
+  <line x1="380" y1="110" x2="380" y2="130" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="375,126 380,134 385,126" fill="#1a1a1a"/>
+
+  <!-- SDK band -->
+  <rect x="60" y="134" width="640" height="172" rx="10" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="380" y="157" text-anchor="middle" font-family="'Instrument Serif', serif" font-size="17" fill="#1a1a1a">Kohaku for Miden · the SDK layer</text>
+
+  <rect x="76" y="170" width="188" height="56" rx="6" fill="#ffffff" stroke="#1a1a1a" stroke-width="1"/>
+  <text x="170" y="194" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12.5" font-weight="600" fill="#1a1a1a">Private Accounts</text>
+  <text x="170" y="212" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">create · manage</text>
+  <rect x="286" y="170" width="188" height="56" rx="6" fill="#ffffff" stroke="#1a1a1a" stroke-width="1"/>
+  <text x="380" y="194" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12.5" font-weight="600" fill="#1a1a1a">Notes &amp; Transfers</text>
+  <text x="380" y="212" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">build · track</text>
+  <rect x="496" y="170" width="188" height="56" rx="6" fill="#ffffff" stroke="#1a1a1a" stroke-width="1"/>
+  <text x="590" y="194" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12.5" font-weight="600" fill="#1a1a1a">Account Abstraction</text>
+  <text x="590" y="212" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">+ PQ auth (Falcon)</text>
+
+  <rect x="76" y="234" width="188" height="56" rx="6" fill="#ffffff" stroke="#1a1a1a" stroke-width="1"/>
+  <text x="170" y="258" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12.5" font-weight="600" fill="#1a1a1a">Proving</text>
+  <text x="170" y="276" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">local / delegated</text>
+  <rect x="286" y="234" width="188" height="56" rx="6" fill="#ffffff" stroke="#1a1a1a" stroke-width="1"/>
+  <text x="380" y="258" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12.5" font-weight="600" fill="#1a1a1a">Private State</text>
+  <text x="380" y="276" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">via Guardian</text>
+  <rect x="496" y="234" width="188" height="56" rx="6" fill="#ffffff" stroke="#1a1a1a" stroke-width="1"/>
+  <text x="590" y="258" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12.5" font-weight="600" fill="#1a1a1a">Provider / Client</text>
+  <text x="590" y="276" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">+ private transport</text>
+
+  <line x1="380" y1="306" x2="380" y2="326" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="375,322 380,330 385,322" fill="#1a1a1a"/>
+
+  <!-- Base layer -->
+  <rect x="60" y="330" width="640" height="54" rx="8" fill="var(--sketch-fill-amber)" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="380" y="353" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="13" font-weight="600" fill="#1a1a1a">MIDEN BASE LAYER</text>
+  <text x="380" y="371" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="10.5" fill="#555">private accounts · notes · nullifiers · client-side STARK proving · Falcon (post-quantum)</text>
+
+  <text x="380" y="406" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" font-style="italic" fill="#888">only commitments &amp; nullifiers are ever public</text>
+</svg>
+</div>
+<p class="diagram-caption">The components from sections 3 to 7, as plugins behind a single surface.</p>
+
+<div class="code-block">
+<div class="code-tab">kohaku-for-miden · ts</div>
+<pre><code><span class="cm">// the Kohaku-for-Miden facade. each capability from this guide is a plugin behind</span>
+<span class="cm">// one surface; the app never touches a note, a proof, a nullifier, or a key.</span>
+<span class="kw">class</span> MidenPrivacy {
+  <span class="kw">static</span> <span class="kw">async</span> connect(o) {
+    <span class="kw">const</span> client = <span class="kw">await</span> WebClient.createClient(o.endpoint);
+    <span class="kw">await</span> client.syncState();
+    <span class="kw">return</span> <span class="kw">new</span> MidenPrivacy(client, o);
+  }
+  <span class="kw">async</span> createPrivateAccount() {                       <span class="cm">// account plugin</span>
+    <span class="kw">return</span> this.client.newWallet(
+      AccountStorageMode.private(), true,
+      AuthScheme.AuthRpoFalcon512, this.seed);
+  }
+  <span class="kw">async</span> privateTransfer({ to, token, amount, delegate = false }) {  <span class="cm">// protocol plugin</span>
+    <span class="kw">const</span> prover = delegate
+      ? { prover: <span class="kw">new</span> RemoteTransactionProver(this.proverUrl) }     <span class="cm">// proving plugin</span>
+      : undefined;
+    <span class="kw">return</span> this.client.transactions.send(
+      { account: this.account, to, token, amount, noteType: <span class="str">"private"</span> }, prover);
+  }
+  <span class="kw">async</span> balance(token) {
+    <span class="kw">await</span> this.client.syncState();
+    <span class="kw">return</span> this.client.accounts.getBalance(this.account, token);
+  }
+}</code></pre>
+</div>
+
+<div class="callout"><strong>The test of the whole thing.</strong> A developer writes <code class="inline-code">privateTransfer({ to, token, amount })</code> and gets a private note, a client-side proof, and a commitment on chain. Everything in sections 2 through 7, the pool, the keys, the verifier, the relayer, the EntryPoint, the indexer, is either native or hidden inside the SDK. That gap is the product.</div>
+
+<div class="divider-thin"></div>
+
+<!-- ===================== SECTION 10 ===================== -->
+<span class="section-number">10</span>
+<h2>Best practices, in depth</h2>
+
+<p>These are drawn from Kohaku's own practices, re-grounded for Miden. Privacy tooling fails quietly: the code runs perfectly and still leaks what you meant to hide. Most of these are about the layers around the proof, not the proof itself.</p>
+
+<h3><span class="h3-num">10.1</span> Account isolation</h3>
+<p>Kohaku's strongest recommendation is one account per dApp, so activity in one place cannot be correlated with another. On Miden this is cheap: private accounts are easy to create, so make a fresh account per app or per role the default, and have the SDK remember which account belongs to which context.</p>
+
+<h3><span class="h3-num">10.2</span> The connection layer</h3>
+<p>Follow Kohaku's RPC hierarchy in spirit: prefer verification over trust. On Miden, lean on pull-only sync so no central indexer sees balances, and avoid pinning a user to a single observable node. Treat the endpoint as part of the threat model, not an afterthought.</p>
+
+<h3><span class="h3-num">10.3</span> Note and data handling</h3>
+<ul>
+  <li><strong>Default to private, choose public on purpose.</strong> Storage mode and note type are explicit. Private should be what happens when a developer does nothing.</li>
+  <li><strong>Treat off-band note delivery as part of the protocol.</strong> A private transfer is only private if the note details reach the recipient over an encrypted channel. Build that into the SDK; do not leave it as a manual step over a plain message.</li>
+  <li><strong>Mind metadata, not just contents.</strong> Timing and query patterns leak. Borrow Kohaku's private-discovery thinking even when the amounts are already hidden.</li>
+</ul>
+
+<h3><span class="h3-num">10.4</span> The honest limit</h3>
+<div class="callout"><strong>Say this out loud, do not hide it.</strong> On Miden's current testnet, the node can re-execute every transaction. Users get privacy from each other, not privacy against the node operator. It is a deliberate guardrail while the network matures. Design and describe the SDK around that reality, and never promise stronger privacy than the chain gives today.</div>
+
+<h3><span class="h3-num">10.5</span> Proving</h3>
+<ul>
+  <li><strong>Prove locally when you can; delegate when you must.</strong> Local proving keeps everything but the proof on the device. Fall back to a remote prover for weak devices or large transactions, and hide the choice.</li>
+  <li><strong>Only use multi-threaded proving when the page is cross-origin isolated.</strong> It needs COOP and COEP headers. If you cannot set them, stay single-threaded rather than break in production.</li>
+  <li><strong>Show progress.</strong> Proving takes real time; never let a confirm step look frozen.</li>
+</ul>
+
+<h3><span class="h3-num">10.6</span> Keys, auth, and compliance</h3>
+<ul>
+  <li><strong>Use the post-quantum default.</strong> Falcon is native. Lead with it; add ECDSA only to reuse existing key material. Keep a migration path, the equivalent of pq-account's killswitch.</li>
+  <li><strong>Push limits into account code.</strong> Spend caps and rate limits belong in the account's auth logic, enforced by the chain, not in your app where they can be bypassed.</li>
+  <li><strong>Keep co-signers keyless.</strong> A Guardian-style co-signer should verify the transaction summary and sign, never hold a key that can move funds alone.</li>
+  <li><strong>Make compliance opt-in and provable.</strong> Where provenance matters, use the association-set or PPOI pattern through the note script, so users prove innocence without revealing which note is theirs.</li>
+</ul>
+
+<h3><span class="h3-num">10.7</span> SDK design</h3>
+<ul>
+  <li><strong>Modular and optional, like Kohaku.</strong> Let a team adopt one plugin without taking all of them.</li>
+  <li><strong>Sane defaults over options.</strong> Most leaks are missing flags, not wrong ones.</li>
+  <li><strong>Wallet-agnostic building, one call per intent.</strong> The SDK builds and proves; the wallet signs and submits. If a private transfer is more than one obvious call, the abstraction is not finished.</li>
+</ul>
+
+<div class="divider-thin"></div>
+
+<!-- ===================== SECTION 11 ===================== -->
+<span class="section-number">11</span>
+<h2>Where to start</h2>
+
+<p>You do not build all of this at once. This order gets developers shipping fastest, with each step usable on its own.</p>
+
+<ol class="steps">
+  <li><strong>Client and accounts.</strong> The provider wrapper plus create-and-manage for private accounts with native Falcon auth. Nothing else is usable until this is smooth.</li>
+  <li><strong>Notes, transfers, and proving.</strong> One-call private transfers, encrypted off-band delivery, and the local-or-delegated proving choice hidden. This is the Railgun and Tornado behaviour, on the native note model.</li>
+  <li><strong>Programmable auth.</strong> Account-level spend caps and rate limits via transaction introspection. This is pq-account's spending policy, native.</li>
+  <li><strong>Compliance and private state.</strong> Association-set and PPOI-style provenance in note scripts, plus shared private state and threshold signing through Guardian. This is Privacy Pools, on Miden.</li>
+  <li><strong>Reference app, plugins, and docs.</strong> A small private app built entirely on the SDK, the plugin interfaces other teams extend, and the tutorials that make them copy it. Subrosa is most of this proof already.</li>
+</ol>
+
+<!-- DIAGRAM 4: component map / build sequence -->
+<div class="diagram-wrapper">
+<svg viewBox="0 0 760 430" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="760" height="430" fill="var(--diagram-bg)" rx="8"/>
+
+  <text x="380" y="30" text-anchor="middle" font-family="'Instrument Serif', serif" font-size="18" fill="#1a1a1a">The component map, as a build sequence</text>
+
+  <text x="200" y="60" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#2563eb" letter-spacing="0.5">ETHEREUM KOHAKU</text>
+  <text x="560" y="60" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#16a34a" letter-spacing="0.5">KOHAKU FOR MIDEN</text>
+
+  <!-- Row 1 -->
+  <rect x="40" y="74" width="320" height="56" rx="6" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="200" y="98" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12.5" font-weight="600" fill="#1a1a1a">@kohaku-eth/railgun + privacy-pools</text>
+  <text x="200" y="116" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" font-style="italic" fill="#555">bolt-on shielded pools</text>
+  <line x1="362" y1="102" x2="396" y2="102" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="394,97 404,102 394,107" fill="#1a1a1a"/>
+  <rect x="400" y="74" width="320" height="56" rx="6" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="560" y="98" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12.5" font-weight="600" fill="#1a1a1a">native private notes &amp; accounts</text>
+  <text x="560" y="116" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" font-style="italic" fill="#555">nothing to bolt on</text>
+
+  <!-- Row 2 -->
+  <rect x="40" y="142" width="320" height="56" rx="6" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="200" y="166" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12.5" font-weight="600" fill="#1a1a1a">@kohaku-eth/provider</text>
+  <text x="200" y="184" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" font-style="italic" fill="#555">ethers · viem · helios · colibri</text>
+  <line x1="362" y1="170" x2="396" y2="170" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="394,165 404,170 394,175" fill="#1a1a1a"/>
+  <rect x="400" y="142" width="320" height="56" rx="6" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="560" y="166" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12.5" font-weight="600" fill="#1a1a1a">miden-client / web SDK wrapper</text>
+  <text x="560" y="184" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" font-style="italic" fill="#555">+ private transport</text>
+
+  <!-- Row 3 -->
+  <rect x="40" y="210" width="320" height="56" rx="6" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="200" y="234" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12.5" font-weight="600" fill="#1a1a1a">@kohaku-eth/pq-account</text>
+  <text x="200" y="252" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" font-style="italic" fill="#555">post-quantum 4337 account</text>
+  <line x1="362" y1="238" x2="396" y2="238" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="394,233 404,238 394,243" fill="#1a1a1a"/>
+  <rect x="400" y="210" width="320" height="56" rx="6" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="560" y="234" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12.5" font-weight="600" fill="#1a1a1a">programmable accounts + PQ auth</text>
+  <text x="560" y="252" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" font-style="italic" fill="#555">Falcon is native to Miden</text>
+
+  <!-- Row 4 -->
+  <rect x="40" y="278" width="320" height="56" rx="6" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="200" y="302" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12.5" font-weight="600" fill="#1a1a1a">4337 mempool relay</text>
+  <text x="200" y="320" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" font-style="italic" fill="#555">hides the relaying plumbing</text>
+  <line x1="362" y1="306" x2="396" y2="306" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="394,301 404,306 394,311" fill="#1a1a1a"/>
+  <rect x="400" y="278" width="320" height="56" rx="6" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="560" y="302" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12.5" font-weight="600" fill="#1a1a1a">client-side proving layer</text>
+  <text x="560" y="320" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" font-style="italic" fill="#555">local or delegated</text>
+
+  <!-- Row 5 -->
+  <rect x="40" y="346" width="320" height="56" rx="6" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="200" y="370" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12.5" font-weight="600" fill="#1a1a1a">multi-key + recovery</text>
+  <text x="200" y="388" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" font-style="italic" fill="#555">at the wallet level</text>
+  <line x1="362" y1="374" x2="396" y2="374" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="394,369 404,374 394,379" fill="#1a1a1a"/>
+  <rect x="400" y="346" width="320" height="56" rx="6" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="560" y="370" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12.5" font-weight="600" fill="#1a1a1a">private state + multisig</text>
+  <text x="560" y="388" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" font-style="italic" fill="#555">via Miden Guardian</text>
+</svg>
+</div>
+<p class="diagram-caption">The component map again, now as a build sequence. Everything on the right is native or a thin wrapper.</p>
+
+<div class="callout"><strong>The one-line version.</strong> A privacy protocol on Ethereum is a contract stack that rebuilds commitments, nullifiers, and a verifier. On Miden those are the base layer. This SDK is the thin, native re-expression of Kohaku, and these are the exact pieces to build it.</div>
+
+<p><strong>On the name.</strong> Kohaku (琥珀) is the Japanese word for amber — fossil resin that holds whatever it surrounds intact and legible for a very long time. A fitting name for a toolkit whose job is to keep what it carries private and well preserved.</p>
+
+<p><strong>The shape of it.</strong> Building Kohaku for Miden is less a port than a translation. The same guarantees — commitments, nullifiers, verification — re-expressed in primitives the base layer already provides. The contracts mostly disappear; the meaning stays.</p>
+
+</article>
+</body>
+</html>

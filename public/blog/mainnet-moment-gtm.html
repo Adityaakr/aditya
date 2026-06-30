@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Turning the mainnet moment into builders</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FAFAF8;
+    --text: #1a1a1a;
+    --text-secondary: #555;
+    --text-tertiary: #888;
+    /* Accent. Canonical article blue. */
+    --accent: #2563eb;
+    --accent-soft: #dbeafe;
+    --border: #e5e5e0;
+    --rule: #1a1a1a;
+    --diagram-bg: #fefefe;
+    --diagram-border: #d8d8cc;
+    --fill-blue: #dbeafe;
+    --fill-green: #dcfce7;
+    --fill-amber: #fef3c7;
+    --fill-rose: #ffe4e6;
+    --fill-purple: #f3e8ff;
+    --fill-gray: #f1f1ec;
+    --callout-bg: #f7f6f2;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.72;
+    font-size: 17.5px;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  .wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 60px 24px 110px;
+  }
+
+  /* masthead */
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; font-weight: 500;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 22px;
+  }
+  h1 {
+    font-family: 'Instrument Serif', serif; font-weight: 400;
+    font-size: clamp(44px, 8.5vw, 70px); line-height: 1.0;
+    letter-spacing: -0.005em; margin-bottom: 24px;
+  }
+  h1 .dot { color: var(--accent); }
+  .subtitle {
+    font-size: 19px; font-weight: 500; color: var(--text-secondary);
+    line-height: 1.5; max-width: 600px;
+  }
+  .sub-rule { width: 52px; height: 3px; background: var(--accent); margin: 28px 0 0; border-radius: 2px; }
+  .lede { margin-top: 34px; font-size: 19px; line-height: 1.62; color: var(--text); }
+  .lede + .lede { margin-top: 18px; }
+
+  .byline {
+    font-family: 'JetBrains Mono', monospace; font-size: 12.5px;
+    color: var(--text-tertiary); margin-top: 34px; letter-spacing: 0.01em;
+  }
+  .byline strong { color: var(--text-secondary); font-weight: 500; }
+
+  /* sections */
+  .section { margin-top: 70px; }
+  h2 {
+    font-family: 'Instrument Serif', serif; font-weight: 400;
+    font-size: clamp(29px, 5.2vw, 36px); line-height: 1.08;
+    letter-spacing: -0.005em; display: flex; align-items: baseline; gap: 14px;
+  }
+  .sec-num {
+    font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 500;
+    color: var(--accent); letter-spacing: 0; flex: none; transform: translateY(-2px);
+  }
+  .sec-rule { width: 44px; height: 3px; background: var(--accent); border-radius: 2px; margin: 14px 0 24px; }
+
+  p { margin-bottom: 18px; }
+  p:last-child { margin-bottom: 0; }
+  strong { font-weight: 600; color: var(--text); }
+
+  /* callout */
+  .callout {
+    background: var(--callout-bg); border-left: 3px solid var(--accent);
+    border-radius: 0 12px 12px 0; padding: 22px 26px; margin: 28px 0;
+  }
+  .callout-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 500;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px;
+  }
+  .callout p {
+    font-family: 'Instrument Serif', serif; font-style: italic;
+    font-size: 23px; line-height: 1.42; color: var(--text); margin: 0;
+  }
+
+  /* definition rows */
+  .deflist { margin: 28px 0 8px; }
+  .def-row {
+    display: grid; grid-template-columns: 196px 1fr; gap: 26px;
+    padding: 20px 0; border-top: 1px solid var(--border);
+  }
+  .def-row:last-child { border-bottom: 1px solid var(--border); }
+  .def-term { font-weight: 600; font-size: 16.5px; color: var(--text); line-height: 1.4; }
+  .def-desc { font-size: 16px; color: var(--text-secondary); line-height: 1.62; }
+  .def-desc strong { color: var(--text); }
+
+  /* diagram */
+  .figure {
+    background: var(--diagram-bg); border: 1px solid var(--diagram-border);
+    border-radius: 16px; padding: 28px 26px 22px; margin: 30px 0;
+  }
+  .fig-eyebrow {
+    font-family: 'JetBrains Mono', monospace; font-size: 10.5px; font-weight: 500;
+    letter-spacing: 0.13em; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 4px;
+  }
+  .fig-title { font-family: 'Instrument Serif', serif; font-size: 21px; line-height: 1.2; margin-bottom: 18px; }
+  .figure svg { width: 100%; height: auto; display: block; }
+  .fig-caption {
+    font-family: 'DM Sans', sans-serif; font-size: 13.5px; color: var(--text-secondary);
+    line-height: 1.55; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border);
+  }
+  .fig-caption strong { color: var(--text); font-weight: 600; }
+
+  /* phases */
+  .phase { border: 1px solid var(--border); border-radius: 14px; padding: 22px 24px; margin-bottom: 16px; background: #fff; }
+  .phase-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+  .phase-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 500;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent);
+  }
+  .phase-goal { font-family: 'Instrument Serif', serif; font-style: italic; font-size: 19px; color: var(--text-secondary); }
+  .phase ul { list-style: none; }
+  .phase li { position: relative; padding-left: 20px; margin-bottom: 9px; font-size: 16px; color: var(--text-secondary); line-height: 1.55; }
+  .phase li:last-child { margin-bottom: 0; }
+  .phase li::before { content: ""; position: absolute; left: 2px; top: 10px; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+  .phase li strong { color: var(--text); font-weight: 600; }
+
+  /* metric chips */
+  .metrics { display: flex; flex-wrap: wrap; gap: 10px; margin: 26px 0; }
+  .chip {
+    font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: var(--text-secondary);
+    border: 1px solid var(--border); border-radius: 999px; padding: 9px 15px; background: #fff; white-space: nowrap;
+  }
+  .chip.hero { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+
+  /* closing */
+  .closing { margin-top: 72px; padding: 34px 32px; background: var(--callout-bg); border: 1px solid var(--border); border-radius: 16px; }
+  .closing-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 500;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin-bottom: 14px;
+  }
+  .closing p { font-family: 'Instrument Serif', serif; font-size: 27px; line-height: 1.32; color: var(--text); margin: 0; }
+
+  /* footer */
+  footer {
+    margin-top: 56px; padding-top: 22px; border-top: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--text-tertiary);
+    display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; letter-spacing: 0.02em;
+  }
+  footer a { color: var(--text-secondary); text-decoration: none; }
+  footer a:hover { color: var(--accent); }
+
+  /* responsive */
+  @media (max-width: 600px) {
+    body { font-size: 16.5px; }
+    .wrap { padding: 44px 20px 80px; }
+    .def-row { grid-template-columns: 1fr; gap: 6px; padding: 16px 0; }
+    .def-term { font-size: 16px; }
+    .callout p { font-size: 20px; }
+    .closing { padding: 26px 22px; }
+    .closing p { font-size: 22px; }
+    .figure { padding: 22px 16px 18px; }
+  }
+  a:focus-visible, .chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- MASTHEAD -->
+  <div class="eyebrow">Developer GTM · Ecosystem Growth</div>
+  <h1>Turning the mainnet moment into builders<span class="dot">.</span></h1>
+  <p class="subtitle">A developer go-to-market playbook for a protocol's launch moment: how to turn the run-up to mainnet into real apps shipping, and early builders into the proof that recruits the next wave.</p>
+  <div class="sub-rule"></div>
+
+  <p class="lede">Every protocol gets one launch moment. A mainnet, a token, a major upgrade. It is a hard, once-only spike of attention, and most of it leaks away. People look, try to build, hit the learning curve, and drift before they ship anything.</p>
+  <p class="lede">The job of developer GTM in that window is narrow. Shrink the distance between "interested" and "shipped," and turn the few who ship into the proof that pulls in the next wave. Awareness takes care of itself at launch. What happens after the spike is the whole game.</p>
+
+  <div class="callout">
+    <p>The bottleneck isn't attention. It's the gap between "interested" and "shipped something real." Win that gap and you win the ecosystem.</p>
+  </div>
+
+  <div class="byline">by <strong>Aditya Kumar</strong></div>
+
+  <!-- 1 -->
+  <div class="section">
+    <h2><span class="sec-num">01</span>The moment, and the real bottleneck</h2>
+    <div class="sec-rule"></div>
+    <p>A protocol approaching mainnet rarely has an attention problem. The lineage, the funding round, the narrative, and the launch date itself all pull eyes. Mainnet adds a hard, once-only spike on top. The risk isn't that nobody looks. It's that people look, try to build, hit the learning curve of a new programming model and unfamiliar primitives, and drift before they ship anything.</p>
+    <p>So the job of developer GTM here is narrow: <strong>shrink the distance between "interested" and "shipped a real app," and turn the few who ship into the proof that pulls in the next wave.</strong> Everything below serves that one goal.</p>
+    <div class="callout">
+      <div class="callout-label">The one-line strategy</div>
+      <p>Make the first app fast to build, point the early effort at a few lighthouse use cases that prove the core thesis, and turn those into case studies that recruit the next ten teams. Depth over noise.</p>
+    </div>
+  </div>
+
+  <!-- 2 -->
+  <div class="section">
+    <h2><span class="sec-num">02</span>The four jobs of launch-moment DevRel</h2>
+    <div class="sec-rule"></div>
+    <p>This isn't classic developer advocacy, content and conference talks alone. It's outward-facing ecosystem work: sitting with teams, helping them ship, growing the builder base, and representing the protocol externally, with the technical depth to actually unblock people. The time splits across four jobs.</p>
+    <div class="deflist">
+      <div class="def-row">
+        <div class="def-term">Help builders ship</div>
+        <div class="def-desc">White-glove onboarding for the teams building on the protocol. Understand them, map the idea to the stack, get them to a first working app, and stay their point of contact.</div>
+      </div>
+      <div class="def-row">
+        <div class="def-term">Grow the ecosystem</div>
+        <div class="def-desc">Find and recruit the right teams. Run the design-partner pipeline, plus hackathons and bounties aimed at real use cases rather than generic dapps.</div>
+      </div>
+      <div class="def-row">
+        <div class="def-term">Feed product</div>
+        <div class="def-desc">Be the voice of the builder back to the team. Turn friction into roadmap, since the role sits right next to product.</div>
+      </div>
+      <div class="def-row">
+        <div class="def-term">Represent externally</div>
+        <div class="def-desc">Talks, demos, threads, and a public builder presence that teaches the model instead of hyping it.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3 -->
+  <div class="section">
+    <h2><span class="sec-num">03</span>Run it as a funnel, not a megaphone</h2>
+    <div class="sec-rule"></div>
+    <p>The cleanest way to run this is as a funnel, and to own the middle of it. Awareness is handled by brand and investors. The DevRel job is everything from activation down, where interest converts into shipped apps and shipped apps convert into advocates.</p>
+
+    <div class="figure">
+      <div class="fig-eyebrow">The builder funnel</div>
+      <div class="fig-title">Awareness is solved. Everything below it is the job.</div>
+      <svg viewBox="0 0 680 352" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A funnel showing five stages: aware, activated, shipped, retained, champion. DevRel owns activated downward.">
+        <line x1="30" y1="80" x2="30" y2="332" stroke="var(--accent)" stroke-width="1.6"/>
+        <line x1="30" y1="80" x2="38" y2="80" stroke="var(--accent)" stroke-width="1.6"/>
+        <line x1="30" y1="332" x2="38" y2="332" stroke="var(--accent)" stroke-width="1.6"/>
+        <text x="16" y="206" transform="rotate(-90 16 206)" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9.5" letter-spacing="0.13em" fill="var(--accent)">DEVREL OWNS THIS</text>
+
+        <rect x="46" y="12" width="356" height="48" rx="9" fill="var(--fill-gray)" stroke="var(--rule)" stroke-width="1.6"/>
+        <text x="62" y="36" dominant-baseline="central" font-family="'JetBrains Mono', monospace" font-size="13" fill="var(--text)">AWARE · knows the protocol</text>
+        <text x="416" y="31" font-family="'DM Sans', sans-serif" font-size="12.5" font-weight="600" fill="var(--text-secondary)">Already strong.</text>
+        <text x="416" y="47" font-family="'DM Sans', sans-serif" font-size="12.5" fill="var(--text-tertiary)">Brand, investors, the narrative.</text>
+
+        <rect x="46" y="80" width="301" height="48" rx="9" fill="var(--fill-blue)" stroke="var(--accent)" stroke-width="2.2"/>
+        <text x="62" y="104" dominant-baseline="central" font-family="'JetBrains Mono', monospace" font-size="13" fill="var(--text)">ACTIVATED · first real tx</text>
+        <text x="416" y="99" font-family="'DM Sans', sans-serif" font-size="12.5" font-weight="600" fill="var(--accent)">The bottleneck.</text>
+        <text x="416" y="115" font-family="'DM Sans', sans-serif" font-size="12.5" fill="var(--text-tertiary)">Own this.</text>
+
+        <rect x="46" y="148" width="246" height="48" rx="9" fill="var(--fill-green)" stroke="var(--rule)" stroke-width="1.6"/>
+        <text x="62" y="172" dominant-baseline="central" font-family="'JetBrains Mono', monospace" font-size="13" fill="var(--text)">SHIPPED · a real app live</text>
+        <text x="416" y="167" font-family="'DM Sans', sans-serif" font-size="12.5" font-weight="600" fill="var(--text-secondary)">Testnet now,</text>
+        <text x="416" y="183" font-family="'DM Sans', sans-serif" font-size="12.5" fill="var(--text-tertiary)">mainnet at launch.</text>
+
+        <rect x="46" y="216" width="181" height="48" rx="9" fill="var(--fill-purple)" stroke="var(--rule)" stroke-width="1.6"/>
+        <text x="62" y="240" dominant-baseline="central" font-family="'JetBrains Mono', monospace" font-size="13" fill="var(--text)">RETAINED</text>
+        <text x="416" y="235" font-family="'DM Sans', sans-serif" font-size="12.5" font-weight="600" fill="var(--text-secondary)">Keeps building,</text>
+        <text x="416" y="251" font-family="'DM Sans', sans-serif" font-size="12.5" fill="var(--text-tertiary)">active in the community.</text>
+
+        <rect x="46" y="284" width="126" height="48" rx="9" fill="var(--fill-amber)" stroke="var(--rule)" stroke-width="1.6"/>
+        <text x="62" y="308" dominant-baseline="central" font-family="'JetBrains Mono', monospace" font-size="13" fill="var(--text)">CHAMPION</text>
+        <text x="416" y="303" font-family="'DM Sans', sans-serif" font-size="12.5" font-weight="600" fill="var(--text-secondary)">Case study, brings others.</text>
+        <text x="416" y="319" font-family="'DM Sans', sans-serif" font-size="12.5" fill="var(--text-tertiary)">The flywheel.</text>
+      </svg>
+      <div class="fig-caption">DevRel owns from activation down. The two transitions that compound: <strong>aware to activated</strong> (kill the time-to-first-app) and <strong>shipped to champion</strong> (turn a working app into a story other teams copy).</div>
+    </div>
+
+    <p>Get those two transitions right and the funnel compounds on its own. A shipped app is not the finish line, it's the raw material for the next ten.</p>
+  </div>
+
+  <!-- 4 -->
+  <div class="section">
+    <h2><span class="sec-num">04</span>Concentrate the effort: lighthouse use cases</h2>
+    <div class="sec-rule"></div>
+    <p>Not every use case needs what your protocol uniquely offers, so spreading thin across "any dapp" wastes the window. Concentrate on the handful of use cases where your edge is the difference between possible and impossible. A few of these, built deep, do more than a hundred shallow integrations. The hard part is picking them, so use four filters.</p>
+    <div class="deflist">
+      <div class="def-row">
+        <div class="def-term">Where your edge is decisive</div>
+        <div class="def-desc">Pick use cases that are awkward or impossible without your protocol, not ones that merely run a little better on it. If a builder could ship the same thing elsewhere, it proves nothing.</div>
+      </div>
+      <div class="def-row">
+        <div class="def-term">Where demand is already waiting</div>
+        <div class="def-desc">Go where teams are already trying to build this and getting stuck on the missing primitive. You want pull, not persuasion.</div>
+      </div>
+      <div class="def-row">
+        <div class="def-term">Where one app teaches the next</div>
+        <div class="def-desc">Favor use cases whose first build doubles as a sample, a tutorial, and a case study. Each lighthouse should lower the cost of the one after it.</div>
+      </div>
+      <div class="def-row">
+        <div class="def-term">Where it compounds with the roadmap</div>
+        <div class="def-desc">Choose use cases aligned with where the protocol is already heading, so DevRel and product pull in the same direction instead of competing for attention.</div>
+      </div>
+    </div>
+    <div class="callout">
+      <div class="callout-label">Why concentrate</div>
+      <p>Each lighthouse app becomes a reusable sample, a tutorial, and a case study at once. Ten shallow integrations teach nobody. Three deep ones in the right places become the reference every next team starts from.</p>
+    </div>
+  </div>
+
+  <!-- 5 -->
+  <div class="section">
+    <h2><span class="sec-num">05</span>The plan, against the mainnet clock</h2>
+    <div class="sec-rule"></div>
+    <p>The calendar writes this plan. Pre-mainnet is for removing friction and lining up the first teams. Launch is for the onboarding and content sprint. The ninety days after are for turning early wins into a flywheel.</p>
+
+    <div class="figure">
+      <div class="fig-eyebrow">The runway</div>
+      <div class="fig-title">Three phases, one hard date in the middle.</div>
+      <svg viewBox="0 0 680 172" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Timeline of three phases around the mainnet date.">
+        <line x1="24" y1="120" x2="656" y2="120" stroke="var(--diagram-border)" stroke-width="2"/>
+        <line x1="144" y1="98" x2="144" y2="120" stroke="var(--diagram-border)" stroke-width="1.4"/>
+        <line x1="346" y1="98" x2="346" y2="120" stroke="var(--diagram-border)" stroke-width="1.4"/>
+        <line x1="542" y1="98" x2="542" y2="120" stroke="var(--diagram-border)" stroke-width="1.4"/>
+
+        <rect x="24" y="44" width="240" height="52" rx="10" fill="var(--fill-gray)" stroke="var(--rule)" stroke-width="1.5"/>
+        <text x="40" y="68" font-family="'JetBrains Mono', monospace" font-size="10.5" letter-spacing="0.06em" fill="var(--accent)">PHASE 1 · PRE-LAUNCH</text>
+        <text x="40" y="84" font-family="'DM Sans', sans-serif" font-size="12.5" fill="var(--text)">Remove friction, line up teams</text>
+
+        <rect x="276" y="44" width="140" height="52" rx="10" fill="var(--fill-blue)" stroke="var(--accent)" stroke-width="2.2"/>
+        <text x="290" y="68" font-family="'JetBrains Mono', monospace" font-size="10.5" letter-spacing="0.06em" fill="var(--accent)">PHASE 2 · LAUNCH</text>
+        <text x="290" y="84" font-family="'DM Sans', sans-serif" font-size="12.5" fill="var(--text)">Convert the spike</text>
+
+        <rect x="428" y="44" width="228" height="52" rx="10" fill="var(--fill-green)" stroke="var(--rule)" stroke-width="1.5"/>
+        <text x="444" y="68" font-family="'JetBrains Mono', monospace" font-size="10.5" letter-spacing="0.06em" fill="var(--accent)">PHASE 3 · FIRST 90 DAYS</text>
+        <text x="444" y="84" font-family="'DM Sans', sans-serif" font-size="12.5" fill="var(--text)">Build the flywheel</text>
+
+        <line x1="270" y1="40" x2="270" y2="120" stroke="var(--accent)" stroke-width="1.4" stroke-dasharray="3 3"/>
+        <path d="M270 113 l7 7 l-7 7 l-7 -7 z" fill="var(--accent)"/>
+
+        <text x="24" y="142" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="var(--text-tertiary)">now</text>
+        <text x="270" y="142" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" font-weight="500" fill="var(--accent)">MAINNET</text>
+        <text x="656" y="142" text-anchor="end" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="var(--text-tertiary)">+90 days</text>
+      </svg>
+    </div>
+
+    <div class="phase">
+      <div class="phase-head">
+        <span class="phase-label">Phase 1 · now to mainnet</span>
+        <span class="phase-goal">Remove friction, load the cannon</span>
+      </div>
+      <ul>
+        <li>Build on the protocol yourself and log every sharp edge in onboarding and docs. <strong>You cannot smooth a path you have not walked.</strong></li>
+        <li>Ship two to three sample apps for the lighthouse use cases, real and end-to-end, so a dev clones a working thing instead of staring at a blank page.</li>
+        <li>Tighten the getting-started path to under an hour, from zero to a first working result.</li>
+        <li>Line up the first lighthouse teams now, so they ship at launch, not months after.</li>
+        <li>Draft launch content that teaches the mental model rather than hyping it.</li>
+      </ul>
+    </div>
+
+    <div class="phase">
+      <div class="phase-head">
+        <span class="phase-label">Phase 2 · mainnet launch</span>
+        <span class="phase-goal">Convert the attention while it's here</span>
+      </div>
+      <ul>
+        <li>Onboarding sprint: white-glove the lined-up teams onto mainnet, with office hours and fast support.</li>
+        <li>A focused hackathon or bounty program aimed at the lighthouse use cases, not generic dapps.</li>
+        <li>Content blitz timed to launch: the sample apps, the mental-model explainers, live build demos.</li>
+        <li>Make sure the first real apps actually ship on mainnet. <strong>That is the launch story.</strong></li>
+      </ul>
+    </div>
+
+    <div class="phase">
+      <div class="phase-head">
+        <span class="phase-label">Phase 3 · first 90 days post-mainnet</span>
+        <span class="phase-goal">Build the flywheel</span>
+      </div>
+      <ul>
+        <li>Turn the first shipped apps into real case studies. Each one recruits the next teams.</li>
+        <li>Expand the design-partner pipeline and set recurring rhythms: office hours, a content cadence, builder calls.</li>
+        <li>Institutionalize the feedback loop: builder friction becomes tracked product input every week.</li>
+        <li>Measure the funnel and double down on whatever moves activation.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 6 -->
+  <div class="section">
+    <h2><span class="sec-num">06</span>Measure outcomes, not vanity</h2>
+    <div class="sec-rule"></div>
+    <p>Hold the role to outcomes, not impressions. Follower counts don't ship apps. The numbers that matter are whether builders get from zero to live, and whether their pain reaches product.</p>
+    <div class="metrics">
+      <span class="chip hero">time-to-first-app &lt; 1 hour</span>
+      <span class="chip">devs activated (first real tx)</span>
+      <span class="chip">apps shipped to mainnet</span>
+      <span class="chip">lighthouse case studies</span>
+      <span class="chip">active builder retention</span>
+      <span class="chip">roadmap items sourced from builders</span>
+    </div>
+    <p>External reach, talks and content, is real but secondary. It serves the funnel, it isn't the goal. The goal is shipped apps and a builder base that keeps growing after the launch spike fades.</p>
+  </div>
+
+  <!-- 7 -->
+  <div class="section">
+    <h2><span class="sec-num">07</span>A builder has to run this</h2>
+    <div class="sec-rule"></div>
+    <p>One thing holds the whole plan together: it only works when the person running it ships on the protocol themselves. Launch-moment DevRel is not a comms function with a technical coat of paint. It is a building function that happens to face outward, and the difference shows up everywhere.</p>
+    <div class="deflist">
+      <div class="def-row">
+        <div class="def-term">Kill time-to-first-app</div>
+        <div class="def-desc">You only know where the first hour leaks if you have spent it yourself. Setup friction is invisible from the outside.</div>
+      </div>
+      <div class="def-row">
+        <div class="def-term">Drive adoption, not docs</div>
+        <div class="def-desc">You cannot white-glove a team to a shipped app if you have never shipped one on the stack. Credibility here is earned in the editor, not the thread.</div>
+      </div>
+      <div class="def-row">
+        <div class="def-term">Solve the hard UX</div>
+        <div class="def-desc">The sharp edges only show up when you build, not when you read the docs. Someone has to hit them first so everyone after them doesn't.</div>
+      </div>
+      <div class="def-row">
+        <div class="def-term">Write samples that land</div>
+        <div class="def-desc">A sample written by a non-builder reads like one. Builders can tell in thirty seconds, and builders are the entire audience.</div>
+      </div>
+      <div class="def-row">
+        <div class="def-term">Output like a small team</div>
+        <div class="def-desc">Pre-launch teams are lean. One person carries samples, docs, onboarding, content, and recruiting at once, which takes real leverage, not just longer hours.</div>
+      </div>
+    </div>
+    <p>So hire, or be, the person who would be building on this anyway. Everything upstream, the funnel, the lighthouse picks, the white-glove onboarding, rests on that one hire.</p>
+  </div>
+
+  <!-- CLOSING -->
+  <div class="closing">
+    <div class="closing-label">The whole thing, in one line</div>
+    <p>Turn the launch moment into a wave of real apps by making the first win fast and turning early builders into proof. Awareness is loud and cheap. A shipped app is quiet and rare, and it is the only thing that compounds.</p>
+  </div>
+
+  <footer>
+    <span>Developer GTM · Ecosystem Growth</span>
+    <span><a href="https://adibuilds.in">Aditya Kumar · adibuilds.in</a></span>
+  </footer>
+
+</div>
+</body>
+</html>

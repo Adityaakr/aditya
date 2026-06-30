@@ -75,8 +75,24 @@ with react-router-dom. Single-page app, statically built, deployed from GitHub
   - `full` — complete standalone `<html>` documents in `public/blog/*.html`, listed via the
     hand-maintained `fullPosts[]` array in `blog.ts`. Shown EXACTLY as authored inside an
     `<iframe>` (full-bleed, with a thin sticky back bar) at `/blog/:slug` — see the
-    `kind === "full"` branch in `src/pages/BlogPost.tsx`. Current full posts: `prism`,
-    `vara-eth-agentic-economy`, `polybaskets-board` (placeholder dates 2026-06-27..29).
+    `kind === "full"` branch in `src/pages/BlogPost.tsx`. Current full posts (newest-first):
+    `fiscus`, `mainnet-moment-gtm`, `kohaku-for-miden` (all 2026-06-30), `monaris-railgun`,
+    `secrets-as-a-service`, `prism` (2026-06-29), `vara-eth-agentic-economy` (2026-06-28),
+    `polybaskets-board` (2026-06-27). Dates are placeholders.
+- **NEW-ARTICLE NORMALIZE WORKFLOW** (2026-06-30): articles arrive as standalone HTML in
+  arbitrary skins (amber/Bricolage, Inter/Kalam, Fraunces dark-pitch, etc.). Standing rule =
+  normalize EVERY new full article to the canonical blue design before publishing (user has
+  chosen this every time). Mechanics that worked: delegate the conversion to a general-purpose
+  subagent given (a) the source path, (b) `vara-eth-agentic-economy.html` as the canonical
+  reference to copy `<head>`+`:root`+`<style>` verbatim, (c) explicit forbidden-list. Common
+  source footguns to strip: `<script>` (esp. JS-rendered code stored in
+  `<script type="text/plain" class="code__src">` — must be extracted to static `<pre>`),
+  `@keyframes`/transitions/scroll-reveal, sticky topbars/progress bars, dark/ink dual themes,
+  forbidden fonts (Newsreader/Fraunces/Inter/Kalam/Bricolage/IBM Plex). Also strip author
+  notes-to-self callouts. Landing-page pitches (e.g. fiscus) get flattened from full-width
+  alternating sections into the single 720px reading column. Verify with grep (0 scripts/
+  keyframes/bad-fonts/dark-tokens) + a Playwright screenshot pass. mainnet-moment-gtm arrived
+  ALREADY canonical (only needed one `@keyframes rise` entrance animation stripped).
 - **CANONICAL ARTICLE DESIGN** (2026-06-29): all full-page articles share ONE design system,
   defined by `public/blog/vara-eth-agentic-economy.html` and now matched by `prism.html` +
   `polybaskets-board.html`. Any NEW full article must reuse the identical `<head>`+`<style>`

@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fiscus — Private Asset Management on Miden</title>
+<meta name="description" content="Fiscus is a private asset management and vault protocol on Miden. Manage wealth in private, prove it in public.">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FAFAF8;
+    --text: #1a1a1a;
+    --text-secondary: #555;
+    --accent: #2563eb;
+    --accent-light: #dbeafe;
+    --border: #e5e5e0;
+    --diagram-bg: #fefefe;
+    --diagram-border: #d4d4c8;
+    --sketch-stroke: #1a1a1a;
+    --sketch-fill-blue: #dbeafe;
+    --sketch-fill-green: #dcfce7;
+    --sketch-fill-amber: #fef3c7;
+    --sketch-fill-rose: #ffe4e6;
+    --sketch-fill-purple: #f3e8ff;
+    --sketch-fill-gray: #f3f4f6;
+    --callout-bg: #f8f7f4;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.72;
+    font-size: 17.5px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .article-container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 60px 24px 100px;
+  }
+
+  .article-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 20px;
+    font-weight: 500;
+  }
+
+  h1 {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(32px, 5vw, 46px);
+    line-height: 1.15;
+    font-weight: 400;
+    color: var(--text);
+    margin-bottom: 24px;
+    letter-spacing: -0.5px;
+  }
+
+  .subtitle {
+    font-size: 19px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 40px;
+    font-weight: 400;
+  }
+
+  .divider {
+    width: 48px;
+    height: 2px;
+    background: var(--text);
+    margin: 40px 0;
+  }
+
+  .divider-thin {
+    width: 100%;
+    height: 1px;
+    background: var(--border);
+    margin: 48px 0;
+  }
+
+  h2 {
+    font-family: 'Instrument Serif', serif;
+    font-size: 28px;
+    font-weight: 400;
+    color: var(--text);
+    margin-bottom: 20px;
+    margin-top: 8px;
+    letter-spacing: -0.3px;
+  }
+
+  h3 {
+    font-family: 'Instrument Serif', serif;
+    font-size: 22px;
+    font-weight: 400;
+    color: var(--text);
+    margin: 34px 0 14px;
+    letter-spacing: -0.2px;
+  }
+
+  .section-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 500;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  p {
+    margin-bottom: 18px;
+    color: var(--text);
+  }
+
+  strong {
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .lead-paragraph {
+    font-size: 19.5px;
+    line-height: 1.65;
+    color: var(--text);
+  }
+
+  .callout {
+    background: var(--callout-bg);
+    border-left: 3px solid var(--text);
+    padding: 20px 24px;
+    margin: 32px 0;
+    font-family: 'Instrument Serif', serif;
+    font-size: 20px;
+    line-height: 1.55;
+    font-style: italic;
+    color: var(--text);
+  }
+
+  .diagram-wrapper {
+    margin: 40px -20px;
+    padding: 0;
+  }
+
+  .diagram-wrapper svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .diagram-caption {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    color: var(--text-secondary);
+    text-align: center;
+    margin-top: 12px;
+    letter-spacing: 0.3px;
+    padding: 0 20px;
+  }
+
+  .glossary {
+    background: var(--callout-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 28px 28px 12px;
+    margin: 36px 0;
+  }
+
+  .glossary-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+    font-weight: 500;
+  }
+
+  .glossary-item {
+    margin-bottom: 14px;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  .glossary-term {
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--text);
+  }
+
+  .inline-code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14.5px;
+    background: #f0efe8;
+    padding: 2px 6px;
+    border-radius: 3px;
+    color: var(--text);
+  }
+
+  /* tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 28px 0;
+    font-size: 15.5px;
+  }
+  thead th {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    text-align: left;
+    color: var(--text-secondary);
+    font-weight: 500;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--text);
+  }
+  tbody td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    line-height: 1.5;
+    color: var(--text-secondary);
+  }
+  tbody td:first-child {
+    color: var(--text);
+    font-weight: 600;
+    width: 38%;
+  }
+  table.mono-key tbody td:first-child {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13.5px;
+    font-weight: 500;
+  }
+
+  /* feature paragraphs */
+  .feature {
+    margin-bottom: 18px;
+  }
+  .feature .lead-term {
+    font-weight: 600;
+    color: var(--text);
+  }
+  .feature .idx {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 500;
+    margin-right: 6px;
+  }
+
+  /* dark code block */
+  .code-file {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin: 28px 0 6px;
+    padding-left: 2px;
+  }
+  pre {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    background: #1f1d1a;
+    color: #e9e2d4;
+    border-radius: 10px;
+    padding: 16px 18px;
+    overflow-x: auto;
+    margin: 0 0 28px;
+  }
+  pre code {
+    font-family: inherit;
+    font-size: inherit;
+    background: none;
+    padding: 0;
+    color: inherit;
+  }
+  .tok-c { color: #8a8578; }
+  .tok-k { color: #d98a5b; }
+  .tok-s { color: #9ec78f; }
+  .tok-f { color: #8ab4e8; }
+  .tok-n { color: #d9c07a; }
+  .tok-t { color: #c792ea; }
+
+  .pill-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 22px 0;
+  }
+  .pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    color: var(--accent);
+    background: var(--accent-light);
+    border-radius: 999px;
+    padding: 6px 14px;
+  }
+
+  .colophon {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.4px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    margin-top: 56px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+  }
+  .colophon a { color: var(--accent); }
+
+  @media (max-width: 600px) {
+    .article-container { padding: 36px 18px 72px; }
+    body { font-size: 16.5px; }
+    h2 { font-size: 24px; }
+    .glossary { padding: 20px 20px 8px; }
+    .diagram-wrapper { margin: 32px -10px; }
+  }
+</style>
+</head>
+<body>
+<article class="article-container">
+
+<div class="article-tag">Private Asset Management · Miden · ZK</div>
+
+<h1>Fiscus: Private Asset Management on Miden</h1>
+
+<p class="subtitle">Every onchain asset manager today is transparent by force — positions, strategy, and every rebalance sit in public view for competitors to read. Fiscus is the first vault and asset-management protocol that keeps a manager's positions private while leaving solvency and compliance fully provable.</p>
+
+<div class="divider"></div>
+
+<p class="lead-paragraph">In Rome, the <em>fiscus</em> was the imperial treasury: kept separate from the public purse, yet still answerable to the state. Private and accountable at once. That is the one thing onchain capital has never been able to do.</p>
+
+<p>Every onchain asset manager today is transparent by force. Their positions, their strategy, every rebalance sits in public view for competitors to read. The institutions now arriving will not run a book like that. Fiscus is the first vault and asset-management protocol that keeps a manager's positions private while leaving solvency and compliance fully provable. You cannot build that on a public chain. On Miden it falls out of the base layer.</p>
+
+<div class="divider-thin"></div>
+
+<!-- SECTION 1 -->
+<span class="section-number">01</span>
+<h2>The thesis: onchain asset management is <span style="color:var(--accent)">growing up</span></h2>
+
+<p>Curated vaults already run into the billions, and traditional money has started paying attention. But the whole category lives on transparent chains. A fund's positions and strategy are visible to anyone who looks, competitors included, and they copy and front-run accordingly. For the kind of capital this space is trying to win, that is a non-starter.</p>
+
+<div class="callout">Fiscus is a protocol for private vaults and asset management, built on Miden. Managers run strategies without exposing their positions. Allocators still get a provable share value. Auditors and regulators still get provable compliance. You cannot build that on a public chain — on Miden it falls out of the base layer.</div>
+
+<div class="divider-thin"></div>
+
+<!-- SECTION 2 -->
+<span class="section-number">02</span>
+<h2>The problem: transparent <span style="color:var(--accent)">by force</span></h2>
+
+<p>Every major onchain asset manager, from Enzyme and dHEDGE to the curated vaults on Morpho and Veda, runs into the same wall: the chain is public, so the vault is glass. That creates three problems, and each one gets sharper as the capital gets larger.</p>
+
+<p class="feature"><span class="lead-term"><span class="idx">i</span> Copy-trading and front-running.</span> When a manager's positions and trades are out in the open, competitors clone the alpha and bots front-run the rebalances. Transparency ends up punishing the managers who are actually good at this.</p>
+
+<p class="feature"><span class="lead-term"><span class="idx">ii</span> No room for institutions.</span> No serious fund will run its book somewhere rivals can watch every move. The single biggest blocker to institutional capital coming onchain is that there has been nowhere private to put it.</p>
+
+<p class="feature"><span class="lead-term"><span class="idx">iii</span> Compliance is bolted on, not built in.</span> Solvency, reserves, clean sources: today these are handled with off-chain attestations and a request to trust them, because a public chain cannot prove a private fact. The newer vault standards keep reaching for exactly this, which tells you the demand is real and the base layer is working against it.</p>
+
+<p>Onchain asset management is still a rounding error next to the traditional industry, and that gap is the whole opportunity. The money is already moving in. Traditional managers are buying into curated-vault infrastructure and exchanges are routing deposits into onchain vaults. They will route a great deal more once they can do it privately.</p>
+
+<div class="divider-thin"></div>
+
+<!-- SECTION 3 -->
+<span class="section-number">03</span>
+<h2>Why now: three curves cross at the <span style="color:var(--accent)">same moment</span></h2>
+
+<p class="feature"><span class="lead-term"><span class="idx">01</span> The money is arriving.</span> Curated vaults turned onchain asset management from a curiosity into real infrastructure, and traditional finance has started treating it as legitimate. The next wave of capital is larger than the last and far more sensitive about privacy.</p>
+
+<p class="feature"><span class="lead-term"><span class="idx">02</span> Miden hits mainnet.</span> For the first time there is a production chain where private state, programmable accounts, and client-side proofs are native instead of bolted on afterwards. The foundation Fiscus is built on simply did not exist before now.</p>
+
+<p class="feature"><span class="lead-term"><span class="idx">03</span> Privacy went from taboo to requirement.</span> The conversation has shifted from privacy as hiding to privacy with provenance, which really means selective visibility. That shift is the thing institutional capital was holding out for, and it is the idea the whole protocol is built around.</p>
+
+<div class="divider-thin"></div>
+
+<!-- SECTION 4 -->
+<span class="section-number">04</span>
+<h2>The product: two things in <span style="color:var(--accent)">one protocol</span></h2>
+
+<p>One place for managers to run private vaults, and one place for anyone to put capital into them. A clean, mobile-first app sits over the top, so the cryptography stays out of sight and allocating takes a single tap.</p>
+
+<h3>The three pillars</h3>
+
+<p class="feature"><span class="lead-term"><span class="idx">01</span> Private vaults, managed.</span> A manager spins up a vault with a mandate: allowed assets, position and leverage limits, a fee schedule. Then they run their strategy. The positions stay private, and the mandate is enforced by the vault itself, not by trusting the manager to stay in line. Allocators deposit and hold private shares.</p>
+
+<p class="feature"><span class="lead-term"><span class="idx">02</span> Private strategies, self-managed.</span> A fund or an experienced user runs their own private portfolio on the same primitives. Nothing leaks, nothing gets copied, and they keep full programmable control.</p>
+
+<p class="feature"><span class="lead-term"><span class="idx">03</span> The mobile platform.</span> The whole thing lives in a phone app. Allocators find vaults and put money in; managers create and run them from the same screen. The privacy and proving sit underneath, where neither side has to think about them.</p>
+
+<table>
+  <thead><tr><th>Who it is for</th><th>What they get from Fiscus</th></tr></thead>
+  <tbody>
+    <tr><td>Crypto-native funds &amp; DAOs</td><td>Run strategies without leaking alpha to competitors or bots, with provable performance to LPs.</td></tr>
+    <tr><td>Institutions</td><td>Private positions plus provable solvency and compliance, with non-custodial custody and auditor access.</td></tr>
+    <tr><td>Pro retail allocators</td><td>Allocate into vetted private vaults in one tap, with provable share value and no need to trust a screenshot.</td></tr>
+  </tbody>
+</table>
+
+<div class="divider-thin"></div>
+
+<!-- SECTION 5 -->
+<span class="section-number">05</span>
+<h2>How it works: each piece maps to a <span style="color:var(--accent)">Miden primitive</span></h2>
+
+<p>Fiscus is not a stack of shielded-pool contracts bolted onto a public chain. Every piece of it lands on a native Miden primitive, and that is what lets it be private and provable at the same time. Here is the whole system first, then each part on its own.</p>
+
+<!-- DIAGRAM 1: Architecture -->
+<div class="diagram-wrapper">
+<svg viewBox="0 0 760 470" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="760" height="470" fill="var(--diagram-bg)" rx="8"/>
+  <text x="380" y="34" text-anchor="middle" font-family="'Instrument Serif', serif" font-size="18" fill="#1a1a1a">Fiscus, the architecture</text>
+  <text x="380" y="54" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#555">a vault is a private Miden account — only the truth is proven</text>
+
+  <!-- Manager -->
+  <rect x="40" y="80" width="240" height="62" rx="8" fill="var(--sketch-fill-gray)" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="160" y="105" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13" font-weight="600" fill="#1a1a1a">Manager</text>
+  <text x="160" y="124" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">runs the strategy · private trades, proven on device</text>
+
+  <!-- Allocators -->
+  <rect x="480" y="80" width="240" height="62" rx="8" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="600" y="105" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13" font-weight="600" fill="#1a1a1a">Allocators</text>
+  <text x="600" y="124" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">funds · institutions · pro retail</text>
+
+  <!-- arrows down to vault -->
+  <line x1="160" y1="142" x2="300" y2="200" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="293,193 303,202 291,203" fill="#1a1a1a"/>
+  <text x="190" y="178" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9.5" fill="#2563eb">selective disclosure (ZK)</text>
+
+  <line x1="600" y1="142" x2="460" y2="200" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="469,203 457,202 467,193" fill="#1a1a1a"/>
+  <text x="575" y="178" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9.5" fill="#2563eb">deposit via private notes</text>
+
+  <!-- Vault -->
+  <rect x="250" y="200" width="260" height="96" rx="8" fill="var(--sketch-fill-amber)" stroke="#1a1a1a" stroke-width="1.8"/>
+  <text x="380" y="226" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">Fiscus vault</text>
+  <text x="380" y="247" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#555">a private Miden account</text>
+  <text x="380" y="263" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#555">assets + strategy + positions</text>
+  <text x="380" y="279" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#555">(state stays private)</text>
+
+  <!-- arrow down to proofs -->
+  <line x1="380" y1="296" x2="380" y2="330" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="375,328 380,338 385,328" fill="#1a1a1a"/>
+
+  <!-- Proof outputs -->
+  <rect x="40" y="338" width="335" height="58" rx="8" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="207" y="362" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12.5" font-weight="600" fill="#1a1a1a">Allocators see</text>
+  <text x="207" y="381" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">proof of NAV / share value</text>
+
+  <rect x="385" y="338" width="335" height="58" rx="8" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="552" y="362" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12.5" font-weight="600" fill="#1a1a1a">Auditors &amp; regulators see</text>
+  <text x="552" y="381" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">proof of solvency + compliance</text>
+
+  <!-- Infra strip -->
+  <rect x="40" y="412" width="680" height="44" rx="8" fill="var(--sketch-fill-purple)" stroke="#1a1a1a" stroke-width="1" stroke-dasharray="5,4"/>
+  <text x="118" y="430" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#2563eb">BUILT ON MIDEN</text>
+  <text x="118" y="445" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="10.5" fill="#555">Guardian · custody</text>
+  <text x="300" y="438" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#1a1a1a">Pragma · NAV oracle</text>
+  <text x="470" y="438" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#1a1a1a">AggLayer · settles to Ethereum</text>
+  <text x="650" y="438" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#1a1a1a">Falcon · PQ auth</text>
+</svg>
+</div>
+<p class="diagram-caption">A vault is a private Miden account. Allocators deposit via notes, the manager trades client-side, and only commitments and proofs ever touch the chain.</p>
+
+<table class="mono-key">
+  <thead><tr><th>Fiscus concept</th><th>Miden primitive</th></tr></thead>
+  <tbody>
+    <tr><td>a vault</td><td>a private Miden account, holding assets and the strategy as account code</td></tr>
+    <tr><td>positions &amp; shares</td><td>private account state; the chain stores only a commitment</td></tr>
+    <tr><td>deposits &amp; redemptions</td><td>notes, a request-then-claim async flow</td></tr>
+    <tr><td>the mandate (limits)</td><td>programmable auth; the account inspects each trade and aborts if it breaks a limit</td></tr>
+    <tr><td>solvency &amp; compliance</td><td>client-side ZK proofs over private state, with selective disclosure</td></tr>
+    <tr><td>pricing / NAV</td><td>an oracle (Pragma) read via foreign procedure invocation</td></tr>
+    <tr><td>custody &amp; recovery</td><td>the Guardian: non-custodial backup, sync, and threshold co-signing</td></tr>
+    <tr><td>settlement &amp; auth</td><td>settles to Ethereum via AggLayer; post-quantum Falcon auth, native</td></tr>
+  </tbody>
+</table>
+
+<h3>5.1 — One private account, four parts</h3>
+
+<p>A Fiscus vault is one Miden account running in private storage mode. Everything that would be a sprawl of separate contracts on another chain lives inside it: the assets, the share ledger, the positions, and the code that runs the strategy and enforces the rules. The network only ever sees a commitment to the whole account.</p>
+
+<!-- DIAGRAM 2: Anatomy -->
+<div class="diagram-wrapper">
+<svg viewBox="0 0 760 320" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="760" height="320" fill="var(--diagram-bg)" rx="8"/>
+  <text x="380" y="34" text-anchor="middle" font-family="'Instrument Serif', serif" font-size="18" fill="#1a1a1a">Anatomy of a Fiscus vault</text>
+  <text x="380" y="56" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#2563eb">A FISCUS VAULT = A PRIVATE MIDEN ACCOUNT</text>
+
+  <rect x="70" y="78" width="300" height="100" rx="8" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="220" y="108" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13" font-weight="600" fill="#1a1a1a">ID</text>
+  <text x="220" y="130" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">the vault's address,</text>
+  <text x="220" y="147" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">in private storage mode</text>
+
+  <rect x="390" y="78" width="300" height="100" rx="8" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="540" y="108" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13" font-weight="600" fill="#1a1a1a">Vault</text>
+  <text x="540" y="137" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">the assets under management</text>
+
+  <rect x="70" y="190" width="300" height="100" rx="8" fill="var(--sketch-fill-purple)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="220" y="220" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13" font-weight="600" fill="#1a1a1a">Storage</text>
+  <text x="220" y="242" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">positions · share ledger · NAV,</text>
+  <text x="220" y="259" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">all private state</text>
+
+  <rect x="390" y="190" width="300" height="100" rx="8" fill="var(--sketch-fill-amber)" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="540" y="220" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13" font-weight="600" fill="#1a1a1a">Code (MASM)</text>
+  <text x="540" y="242" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">strategy · mandate auth ·</text>
+  <text x="540" y="259" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">deposit and redeem logic</text>
+</svg>
+</div>
+<p class="diagram-caption">Nothing inside is public. The network stores a single commitment to the whole account.</p>
+
+<h3>5.2 — Deposit and redeem, as private notes</h3>
+
+<p>Capital moves in and out as notes, not public transfers. A deposit arrives as a request; the vault consumes it, prices it against the oracle, and answers by minting private shares. Redemptions run the same loop backwards. Because it works as request-then-claim, it absorbs the settlement delays real funds live with, and every step of it stays private.</p>
+
+<!-- DIAGRAM 3: Deposit/redeem flow -->
+<div class="diagram-wrapper">
+<svg viewBox="0 0 760 230" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="760" height="230" fill="var(--diagram-bg)" rx="8"/>
+  <text x="380" y="34" text-anchor="middle" font-family="'Instrument Serif', serif" font-size="18" fill="#1a1a1a">Deposit and redeem, in private</text>
+  <text x="380" y="54" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#555">async request-then-claim, settled as notes</text>
+
+  <!-- Allocator -->
+  <rect x="30" y="90" width="170" height="64" rx="8" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="115" y="118" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13" font-weight="600" fill="#1a1a1a">Allocator</text>
+  <text x="115" y="137" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">a fund, a person</text>
+
+  <!-- arrows allocator<->vault -->
+  <line x1="200" y1="110" x2="290" y2="110" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="288,105 298,110 288,115" fill="#1a1a1a"/>
+  <text x="245" y="100" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" fill="#2563eb">1 · deposit (note)</text>
+  <line x1="290" y1="134" x2="200" y2="134" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="202,129 192,134 202,139" fill="#1a1a1a"/>
+  <text x="245" y="151" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" fill="#555">4 · assets back (note)</text>
+
+  <!-- Vault -->
+  <rect x="298" y="84" width="164" height="76" rx="8" fill="var(--sketch-fill-amber)" stroke="#1a1a1a" stroke-width="1.8"/>
+  <text x="380" y="112" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13" font-weight="600" fill="#1a1a1a">Fiscus vault</text>
+  <text x="380" y="132" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">prices · mints ·</text>
+  <text x="380" y="147" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">burns · returns</text>
+
+  <!-- arrows vault<->position -->
+  <line x1="462" y1="110" x2="552" y2="110" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="550,105 560,110 550,115" fill="#1a1a1a"/>
+  <text x="507" y="100" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" fill="#16a34a">2 · mint shares</text>
+  <line x1="552" y1="134" x2="462" y2="134" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="464,129 454,134 464,139" fill="#1a1a1a"/>
+  <text x="507" y="151" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" fill="#555">3 · redeem request</text>
+
+  <!-- Position -->
+  <rect x="560" y="90" width="170" height="64" rx="8" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="645" y="118" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13" font-weight="600" fill="#1a1a1a">Private position</text>
+  <text x="645" y="137" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">your shares, only you see</text>
+</svg>
+</div>
+<p class="diagram-caption">Both legs settle as notes, so the share ledger updates without ever going public.</p>
+
+<h3>5.3 — A limit the manager cannot break</h3>
+
+<p>This is where the trust actually comes from. The manager runs the strategy but cannot step outside the mandate, because the limits live in the account's own auth code and execute inside every single transaction. Either the transaction proves it stayed within the rules, or it reverts in full. Allocators are not trusting the manager here. They are trusting the vault.</p>
+
+<!-- DIAGRAM 4: Mandate decision -->
+<div class="diagram-wrapper">
+<svg viewBox="0 0 760 260" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="760" height="260" fill="var(--diagram-bg)" rx="8"/>
+  <text x="380" y="34" text-anchor="middle" font-family="'Instrument Serif', serif" font-size="18" fill="#1a1a1a">The mandate the manager cannot break</text>
+  <text x="380" y="54" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#555">the limits live in the account's own code</text>
+
+  <!-- Manager -->
+  <rect x="30" y="100" width="150" height="60" rx="8" fill="var(--sketch-fill-gray)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="105" y="128" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13" font-weight="600" fill="#1a1a1a">Manager</text>
+  <text x="105" y="146" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">proposes a trade</text>
+
+  <line x1="180" y1="130" x2="230" y2="130" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="228,125 238,130 228,135" fill="#1a1a1a"/>
+
+  <!-- Auth code checks -->
+  <rect x="240" y="82" width="250" height="96" rx="8" fill="var(--sketch-fill-amber)" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="365" y="106" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12.5" font-weight="600" fill="#1a1a1a">Vault auth code · runs inside the tx</text>
+  <text x="365" y="128" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#555">allowed asset?</text>
+  <text x="365" y="145" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#555">size ≤ cap?</text>
+  <text x="365" y="162" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#555">leverage ≤ limit?</text>
+
+  <line x1="490" y1="130" x2="540" y2="130" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="538,125 548,130 538,135" fill="#1a1a1a"/>
+
+  <!-- Allow / Abort -->
+  <rect x="550" y="88" width="180" height="40" rx="6" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="640" y="106" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" font-weight="600" fill="#16a34a">✓ Allow</text>
+  <text x="640" y="121" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="10.5" fill="#555">prove + execute</text>
+
+  <rect x="550" y="136" width="180" height="40" rx="6" fill="var(--sketch-fill-rose)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="640" y="154" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" font-weight="600" fill="#dc2626">✗ Abort</text>
+  <text x="640" y="169" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="10.5" fill="#555">the whole tx reverts</text>
+</svg>
+</div>
+<p class="diagram-caption">Every proposed trade passes through the vault's auth code. Within mandate it executes. Outside it, the transaction reverts.</p>
+
+<div class="code-file">miden · masm — vault mandate</div>
+<pre><code><span class="tok-k">use</span>.miden::account
+<span class="tok-k">use</span>.miden::tx
+
+<span class="tok-c"># the mandate, enforced inside the transaction itself. the manager signs</span>
+<span class="tok-c"># the trade, but the account decides whether it is allowed, and reverts if not.</span>
+<span class="tok-k">export</span>.<span class="tok-f">auth__mandate</span>
+    <span class="tok-c"># 1. verify the manager's Falcon signature (native, post-quantum)</span>
+    <span class="tok-c"># 2. introspect the transaction: which assets move, what size, where to</span>
+    <span class="tok-k">exec</span>.tx::<span class="tok-f">get_output_notes_info</span>
+    <span class="tok-c"># 3. assert within mandate (allowed assets, max position, leverage),</span>
+    <span class="tok-c">#    and abort the WHOLE transaction if any limit is broken</span>
+    <span class="tok-k">push</span>.<span class="tok-n">MAX_POSITION</span> <span class="tok-k">lte</span> <span class="tok-k">assert</span>.err=<span class="tok-s">"mandate breach"</span>
+    <span class="tok-k">exec</span>.account::<span class="tok-f">incr_nonce</span>
+<span class="tok-k">end</span></code></pre>
+
+<h3>5.4 — Valuing a private book</h3>
+
+<p>To mint shares and prove value, the vault needs prices it can rely on without giving away what it is pricing. It reads the Pragma oracle through foreign procedure invocation, works out net asset value inside the private account, and commits to the result. That NAV becomes a figure the vault can later prove to an allocator, with none of the underlying positions on show.</p>
+
+<h3>5.5 — What the app actually calls</h3>
+
+<p>All of that complexity sits behind a single surface, so the app and any integrator deal in plain verbs: allocate, position, create vault.</p>
+
+<div class="code-file">fiscus · ts — the facade</div>
+<pre><code><span class="tok-k">const</span> fiscus = <span class="tok-k">await</span> Fiscus.<span class="tok-f">connect</span>({ endpoint });
+
+<span class="tok-c">// allocate into a vault: a one-tap PRIVATE deposit. the note is delivered</span>
+<span class="tok-c">// off-band and the proof is generated on the device (or delegated).</span>
+<span class="tok-k">await</span> fiscus.<span class="tok-f">allocate</span>({ vault: vaultId, token: USDC, amount: <span class="tok-n">10_000n</span> });
+
+<span class="tok-c">// your private position. only you, and whoever you disclose to, can see it.</span>
+<span class="tok-k">const</span> pos = <span class="tok-k">await</span> fiscus.<span class="tok-f">position</span>(vaultId);   <span class="tok-c">// { shares, value, pnl }</span>
+
+<span class="tok-c">// a manager creates a vault with the mandate baked into the account code</span>
+<span class="tok-k">const</span> vault = <span class="tok-k">await</span> fiscus.<span class="tok-f">createVault</span>({
+  name: <span class="tok-s">"Delta-Neutral USD"</span>,
+  mandate: { assets: [<span class="tok-s">"USDC"</span>, <span class="tok-s">"ETH"</span>], maxLeverage: <span class="tok-n">2</span> },
+  fees: { management: <span class="tok-n">0.02</span>, performance: <span class="tok-n">0.20</span> },
+});</code></pre>
+
+<div class="divider-thin"></div>
+
+<!-- SECTION 6 -->
+<span class="section-number">06</span>
+<h2>Selective disclosure: the <span style="color:var(--accent)">killer feature</span></h2>
+
+<p>Privacy on its own is just a black box, and nobody hands real money to a black box. The actual product is not the hiding, it is <em>proving without revealing</em>. The vault keeps its holdings private, but it can prove any specific fact about them on demand, to whichever party has the right to ask.</p>
+
+<!-- DIAGRAM 5: Selective disclosure -->
+<div class="diagram-wrapper">
+<svg viewBox="0 0 760 300" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="760" height="300" fill="var(--diagram-bg)" rx="8"/>
+  <text x="380" y="34" text-anchor="middle" font-family="'Instrument Serif', serif" font-size="18" fill="#1a1a1a">Prove the truth, hide the positions</text>
+  <text x="380" y="54" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#555">the zkVM turns private state into provable facts</text>
+
+  <!-- Private state -->
+  <rect x="30" y="80" width="220" height="180" rx="8" fill="var(--sketch-fill-rose)" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="140" y="106" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13" font-weight="600" fill="#1a1a1a">Private vault state</text>
+  <text x="140" y="123" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" fill="#888">hidden even from competitors</text>
+  <text x="140" y="156" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#555">holdings</text>
+  <text x="140" y="182" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#555">positions &amp; sizes</text>
+  <text x="140" y="208" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#555">the strategy</text>
+  <text x="140" y="234" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#555">counterparties</text>
+
+  <!-- arrow -->
+  <line x1="250" y1="170" x2="305" y2="170" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="303,165 313,170 303,175" fill="#1a1a1a"/>
+
+  <!-- zkVM -->
+  <rect x="315" y="138" width="120" height="64" rx="8" fill="var(--sketch-fill-purple)" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="375" y="168" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">zkVM</text>
+  <text x="375" y="186" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9.5" fill="#555">proof</text>
+
+  <line x1="435" y1="170" x2="490" y2="170" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="488,165 498,170 488,175" fill="#1a1a1a"/>
+
+  <!-- proven facts -->
+  <rect x="500" y="80" width="230" height="40" rx="6" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="615" y="105" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#1a1a1a">✓ NAV  $42.1M</text>
+  <rect x="500" y="128" width="230" height="40" rx="6" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="615" y="153" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#1a1a1a">✓ assets ≥ liabilities</text>
+  <rect x="500" y="176" width="230" height="40" rx="6" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="615" y="201" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#1a1a1a">✓ sources approved · clean</text>
+  <rect x="500" y="224" width="230" height="40" rx="6" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="615" y="249" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#1a1a1a">✓ within mandate · ok</text>
+</svg>
+</div>
+<p class="diagram-caption">Private from competitors. Provable to the people who matter. That is the whole unlock.</p>
+
+<p>Three kinds of proof cover most of what allocators and regulators ask for in practice. A scoped view key handles whatever falls outside them.</p>
+
+<p class="feature"><span class="lead-term"><span class="idx">01</span> Proof of value.</span> NAV, and the value of an allocator's own shares, so people are trusting math rather than a screenshot.</p>
+
+<p class="feature"><span class="lead-term"><span class="idx">02</span> Proof of solvency.</span> Proof that assets cover liabilities, without putting either figure on the table.</p>
+
+<p class="feature"><span class="lead-term"><span class="idx">03</span> Proof of provenance.</span> Proof that every incoming asset came from an approved set, an association-set or proof-of-innocence style check, run inside the note logic.</p>
+
+<div class="code-file">fiscus · ts — selective disclosure</div>
+<pre><code><span class="tok-c">// prove the truth about private state without revealing it.</span>
+<span class="tok-k">const</span> solvency = <span class="tok-k">await</span> vault.<span class="tok-f">prove</span>(<span class="tok-s">"assets_ge_liabilities"</span>);
+<span class="tok-k">const</span> nav      = <span class="tok-k">await</span> vault.<span class="tok-f">prove</span>(<span class="tok-s">"nav"</span>, { asOf: block });
+<span class="tok-k">const</span> clean    = <span class="tok-k">await</span> vault.<span class="tok-f">prove</span>(<span class="tok-s">"sources_in_approved_set"</span>);
+
+<span class="tok-c">// for anything deeper, grant a scoped VIEW KEY: read-only, time-boxed,</span>
+<span class="tok-c">// revocable, decrypting only what that party is cleared to see.</span>
+<span class="tok-k">const</span> auditorKey = <span class="tok-k">await</span> vault.<span class="tok-f">grantViewKey</span>(auditor, {
+  scope: <span class="tok-s">"positions"</span>, until: quarterEnd,
+});</code></pre>
+
+<div class="callout">A transparent vault shows everyone everything, which is too much. A naively private vault shows no one anything, which is too little. Fiscus sits in between on purpose: it discloses a given fact to the party entitled to it, and proves the fact is true. That middle ground is the selective-visibility model Miden was designed around.</div>
+
+<div class="divider-thin"></div>
+
+<!-- SECTION 7 -->
+<span class="section-number">07</span>
+<h2>The mobile platform: the phone is where the <span style="color:var(--accent)">privacy lives</span></h2>
+
+<p>Miden is an edge chain: execution and proving both happen on the user's own device. That makes it an unusually good fit for a real mobile product. The phone here is not a thin client pointed at a server, it is where the privacy is generated in the first place.</p>
+
+<p class="feature"><span class="lead-term"><span class="idx">01</span> Proving on the device, delegated when needed.</span> Light actions prove right on the phone. Heavier strategy proofs get delegated to a prover so the app never stalls, and the SDK makes that call on its own, so the user never has to think about it.</p>
+
+<p class="feature"><span class="lead-term"><span class="idx">02</span> Both sides, same screen.</span> Allocators get discovery, one-tap allocation, and a private portfolio view with values they can prove. Managers get vault creation, mandate setup, and strategy controls. Same product, showing each side what it needs.</p>
+
+<p class="feature"><span class="lead-term"><span class="idx">03</span> Privacy is invisible.</span> The hardest lesson from a decade of private payments is that privacy dies at the UX layer. Real people will not manage shielded addresses. Fiscus buries all of that: putting money into a vault feels about as involved as sending a message.</p>
+
+<div class="callout">The competition lives in desktop dapps, because on a public chain the phone does not buy you anything extra. On Miden the phone is the execution and privacy layer, so a polished mobile app stops being a nicety. It becomes a structural edge that nobody on a transparent chain can reproduce.</div>
+
+<div class="divider-thin"></div>
+
+<!-- SECTION 8 -->
+<span class="section-number">08</span>
+<h2>Business model: a slice of fees, plus a <span style="color:var(--accent)">premium tier</span></h2>
+
+<p>Fiscus earns the way asset management always has, by taking a slice of fees, with a premium tier on top for the institutional features that are hardest to copy.</p>
+
+<table>
+  <thead><tr><th>Stream</th><th>How it works</th></tr></thead>
+  <tbody>
+    <tr><td>Management fee share</td><td>managers charge an annual % of assets; the protocol takes a slice</td></tr>
+    <tr><td>Performance fee share</td><td>managers charge a % of profits; the protocol takes a slice</td></tr>
+    <tr><td>Vault creation / listing</td><td>a small fee to spin up and list a vault</td></tr>
+    <tr><td>Institutional &amp; compliance tier</td><td>premium: auditor view-key portals, Guardian custody integration, disclosure and reporting tooling</td></tr>
+  </tbody>
+</table>
+
+<p>Because the fees scale with assets under management, the model compounds as adoption grows instead of riding on transaction volume. A token can follow later for governance, fee-sharing, and keeping managers and allocators aligned, but the protocol makes money from day one without one.</p>
+
+<div class="divider-thin"></div>
+
+<!-- SECTION 9 -->
+<span class="section-number">09</span>
+<h2>Go-to-market: win a <span style="color:var(--accent)">wedge</span>, then widen</h2>
+
+<p>Asset management is a two-sided market, managers on one side and allocators on the other. The way through a cold start is to win a narrow wedge that pulls in both at once, then widen out from there. Fiscus starts where the privacy pain is worst and the users move quickest.</p>
+
+<p class="feature"><span class="lead-term"><span class="idx">1</span> Crypto-native funds &amp; DAOs.</span> They feel the copy / front-run pain most, onboard fastest, and bring their own allocators.</p>
+
+<p class="feature"><span class="lead-term"><span class="idx">2</span> Pro retail allocators.</span> One-tap allocate into vetted private vaults, reached via the managers' audiences and the app.</p>
+
+<p class="feature"><span class="lead-term"><span class="idx">3</span> Institutions.</span> Private positions + provable compliance + Guardian custody + auditor access.</p>
+
+<p>Every manager Fiscus signs brings their own allocators along, so growth compounds from the manager side of the market. The positioning is short and it sticks: <strong>the private Enzyme, where serious capital manages money onchain without showing its hand.</strong></p>
+
+<h3>How it grows</h3>
+
+<p class="feature"><span class="lead-term"><span class="idx">01</span> Lighthouse managers first.</span> Sign a handful of credible crypto-native managers who are visibly bleeding alpha to transparency. Their vaults end up being both the proof and the marketing.</p>
+
+<p class="feature"><span class="lead-term"><span class="idx">02</span> Provable track record as distribution.</span> Since performance can be proven without revealing a single position, a manager's verified returns become a portable, credible badge they carry anywhere, which is a growth loop on its own.</p>
+
+<p class="feature"><span class="lead-term"><span class="idx">03</span> Institutional partnerships.</span> Custodians and compliance partners plug into the disclosure and Guardian layer, which opens the door to the largest pools of capital.</p>
+
+<h3>What success looks like</h3>
+
+<div class="pill-row">
+  <span class="pill">assets under management</span>
+  <span class="pill">active managers / vaults</span>
+  <span class="pill">allocators</span>
+  <span class="pill">allocator retention</span>
+  <span class="pill">disclosure proofs issued</span>
+  <span class="pill">institutional vaults live</span>
+</div>
+
+<div class="divider-thin"></div>
+
+<!-- SECTION 10 -->
+<span class="section-number">10</span>
+<h2>Roadmap: from core loop to <span style="color:var(--accent)">institutional scale</span></h2>
+
+<p class="feature"><span class="lead-term"><span class="idx">Phase 1 · testnet MVP</span> — Prove the core loop.</span> One private vault, working end to end: create it with a mandate, allocate into it, run a basic strategy, prove the NAV. A single lighthouse manager all the way through. The Subrosa-style proof that the model actually runs on Miden.</p>
+
+<p class="feature"><span class="lead-term"><span class="idx">Phase 2 · mainnet launch</span> — Open to managers, ship the app.</span> Multiple vaults, the mobile app for both allocators and managers, live mandate enforcement, performance proofs, and the fee engine. Bring on the first cohort of crypto-native managers.</p>
+
+<p class="feature"><span class="lead-term"><span class="idx">Phase 3 · institutional</span> — Compliance, custody, scale.</span> Selective-disclosure portals for auditors and regulators, Guardian custody integration, proof-of-compliance on incoming assets, and the partnerships that bring institutional money in.</p>
+
+<div class="divider-thin"></div>
+
+<!-- SECTION 11 -->
+<span class="section-number">11</span>
+<h2>Risks and honest limits: naming the <span style="color:var(--accent)">hard parts</span></h2>
+
+<p>A serious project says its hard parts out loud. None of the following is fatal. Pretending none of it existed would be.</p>
+
+<div class="callout">On Miden's current testnet the node can re-execute transactions, which means users have privacy from each other but not yet from the node operator. Fiscus is built around that fact and hardens alongside the network on the way to mainnet. It will never claim more privacy than the chain can actually back up.</div>
+
+<p class="feature"><span class="lead-term"><span class="idx">i</span> Privacy vs trust.</span> The DeFi instinct is that transparency is what builds trust, so a private vault sounds dangerous at first. The answer is selective disclosure. Fiscus can prove more than a transparent vault can — solvency and compliance and provenance — whenever someone asks. It is not a black box. It is a glass box, and you decide where the windows go.</p>
+
+<p class="feature"><span class="lead-term"><span class="idx">ii</span> Regulation.</span> Private finance attracts regulators, and it should. Fiscus treats compliance as a first-class feature rather than an afterthought. Provable clean sources and auditor access are built in from the start, which turns the regulatory question from a liability into a selling point.</p>
+
+<p class="feature"><span class="lead-term"><span class="idx">iii</span> Pricing and NAV.</span> Pricing a private portfolio takes reliable oracles and conservative accounting. Fiscus leans on a vetted oracle and proves the NAV instead of just asserting it.</p>
+
+<p class="feature"><span class="lead-term"><span class="idx">iv</span> Account-code and cold-start risk.</span> Mandate logic has to be audited and formally checked, and a two-sided market is genuinely hard to start, which is the whole reason the wedge leads with managers who arrive with their own allocators.</p>
+
+<div class="divider-thin"></div>
+
+<!-- SECTION 12 -->
+<span class="section-number">12</span>
+<h2>Why this team: every piece maps to something <span style="color:var(--accent)">already built</span></h2>
+
+<p>This is not a leap into unfamiliar territory. Every part of Fiscus lines up with something already built and shipped.</p>
+
+<table>
+  <thead><tr><th>Fiscus needs</th><th>What has already been done</th></tr></thead>
+  <tbody>
+    <tr><td>capital &amp; collateral systems for onchain markets</td><td>Cusp, a DeFi capital layer using prediction-market positions as collateral</td></tr>
+    <tr><td>private value transfer with invisible UX</td><td>Monaris, one-click private payments via Railgun and the Kohaku SDK, with an 18k+ waitlist</td></tr>
+    <tr><td>programmable accounts, mandates, post-quantum auth</td><td>PQ-accounts, ERC-4337 accounts combining ECDSA and ML-DSA</td></tr>
+    <tr><td>a private app, actually built on Miden</td><td>Subrosa, a private prediction market on Miden testnet</td></tr>
+    <tr><td>scaling a product and a user base</td><td>Polybaskets, millions of transactions, and a DevRel track record of driving adoption</td></tr>
+  </tbody>
+</table>
+
+<div class="callout">Every onchain asset manager today is transparent by force. Fiscus is the first one that lets you manage in private and still prove everything in public.</div>
+
+<p>The fiscus was a private treasury that still answered to an audit. Bring that onchain and you have the whole company. It cannot exist on a public chain. On Miden it is simply the base layer.</p>
+
+<div class="colophon">
+  Fiscus · Private asset management on Miden · prepared by Aditya Kumar · <a href="https://adibuilds.in">adibuilds.in</a>
+</div>
+
+</article>
+</body>
+</html>
