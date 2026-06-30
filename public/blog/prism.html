@@ -456,9 +456,18 @@
 <span class="section-number">10</span>
 <h2>How to use it</h2>
 
-<p>Using it is straightforward. Copy the command files into <code>~/.claude/commands/</code> for global use, or a repo's <code>.claude/commands/</code> to share them with a team, wire the two hooks from the example settings, and then invoke <code>/prism-*</code> from any project. Every run states its plan up front, the archetype, mode, stakes, and fleet size, and prints a divergence line before it spends agents, so you can see what it is about to do and what the fan-out actually bought.</p>
+<p>Setup takes three steps: copy the command files into <code>~/.claude/commands/</code> for global use (or a repo's <code>.claude/commands/</code> to share them with a team), wire the two hooks from the example settings, and invoke <code>/prism-*</code> from any project. Every run states its plan up front, the archetype, mode, stakes, and fleet size, and prints a divergence line before it spends agents, so you can see what it is about to do and what the fan-out bought.</p>
 
-<p>The best way to use it is to let the eval result pick the fleet. Run lean on open-ended design, the core lenses plus only the domain ones that fit, since a bigger fleet costs about five times more for no measured gain. Save the full fleet for where it earns its keep: reviewing a diff or hunting a concrete defect with <code>/prism-feedback</code>. Start a new codebase with <code>/prism-understand</code> so memory has something to compound on, reach for <code>/prism-plan</code> on decisions that are hard to reverse, and use <code>/prism-ship</code> when you want an idea driven to a working app in one pass. Above all, read the divergence line. If it comes back low, the fan-out did not earn its cost, and one careful pass would have done the job.</p>
+<p>Once it is wired up, a few habits get the most out of it:</p>
+
+<ul>
+  <li><strong>Run lean on open-ended design</strong> - the core lenses plus only the domain ones that fit. A bigger fleet costs about five times more for no measured gain.</li>
+  <li><strong>Save the full fleet for defect-finding</strong> - reviewing a diff or hunting a concrete bug with <code>/prism-feedback</code>, where diversity actually pays.</li>
+  <li><strong>Open a new codebase with <code>/prism-understand</code></strong> - so memory has something to compound on before you build.</li>
+  <li><strong>Reach for <code>/prism-plan</code> on hard-to-reverse calls</strong> - the decisions worth a steelman and a verified recommendation.</li>
+  <li><strong>Use <code>/prism-ship</code> for greenfield</strong> - when you want an idea driven to a working app in one pass.</li>
+  <li><strong>Read the divergence line</strong> - if it comes back low, the fan-out did not earn its cost, and one careful pass would have done the job.</li>
+</ul>
 
 <div class="divider-thin"></div>
 
