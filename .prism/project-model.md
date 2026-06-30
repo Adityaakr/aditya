@@ -169,6 +169,7 @@ with react-router-dom. Single-page app, statically built, deployed from GitHub
   than chasing exact assembly on the fast-moving `next` branch.
 
 ## Decision log
+- 2026-06-30 — `prism-plan` (sync): added the 8 core-philosophy principles (OVERVIEW §3) as a list at the end of §2; verified all other source features already present (eleven commands, repo map, craft floor, production-readiness). No new section.
 - 2026-06-30 — `prism-plan` (sync content): updated `prism.html` to the latest Prism (grounded in
   `prism-claude-code/` OVERVIEW + command specs + docs/01-three-improvements). Added 2 commands
   (`/prism-write`, `/prism-ship`) → "nine" became "eleven"; added two §4 paragraphs (Repo Map for

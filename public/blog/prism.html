@@ -94,7 +94,18 @@
 
 <p>One pass through a strong model fails in predictable ways. It anchors on the first plausible answer and never stress-tests it. Faced with two real but conflicting considerations, it averages them into a vague middle instead of deciding which one wins. It states things about your own code or a library's API that it never checked, and hands you the conclusion with no reasoning trail, so you cannot tell which parts to trust. It is stateless, relearning the same project facts every session. Its safety guidance is unenforced: text it can ignore three hundred lines in. And the usual multi-agent cure is unfalsifiable, because the tools selling it never measure whether the agents helped.</p>
 
-<p>Each of those failure modes has a specific answer in the sections below. Two ideas organize the whole design: the agents are made to look at different evidence rather than wear different hats, and conflicts between them are decided, not blended into a vague middle.</p>
+<p>Each of those failure modes has a specific answer in the sections below. Eight principles organize the design:</p>
+
+<ul>
+  <li><strong>Diversity over cloning</strong> - more agents help only if they see different things, so lenses get different evidence, not just different prompts.</li>
+  <li><strong>Judge, don't merge</strong> - resolve the contradiction and pick the better-supported side; averaging dilutes the right answer.</li>
+  <li><strong>Adversarial, decorrelated verification</strong> - skeptics from a different tier try to refute the load-bearing claims, and only survivors make the cut.</li>
+  <li><strong>Grounded, not asserted</strong> - every claim about code or an API is checked against a source, never recall.</li>
+  <li><strong>Compounding memory</strong> - a per-project code model and a global user model, so each run gets smarter about both this project and this person.</li>
+  <li><strong>Enforced, not requested</strong> - the critical safety guards are real hooks the model cannot bypass.</li>
+  <li><strong>Measured, not claimed</strong> - the harness can prove or disprove its own value, and will recommend shrinking itself.</li>
+  <li><strong>Honest over reassuring</strong> - flag uncertainty, label confidence, report what held up and what broke.</li>
+</ul>
 
 <div class="divider-thin"></div>
 
