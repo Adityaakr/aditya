@@ -199,4 +199,22 @@ with react-router-dom. Single-page app, statically built, deployed from GitHub
   `_refund`). Same SDK-grounding pass should run on `fiscus.html` (also has Miden TS/MASM).
 
 ## Lessons
-_(reserved for prism-retro)_
+- **Run an AUDIENCE/EXPERT lens on outward-facing content, not just correctness.** The Kohaku
+  fact-check + feedback passes optimized for "is it true / will the code compile" and missed
+  overclaims a Miden insider would flag (absolutes like "nothing to deploy"/"privacy already
+  there", missing "metadata is public", no SDK version note). The user had to supply that lens.
+  For any article meant to be shared with a domain expert, explicitly run: "how would an engineer
+  from THIS ecosystem read this?" alongside the correctness pass.
+- **Verify SDK/source CURRENCY, not just existence.** I grounded the Miden TS API against
+  `@demox-labs/miden-sdk@0.12.5` and treated it as authoritative, never checking it had been
+  superseded by the official `@miden-sdk/miden-sdk` (0.15+). Grounding is only as good as the
+  source you pick — always confirm a package is the latest/canonical one (npm last-published +
+  official docs), then add a version note when code is version-sensitive.
+- **Apply known staleness immediately; don't grade it "low" and defer.** Pass 1 DID flag the
+  Miden `NoteInputs → NoteStorage` rename (v0.14) but I only fixed the commitment operand order
+  and left the prose saying "inputs". Surfaced-but-unapplied = the user finds it later. If a
+  verifier flags drift, fix the user-visible text in the same pass.
+- **Two ID spaces can collide and look like a bug.** Miden demox-SDK `newWallet` auth id
+  (0=RPO-Falcon512, 1=ECDSA) vs the Rust protocol enum (`Falcon512Poseidon2`=2, ECDSA=1) are
+  DIFFERENT spaces; ECDSA=1 in both invites a wrong "fix". Don't change `0→2`. (verified
+  miden-client v0.12.5–v0.15.2 web-client new_account.rs.)
