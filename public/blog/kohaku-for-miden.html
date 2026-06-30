@@ -314,7 +314,7 @@
 
 <h1>Kohaku for Miden</h1>
 
-<p class="subtitle">Underneath the SDK surface: the protocol contracts, the post-quantum account, the providers, the plugins — and the Miden version of each.</p>
+<p class="subtitle">Underneath the SDK surface: the protocol contracts, the post-quantum account, the providers, the plugins, and the Miden version of each.</p>
 
 <div class="divider"></div>
 
@@ -326,7 +326,7 @@
 <span class="section-number">01</span>
 <h2>What this covers, and the one reframe</h2>
 
-<p>Kohaku does not invent privacy. It orchestrates existing protocols — Railgun, Tornado Cash, Privacy Pools — and adds a post-quantum account, a verifying provider layer, and a plugin system a wallet can adopt piece by piece.</p>
+<p>Kohaku does not invent privacy. It orchestrates existing protocols (Railgun, Tornado Cash, Privacy Pools) and adds a post-quantum account, a verifying provider layer, and a plugin system a wallet can adopt piece by piece.</p>
 
 <p>Each of those privacy protocols is, underneath, a set of on-chain contracts: a Merkle tree of commitments, a set of spent nullifiers, and a zero-knowledge verifier. That is the part that changes most on Miden. Miden gives you private accounts, private notes, commitments, nullifiers, and client-side proofs as base-layer features. So the contract stack that Kohaku spends most of its effort wrapping is, on Miden, mostly already there.</p>
 
@@ -527,11 +527,11 @@
 <span class="cm">// nullifier  = hash(serial_num, script_root, input_commitment, asset_hash)</span>
 <span class="cm">//</span>
 <span class="cm">// on the public ledger, only the commitment and (on spend) the nullifier are</span>
-<span class="cm">// visible — not the assets, script, inputs, or serial number. (node-operator</span>
+<span class="cm">// visible, not the assets, script, inputs, or serial number. (node-operator</span>
 <span class="cm">// trust on the current testnet: see "the honest limit" below.)</span></code></pre>
 </div>
 
-<div class="callout">On Ethereum a privacy protocol is a contract that re-implements commitments, nullifiers, and a verifier on top of a transparent chain. On Miden those three are the chain — so Kohaku for Miden is mostly fitting each protocol's behaviour to the native note model, not redeploying its contracts.</div>
+<div class="callout">On Ethereum a privacy protocol is a contract that re-implements commitments, nullifiers, and a verifier on top of a transparent chain. On Miden those three are the chain. So Kohaku for Miden is mostly fitting each protocol's behaviour to the native note model, not redeploying its contracts.</div>
 
 <div class="divider-thin"></div>
 
@@ -539,14 +539,14 @@
 <span class="section-number">03</span>
 <h2>Railgun, in depth</h2>
 
-<p>Railgun is the protocol Kohaku ships first, and the one worth seeing in detail — its structure is what you are mapping. Railgun has two main contracts: <code class="inline-code">RailgunSmartWallet</code>, the shielded pool that holds commitments and nullifiers and verifies proofs, and <code class="inline-code">RelayAdapt</code>, a helper that wraps and unwraps native ETH to WETH and composes actions with a multicall.</p>
+<p>Railgun is the protocol Kohaku ships first, and the one worth seeing in detail. Its structure is what you are mapping. Railgun has two main contracts: <code class="inline-code">RailgunSmartWallet</code>, the shielded pool that holds commitments and nullifiers and verifies proofs, and <code class="inline-code">RelayAdapt</code>, a helper that wraps and unwraps native ETH to WETH and composes actions with a multicall.</p>
 
 <h3><span class="h3-num">3.1</span> the account <span class="h3-kw">four keys, one 0zk address</span></h3>
 <p>A Railgun account is not an Ethereum account. From one credential it derives four keys, each with a distinct job, and encodes two of their public halves into a Bech32m address.</p>
 
 <div class="code-block">
 <div class="code-tab">kohaku · ts</div>
-<pre><code><span class="cm">// illustrative API — the real @kohaku-eth/railgun surface is WASM bindings</span>
+<pre><code><span class="cm">// illustrative API. the real @kohaku-eth/railgun surface is WASM bindings</span>
 <span class="cm">// plus a RailgunSigner / RailgunAddress; the names here are schematic.</span>
 <span class="kw">import</span> { RailgunAccount } <span class="kw">from</span> <span class="str">"@kohaku-eth/railgun"</span>;
 
@@ -577,7 +577,7 @@
 
 <div class="code-block">
 <div class="code-tab">kohaku · ts</div>
-<pre><code><span class="cm">// illustrative — method names are schematic; the real surface is WASM bindings.</span>
+<pre><code><span class="cm">// illustrative: method names are schematic; the real surface is WASM bindings.</span>
 <span class="cm">// shield: public ERC20 -&gt; a private note. builds a ShieldNoteERC20 with your</span>
 <span class="cm">// master public key, encrypts the note (AES-GCM) under your viewing key, and</span>
 <span class="cm">// calls RailgunSmartWallet. native ETH is wrapped to WETH via RelayAdapt first.</span>
@@ -619,11 +619,11 @@
 <div class="mapsto"><span class="lbl">on Miden →</span> RailgunSmartWallet, RelayAdapt, and the transact() Groth16 proof collapse into a private account, a private note, and a native client-side STARK proof.</div>
 
 <h3><span class="h3-num">3.4</span> what a private note is <span class="h3-kw">in real code</span></h3>
-<p>A note is a small MASM program. Here is a simplified sketch of it, pay-to-ID — close to what runs when the recipient consumes a private transfer: it checks that the consuming account is the intended recipient, then moves the assets into their vault. A privacy SDK ships notes like this so an app never writes MASM.</p>
+<p>A note is a small MASM program. Here is a simplified sketch of it, pay-to-ID, close to what runs when the recipient consumes a private transfer: it checks that the consuming account is the intended recipient, then moves the assets into their vault. A privacy SDK ships notes like this so an app never writes MASM.</p>
 
 <div class="code-block">
 <div class="code-tab">miden · masm</div>
-<pre><code><span class="cm"># illustrative / simplified — not stack-exact. the canonical p2id.masm reads a</span>
+<pre><code><span class="cm"># illustrative / simplified, not stack-exact. the canonical p2id.masm reads a</span>
 <span class="cm"># two-felt account id from note storage and compares via account_id::is_equal.</span>
 <span class="kw">use</span>.miden::account
 <span class="kw">use</span>.miden::note
@@ -718,7 +718,7 @@
 <span class="cm">// your funds are NOT in a known-bad set, without revealing which note is yours.</span></code></pre>
 </div>
 
-<p>Two takes on the same idea sit underneath this: Privacy Pools' <strong>association sets</strong> (the ASP root) and Railgun's <strong>PPOI</strong> (Private Proofs of Innocence) — both let you prove your funds are not in a flagged set, without revealing which note is yours. This is the compliance-aware direction the whole space is moving in.</p>
+<p>Two takes on the same idea sit underneath this: Privacy Pools' <strong>association sets</strong> (the ASP root) and Railgun's <strong>PPOI</strong> (Private Proofs of Innocence). Both let you prove your funds are not in a flagged set, without revealing which note is yours. This is the compliance-aware direction the whole space is moving in.</p>
 
 <h3><span class="h3-num">5.1</span> on Miden <span class="h3-kw">provenance in the note itself</span></h3>
 <p>Miden lets you push this logic into the note. Because a note carries an executable script and can call into other accounts with foreign procedure invocation, a note can require an inclusion proof, against an approved-set root held by a registry account, before it will release its assets. Compliance becomes a property the note enforces, not a gate a central pool keeps.</p>
@@ -795,7 +795,7 @@
 <p>On Ethereum this is real work: you need the EntryPoint singleton, a bundler, and an expensive on-chain lattice verifier. Account abstraction itself is a standard bolted on top of accounts that are otherwise just keys.</p>
 
 <h3><span class="h3-num">6.1</span> on Miden <span class="h3-kw">this is the default</span></h3>
-<p>Miden is post-quantum at its core. Every account is programmable. Account abstraction isn't a standard you opt into — it is how accounts work. The native signature is RPO-Falcon512. So the whole pq-account package reduces to choosing the native auth: no EntryPoint, no bundler, no Solidity verifier.</p>
+<p>Miden is post-quantum at its core. Every account is programmable. Account abstraction isn't a standard you opt into; it is how accounts work. The native signature is RPO-Falcon512. So the whole pq-account package reduces to choosing the native auth: no EntryPoint, no bundler, no Solidity verifier.</p>
 
 <div class="code-block">
 <div class="code-tab">miden · ts</div>
@@ -829,7 +829,7 @@
 <span class="cm"># by inspecting how much value leaves the vault this transaction. this is the</span>
 <span class="cm"># Subrosa agent cap, enforced by the account itself instead of the app.</span>
 <span class="kw">export</span>.auth__spend_cap
-    <span class="cm"># illustrative sketch — not stack-exact, and not a port of an existing standard.</span>
+    <span class="cm"># illustrative sketch: not stack-exact, and not a port of an existing standard.</span>
     <span class="cm"># 1. increment the nonce first (must precede any delta-commitment work)</span>
     exec.account::incr_nonce
 
@@ -856,16 +856,16 @@
 <pre><code><span class="cm">// Miden supports async execution: while building a tx the executor can call</span>
 <span class="cm">// back into an authenticator (an external keystore). that callback is where a</span>
 <span class="cm">// co-signer (a Guardian-style service) verifies the work and returns a signature.</span>
-<span class="cm">// illustrative — the real surface is the SDK's external-keystore / sign-callback.</span>
+<span class="cm">// illustrative: the real surface is the SDK's external-keystore / sign-callback.</span>
 
 <span class="cm">// 1. the executor produces a TransactionSummary describing the tx's effects</span>
 <span class="cm">// 2. distribute the summary to the co-signers (it carries deltas, not keys)</span>
 <span class="cm">// 3. each co-signer re-derives the summary, checks it against chain state, and</span>
-<span class="cm">//    signs only if it matches — it never holds a key that can move funds alone</span>
+<span class="cm">//    signs only if it matches; it never holds a key that can move funds alone</span>
 <span class="cm">// 4. collect the threshold of signatures, attach them, and submit the tx</span></code></pre>
 </div>
 
-<div class="mapsto"><span class="lbl">on Miden →</span> Kohaku's multi-key accounts and recovery turn into private-state sync plus threshold signing through Guardian — every co-signer a verifier, never a custodian.</div>
+<div class="mapsto"><span class="lbl">on Miden →</span> Kohaku's multi-key accounts and recovery turn into private-state sync plus threshold signing through Guardian. Every co-signer is a verifier, never a custodian.</div>
 
 <div class="callout"><strong>Why this matters for the SDK.</strong> This is the piece that unlocks multi-party and multi-device apps: shared treasuries, social recovery, an agent whose large actions need a human co-sign. The SDK's job is to make a co-sign feel like one approval, while the Guardian never holds a key that can move funds on its own.</div>
 
@@ -902,7 +902,7 @@
 </div>
 
 <h3><span class="h3-num">8.1</span> on Miden <span class="h3-kw">pull-only sync is the private query</span></h3>
-<p>Miden's client is the provider, and its sync model is already a privacy feature. The node does not push you a feed. You pull notes that match your account's <strong>note tags</strong> and filter them locally. The tags are deliberately coarse — a tag can also match other users' notes — and that fuzziness is part of the privacy, while still giving you the local, indexer-free token discovery Kohaku has to engineer around centralized services. The remaining concern, not pinning a user to one observable endpoint, maps onto Miden's own node-trust and transport choices.</p>
+<p>Miden's client is the provider, and its sync model is already a privacy feature. The node does not push you a feed. You pull notes that match your account's <strong>note tags</strong> and filter them locally. The tags are deliberately coarse: a tag can also match other users' notes, and that fuzziness is part of the privacy, while still giving you the local, indexer-free token discovery Kohaku has to engineer around centralized services. The remaining concern, not pinning a user to one observable endpoint, maps onto Miden's own node-trust and transport choices.</p>
 
 <div class="code-block">
 <div class="code-tab">miden · ts</div>
@@ -1032,7 +1032,7 @@
 </ul>
 
 <h3><span class="h3-num">10.4</span> The honest limit</h3>
-<div class="callout">On Miden's current testnet, the node can re-execute every transaction. Users get privacy from each other, not against the node operator — a deliberate guardrail while the network matures. Design the SDK around that, and never promise stronger privacy than the chain gives today.</div>
+<div class="callout">On Miden's current testnet, the node can re-execute every transaction. Users get privacy from each other, not against the node operator. It's a deliberate guardrail while the network matures. Design the SDK around that, and never promise stronger privacy than the chain gives today.</div>
 
 <h3><span class="h3-num">10.5</span> Proving</h3>
 <ul>
@@ -1068,7 +1068,7 @@
   <li><strong>Client and accounts.</strong> The provider wrapper plus create-and-manage for private accounts with native Falcon auth. Nothing else is usable until this is smooth.</li>
   <li><strong>Notes, transfers, and proving.</strong> One-call private transfers, encrypted off-band delivery, and the local-or-delegated proving choice hidden. This is the Railgun and Tornado behaviour, on the native note model.</li>
   <li><strong>Programmable auth.</strong> Account-level spend caps and rate limits via transaction introspection. This is pq-account's spending policy, native.</li>
-  <li><strong>Compliance and private state.</strong> Provenance in note scripts — Privacy Pools' association sets and Railgun's PPOI — plus shared private state and threshold signing through Guardian. This is Privacy Pools (and Railgun's compliance), on Miden.</li>
+  <li><strong>Compliance and private state.</strong> Provenance in note scripts (Privacy Pools' association sets and Railgun's PPOI), plus shared private state and threshold signing through Guardian. This is Privacy Pools (and Railgun's compliance), on Miden.</li>
   <li><strong>Reference app, plugins, and docs.</strong> A small private app built entirely on the SDK, the plugin interfaces other teams extend, and the tutorials that make them copy it. Subrosa is most of this proof already.</li>
 </ol>
 
