@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kohaku for Miden — Deep Implementation Guide</title>
+<title>Kohaku for Miden</title>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -312,7 +312,7 @@
 
 <div class="article-tag">Privacy · Miden · ZK</div>
 
-<h1>Kohaku for Miden — Deep Implementation Guide</h1>
+<h1>Kohaku for Miden</h1>
 
 <p class="subtitle">The whole stack. Not just the SDK surface, but the protocol contracts, the post-quantum account, the providers, the plugins, and the Miden implementation of every one.</p>
 
@@ -1081,8 +1081,8 @@
   <rect x="40" y="74" width="320" height="56" rx="6" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.2"/>
   <text x="200" y="98" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12.5" font-weight="600" fill="#1a1a1a">@kohaku-eth/railgun + privacy-pools</text>
   <text x="200" y="116" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" font-style="italic" fill="#555">bolt-on shielded pools</text>
-  <line x1="362" y1="102" x2="396" y2="102" stroke="#1a1a1a" stroke-width="1.2"/>
-  <polygon points="394,97 404,102 394,107" fill="#1a1a1a"/>
+  <line x1="360" y1="102" x2="390" y2="102" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="390,97 400,102 390,107" fill="#1a1a1a"/>
   <rect x="400" y="74" width="320" height="56" rx="6" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.2"/>
   <text x="560" y="98" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12.5" font-weight="600" fill="#1a1a1a">native private notes &amp; accounts</text>
   <text x="560" y="116" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" font-style="italic" fill="#555">nothing to bolt on</text>
@@ -1091,8 +1091,8 @@
   <rect x="40" y="142" width="320" height="56" rx="6" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.2"/>
   <text x="200" y="166" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12.5" font-weight="600" fill="#1a1a1a">@kohaku-eth/provider</text>
   <text x="200" y="184" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" font-style="italic" fill="#555">ethers · viem · helios · colibri</text>
-  <line x1="362" y1="170" x2="396" y2="170" stroke="#1a1a1a" stroke-width="1.2"/>
-  <polygon points="394,165 404,170 394,175" fill="#1a1a1a"/>
+  <line x1="360" y1="170" x2="390" y2="170" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="390,165 400,170 390,175" fill="#1a1a1a"/>
   <rect x="400" y="142" width="320" height="56" rx="6" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.2"/>
   <text x="560" y="166" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12.5" font-weight="600" fill="#1a1a1a">miden-client / web SDK wrapper</text>
   <text x="560" y="184" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" font-style="italic" fill="#555">+ private transport</text>
@@ -1101,8 +1101,8 @@
   <rect x="40" y="210" width="320" height="56" rx="6" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.2"/>
   <text x="200" y="234" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12.5" font-weight="600" fill="#1a1a1a">@kohaku-eth/pq-account</text>
   <text x="200" y="252" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" font-style="italic" fill="#555">post-quantum 4337 account</text>
-  <line x1="362" y1="238" x2="396" y2="238" stroke="#1a1a1a" stroke-width="1.2"/>
-  <polygon points="394,233 404,238 394,243" fill="#1a1a1a"/>
+  <line x1="360" y1="238" x2="390" y2="238" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="390,233 400,238 390,243" fill="#1a1a1a"/>
   <rect x="400" y="210" width="320" height="56" rx="6" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.2"/>
   <text x="560" y="234" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12.5" font-weight="600" fill="#1a1a1a">programmable accounts + PQ auth</text>
   <text x="560" y="252" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" font-style="italic" fill="#555">Falcon is native to Miden</text>
@@ -1111,8 +1111,8 @@
   <rect x="40" y="278" width="320" height="56" rx="6" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.2"/>
   <text x="200" y="302" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12.5" font-weight="600" fill="#1a1a1a">4337 mempool relay</text>
   <text x="200" y="320" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" font-style="italic" fill="#555">hides the relaying plumbing</text>
-  <line x1="362" y1="306" x2="396" y2="306" stroke="#1a1a1a" stroke-width="1.2"/>
-  <polygon points="394,301 404,306 394,311" fill="#1a1a1a"/>
+  <line x1="360" y1="306" x2="390" y2="306" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="390,301 400,306 390,311" fill="#1a1a1a"/>
   <rect x="400" y="278" width="320" height="56" rx="6" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.2"/>
   <text x="560" y="302" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12.5" font-weight="600" fill="#1a1a1a">client-side proving layer</text>
   <text x="560" y="320" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" font-style="italic" fill="#555">local or delegated</text>
@@ -1121,8 +1121,8 @@
   <rect x="40" y="346" width="320" height="56" rx="6" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.2"/>
   <text x="200" y="370" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12.5" font-weight="600" fill="#1a1a1a">multi-key + recovery</text>
   <text x="200" y="388" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" font-style="italic" fill="#555">at the wallet level</text>
-  <line x1="362" y1="374" x2="396" y2="374" stroke="#1a1a1a" stroke-width="1.2"/>
-  <polygon points="394,369 404,374 394,379" fill="#1a1a1a"/>
+  <line x1="360" y1="374" x2="390" y2="374" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="390,369 400,374 390,379" fill="#1a1a1a"/>
   <rect x="400" y="346" width="320" height="56" rx="6" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.2"/>
   <text x="560" y="370" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12.5" font-weight="600" fill="#1a1a1a">private state + multisig</text>
   <text x="560" y="388" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" font-style="italic" fill="#555">via Miden Guardian</text>
@@ -1131,10 +1131,6 @@
 <p class="diagram-caption">The component map again, now as a build sequence. Everything on the right is native or a thin wrapper.</p>
 
 <div class="callout"><strong>The one-line version.</strong> A privacy protocol on Ethereum is a contract stack that rebuilds commitments, nullifiers, and a verifier. On Miden those are the base layer. This SDK is the thin, native re-expression of Kohaku, and these are the exact pieces to build it.</div>
-
-<p><strong>On the name.</strong> Kohaku (琥珀) is the Japanese word for amber — fossil resin that holds whatever it surrounds intact and legible for a very long time. A fitting name for a toolkit whose job is to keep what it carries private and well preserved.</p>
-
-<p><strong>The shape of it.</strong> Building Kohaku for Miden is less a port than a translation. The same guarantees — commitments, nullifiers, verification — re-expressed in primitives the base layer already provides. The contracts mostly disappear; the meaning stays.</p>
 
 </article>
 </body>
