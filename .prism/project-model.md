@@ -149,6 +149,21 @@ with react-router-dom. Single-page app, statically built, deployed from GitHub
   and the `export.auth__<name>` convention ARE real.
 - **LESSON for blog work**: SDK/protocol code in articles must be grounded against live docs, not
   recalled — Miden's TS API moves fast. Label any proposed/aspirational facade code "illustrative."
+- **Round 2 (`prism-feedback`, 2026-06-30, cross-TIER skeptics)** caught defects the first pass and
+  even my OWN round-1 fixes missed — lesson: a "real API" fix can still be wrong; re-verify against
+  the actual `.d.ts`/source. Additional verified facts (use these): `NoteType` is an ENUM
+  (`NoteType.Private = 2`), NOT `NoteType.private()`; `PublicKey.toCommitment(): Word` (not
+  `toWord`/`getPublicKeyAsWord`); `submitNewTransaction(accountId, req)` is **2-arg, no prover** —
+  custom proving is `executeTransaction(id, req)` → `proveTransaction(result, prover?)` →
+  `submitProvenTransaction(proven, result)`; `newSendTransactionRequest`/`submitNewTransaction` take
+  an **AccountId** (`account.id()`), not the `Account` object; `getAccount(): Account|undefined`
+  (null-guard needed). **MASM is illustrative-only, NOT stack-exact**: Miden account IDs are TWO
+  felts → compare via `account_id::is_equal`, not a single `mem_load`+`assert_eq` (the old P2ID made
+  the recipient check a no-op); a `push.CAP lte assert` with no value on the stack underflows;
+  `incr_nonce` must run FIRST (before delta-commitment). Nullifier field order is right but the 3rd
+  field is now `storage_commitment` (inputs→storage rename) and `next` adds metadata+attachments
+  (6 fields). DECISION: MASM blocks relabeled "illustrative/simplified — not stack-exact" rather
+  than chasing exact assembly on the fast-moving `next` branch.
 
 ## Decision log
 - 2026-06-29 — Blog implemented (this session). Format chosen: content-only HTML rendered

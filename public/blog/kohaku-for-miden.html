@@ -502,11 +502,11 @@
 <div class="code-tab">miden · ts</div>
 <pre><code><span class="cm">// on Miden you deploy none of that. a private transfer IS the pattern:</span>
 <span class="cm">// the note is the commitment, the nullifier is native, the proof is the STARK.</span>
-<span class="cm">// build a private-note send request, then submit it (NoteType.private()</span>
+<span class="cm">// build a private-note send request, then submit it (NoteType.Private</span>
 <span class="cm">// means only a commitment is published on-chain).</span>
 <span class="kw">const</span> req = client.newSendTransactionRequest(
-  wallet, recipientId, faucetId, NoteType.private(), 100n);
-<span class="kw">const</span> txId = <span class="kw">await</span> client.submitNewTransaction(wallet, req);
+  wallet.id(), recipientId, faucetId, NoteType.Private, 100n);
+<span class="kw">const</span> txId = <span class="kw">await</span> client.submitNewTransaction(wallet.id(), req);
 <span class="cm">// consuming the note nullifies it; the kernel computes the nullifier from the</span>
 <span class="cm">// note's serial number + script root + inputs. there is no nullifier mapping</span>
 <span class="cm">// for you to deploy, and no verifier contract: the client-side proof is checked</span>
@@ -526,8 +526,9 @@
 <span class="cm">// commitment = hash(recipient, asset_commitment)   &lt;- all the chain stores</span>
 <span class="cm">// nullifier  = hash(serial_num, script_root, input_commitment, asset_hash)</span>
 <span class="cm">//</span>
-<span class="cm">// the operator of a PRIVATE note only ever sees the commitment and, on spend,</span>
-<span class="cm">// the nullifier. it never sees assets, script, inputs, or the serial number.</span></code></pre>
+<span class="cm">// on the public ledger, only the commitment and (on spend) the nullifier are</span>
+<span class="cm">// visible — not the assets, script, inputs, or serial number. (node-operator</span>
+<span class="cm">// trust on the current testnet: see "the honest limit" below.)</span></code></pre>
 </div>
 
 <div class="callout"><strong>The deep reframe, precisely.</strong> On Ethereum a privacy protocol is a contract that re-implements commitments, nullifiers, and a verifier on top of a transparent chain. On Miden those three are the chain. So Kohaku for Miden mostly means mapping each protocol's behaviour onto the native note model, not redeploying its contracts.</div>
@@ -576,7 +577,8 @@
 
 <div class="code-block">
 <div class="code-tab">kohaku · ts</div>
-<pre><code><span class="cm">// shield: public ERC20 -&gt; a private note. builds a ShieldNoteERC20 with your</span>
+<pre><code><span class="cm">// illustrative — method names are schematic; the real surface is WASM bindings.</span>
+<span class="cm">// shield: public ERC20 -&gt; a private note. builds a ShieldNoteERC20 with your</span>
 <span class="cm">// master public key, encrypts the note (AES-GCM) under your viewing key, and</span>
 <span class="cm">// calls RailgunSmartWallet. native ETH is wrapped to WETH via RelayAdapt first.</span>
 <span class="kw">const</span> shieldTx = <span class="kw">await</span> account.createShieldTx(token, value);
@@ -606,8 +608,8 @@
 <span class="cm">// "shield"   -&gt; just receive value into the private account (consume a note)</span>
 <span class="cm">// "transfer" -&gt; create a PRIVATE note to the recipient</span>
 <span class="kw">const</span> req = client.newSendTransactionRequest(
-  wallet, recipientId, faucetId, NoteType.private(), value);
-<span class="kw">const</span> txId = <span class="kw">await</span> client.submitNewTransaction(wallet, req);
+  wallet.id(), recipientId, faucetId, NoteType.Private, value);
+<span class="kw">const</span> txId = <span class="kw">await</span> client.submitNewTransaction(wallet.id(), req);
 
 <span class="cm">// "unshield" -&gt; send to a PUBLIC account/note instead of a private one.</span>
 <span class="cm">// the four key types collapse: one Falcon key signs; "viewing" becomes the</span>
@@ -617,29 +619,28 @@
 <div class="mapsto"><span class="lbl">maps to →</span> RailgunSmartWallet plus RelayAdapt plus the transact() Groth16 proof. All three become a private account, a private note, and a native client-side STARK proof.</div>
 
 <h3><span class="h3-num">3.4</span> what a private note is <span class="h3-kw">in real code</span></h3>
-<p>None of the above is hand-waving about a magic note. A note is a small MASM program. Here is the canonical one, pay-to-ID, which is exactly what runs when the recipient consumes a private transfer: it checks that the consuming account is the intended recipient, then moves the assets into their vault. A privacy SDK ships notes like this so an app never writes MASM.</p>
+<p>None of the above is hand-waving about a magic note. A note is a small MASM program. Here is a simplified sketch of it, pay-to-ID — close to what runs when the recipient consumes a private transfer: it checks that the consuming account is the intended recipient, then moves the assets into their vault. A privacy SDK ships notes like this so an app never writes MASM.</p>
 
 <div class="code-block">
 <div class="code-tab">miden · masm</div>
-<pre><code><span class="kw">use</span>.miden::account
+<pre><code><span class="cm"># illustrative / simplified — not stack-exact. the canonical p2id.masm reads a</span>
+<span class="cm"># two-felt account id from note storage and compares via account_id::is_equal.</span>
+<span class="kw">use</span>.miden::account
 <span class="kw">use</span>.miden::note
-<span class="kw">use</span>.miden::contracts::wallets::basic-&gt;wallet
 
-<span class="cm"># Pay-to-ID: the canonical note. only the intended account can consume it.</span>
-<span class="cm"># this is what "a private transfer" actually runs on the recipient's side.</span>
+<span class="cm"># Pay-to-ID: only the intended account can consume the note. this is the shape</span>
+<span class="cm"># of what "a private transfer" runs on the recipient's side.</span>
 <span class="kw">begin</span>
-    <span class="cm"># load the target account id from the note's inputs  -&gt; [target_id]</span>
+    <span class="cm"># read the target account id (two field elements: prefix + suffix) from</span>
+    <span class="cm"># the note, then load both felts onto the stack</span>
     push.0 exec.note::get_inputs drop
-    mem_load
 
-    <span class="cm"># compare it against the account executing this transaction</span>
+    <span class="cm"># compare BOTH felts against the executing account's id</span>
     exec.account::get_id
-    assert_eq.err=<span class="str">"P2ID: not the intended recipient"</span>
+    exec.account_id::is_equal assert.err=<span class="str">"P2ID: not the intended recipient"</span>
 
     <span class="cm"># move each asset the note carries into the account's vault</span>
-    exec.note::get_assets            <span class="cm"># -&gt; [num_assets, assets_ptr]</span>
-    <span class="cm"># loop over the assets, calling the wallet to receive each one:</span>
-    <span class="cm">#   call.wallet::receive_asset</span>
+    <span class="cm">#   (loop the note's assets -&gt; call.wallet::receive_asset)</span>
 <span class="kw">end</span></code></pre>
 </div>
 
@@ -736,7 +737,7 @@
 <span class="cm"># release the assets. compliance is enforced by the note, not a central pool.</span></code></pre>
 </div>
 
-<div class="mapsto"><span class="lbl">maps to →</span> the Entrypoint plus association sets plus PPOI. On Miden the approved-set check moves into the note script and FPI, so the note refuses to consume unless its provenance is approved.</div>
+<div class="mapsto"><span class="lbl">maps to →</span> the PrivacyPool contract (withdraw + ragequit) plus its association sets. On Miden the approved-set check moves into the note script and FPI, so the note refuses to consume unless its provenance is approved.</div>
 
 <div class="divider-thin"></div>
 
@@ -805,7 +806,7 @@
   AccountStorageMode.private(), true, 0, seed   <span class="cm">// 0 = RPO-Falcon512 auth</span>
 );
 <span class="kw">const</span> key = SecretKey.rpoFalconWithRNG(seed);          <span class="cm">// native RPO-Falcon512 key</span>
-<span class="kw">const</span> commitment = key.publicKey().toWord();           <span class="cm">// public key as a Word</span>
+<span class="kw">const</span> commitment = key.publicKey().toCommitment();     <span class="cm">// public key as a Word</span>
 <span class="kw">const</span> auth = AccountComponent.createAuthComponentFromCommitment(commitment, 0);
 
 <span class="cm">// the "spending policy" from pq-account becomes programmable auth: the account's</span>
@@ -828,19 +829,17 @@
 <span class="cm"># by inspecting how much value leaves the vault this transaction. this is the</span>
 <span class="cm"># Subrosa agent cap, enforced by the account itself instead of the app.</span>
 <span class="kw">export</span>.auth__spend_cap
-    <span class="cm"># 1. verify the RPO-Falcon512 signature over the transaction summary</span>
-    <span class="cm">#    (the standard auth check, run for you)</span>
-
-    <span class="cm"># 2. introspect outgoing value: walk this tx's output notes and sum their</span>
-    <span class="cm">#    asset amounts. there is no single "total out" call — the kernel exposes</span>
-    <span class="cm">#    the output notes (and get_output_notes_hash as a commitment); you</span>
-    <span class="cm">#    accumulate the amounts into total_out yourself.</span>
-
-    <span class="cm"># 3. abort the WHOLE transaction if it is over the cap</span>
-    push.SPEND_CAP lte assert.err=<span class="str">"spend cap exceeded"</span>
-
-    <span class="cm"># 4. finalize by incrementing the account nonce</span>
+    <span class="cm"># illustrative sketch — not stack-exact, and not a port of an existing standard.</span>
+    <span class="cm"># 1. increment the nonce first (must precede any delta-commitment work)</span>
     exec.account::incr_nonce
+
+    <span class="cm"># 2. verify the manager's RPO-Falcon512 signature (the standard auth check)</span>
+
+    <span class="cm"># 3. sum the value leaving the vault across this tx's output notes -&gt; total_out</span>
+    <span class="cm">#    (iterate the output notes; there is no single "total out" call)</span>
+
+    <span class="cm"># 4. abort the WHOLE transaction if total_out exceeds the cap:</span>
+    <span class="cm">#    push.SPEND_CAP lte assert.err="spend cap exceeded"</span>
 <span class="kw">end</span></code></pre>
 </div>
 
@@ -970,7 +969,7 @@
   <text x="380" y="353" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="13" font-weight="600" fill="#1a1a1a">MIDEN BASE LAYER</text>
   <text x="380" y="371" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="10.5" fill="#555">private accounts · notes · nullifiers · client-side STARK proving · Falcon (post-quantum)</text>
 
-  <text x="380" y="406" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" font-style="italic" fill="#888">only commitments &amp; nullifiers are ever public</text>
+  <text x="380" y="406" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" font-style="italic" fill="#888">only commitments &amp; nullifiers are published on-chain</text>
 </svg>
 </div>
 <p class="diagram-caption">The components from sections 3 to 7, as plugins behind a single surface.</p>
@@ -994,12 +993,16 @@
       ? TransactionProver.newRemoteProver(this.proverUrl)   <span class="cm">// proving plugin</span>
       : TransactionProver.newLocalProver();
     <span class="kw">const</span> req = this.client.newSendTransactionRequest(
-      this.account, to, token, NoteType.private(), amount);
-    <span class="kw">return</span> this.client.submitNewTransaction(this.account, req, prover);
+      this.account, to, token, NoteType.Private, amount);
+    <span class="cm">// execute -&gt; prove (local or delegated) -&gt; submit</span>
+    <span class="kw">const</span> result = <span class="kw">await</span> this.client.executeTransaction(this.account, req);
+    <span class="kw">const</span> proven = <span class="kw">await</span> this.client.proveTransaction(result, prover);
+    <span class="kw">return</span> this.client.submitProvenTransaction(proven, result);
   }
   <span class="kw">async</span> balance(faucetId) {
     <span class="kw">await</span> this.client.syncState();
     <span class="kw">const</span> account = <span class="kw">await</span> this.client.getAccount(this.account);
+    <span class="kw">if</span> (!account) <span class="kw">throw</span> <span class="kw">new</span> Error(<span class="str">"account not found"</span>);
     <span class="kw">return</span> account.vault().getBalance(faucetId);
   }
 }</code></pre>
@@ -1065,7 +1068,7 @@
   <li><strong>Client and accounts.</strong> The provider wrapper plus create-and-manage for private accounts with native Falcon auth. Nothing else is usable until this is smooth.</li>
   <li><strong>Notes, transfers, and proving.</strong> One-call private transfers, encrypted off-band delivery, and the local-or-delegated proving choice hidden. This is the Railgun and Tornado behaviour, on the native note model.</li>
   <li><strong>Programmable auth.</strong> Account-level spend caps and rate limits via transaction introspection. This is pq-account's spending policy, native.</li>
-  <li><strong>Compliance and private state.</strong> Association-set and PPOI-style provenance in note scripts, plus shared private state and threshold signing through Guardian. This is Privacy Pools, on Miden.</li>
+  <li><strong>Compliance and private state.</strong> Provenance in note scripts — Privacy Pools' association sets and Railgun's PPOI — plus shared private state and threshold signing through Guardian. This is Privacy Pools (and Railgun's compliance), on Miden.</li>
   <li><strong>Reference app, plugins, and docs.</strong> A small private app built entirely on the SDK, the plugin interfaces other teams extend, and the tutorials that make them copy it. Subrosa is most of this proof already.</li>
 </ol>
 
