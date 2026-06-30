@@ -324,7 +324,7 @@
 
 <div class="divider"></div>
 
-<p class="lead-paragraph">Kohaku is an orchestration layer over several shielded-pool protocols, each of which is a tower of contracts: commitments, nullifiers, Merkle trees, and SNARK verifiers. On Miden almost all of that disappears into the base layer. This guide goes component by component, with real code on both sides. Building Kohaku for Miden is less about porting contracts than re-expressing the same guarantees with primitives Miden already has.</p>
+<p class="lead-paragraph">Kohaku is an orchestration layer over several shielded-pool protocols, each of which is a tower of contracts: commitments, nullifiers, Merkle trees, and SNARK verifiers. On Miden, much of that machinery moves into base-layer primitives: private accounts, private notes, nullifiers, and client-side proving. This guide goes component by component, with real code on both sides. Building Kohaku for Miden is less about porting contracts than re-expressing the same guarantees with primitives Miden already has.</p>
 
 <div class="divider-thin"></div>
 
@@ -374,7 +374,7 @@
 
   <!-- RIGHT: Miden -->
   <text x="565" y="40" text-anchor="middle" font-family="'Instrument Serif', serif" font-size="20" fill="#1a1a1a">Miden</text>
-  <text x="565" y="60" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#16a34a">privacy already there</text>
+  <text x="565" y="60" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#16a34a">privacy primitives already there</text>
 
   <rect x="430" y="80" width="270" height="38" rx="6" fill="var(--sketch-fill-gray)" stroke="#1a1a1a" stroke-width="1.2"/>
   <text x="565" y="104" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13" fill="#1a1a1a">your wallet / app</text>
@@ -402,7 +402,7 @@
   <thead><tr><th>Kohaku component</th><th>What it really is on Ethereum</th><th>On Miden</th></tr></thead>
   <tbody>
     <tr><td class="comp">railgun</td><td>shielded-pool contracts plus a 4-key 0zk account plus Groth16 proofs</td><td>a private account plus private notes, proven client-side</td></tr>
-    <tr><td class="comp">tornado</td><td>fixed-denomination mixer contract plus a relayer</td><td>equal-value private notes, no relayer needed</td></tr>
+    <tr><td class="comp">tornado</td><td>fixed-denomination mixer contract plus a relayer</td><td>equal-value private notes; no relayer needed (proving is client-side)</td></tr>
     <tr><td class="comp">privacy-pools</td><td>pool plus approved association sets (ASP)</td><td>provenance checks inside the note script (FPI)</td></tr>
     <tr><td class="comp">pq-account</td><td>ERC-4337 account with a Falcon / ML-DSA verifier</td><td>native: Falcon is the default signature</td></tr>
     <tr><td class="comp">provider</td><td>ethers / viem / helios, with light-client verification</td><td>the Miden client; pull-only sync is private by design</td></tr>
@@ -498,11 +498,13 @@
   <text x="565" y="244" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13" font-weight="600" fill="#1a1a1a">a client-side STARK proof</text>
   <text x="565" y="261" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="10.5" fill="#555">proves the spend on your device (native)</text>
 
-  <text x="565" y="312" text-anchor="middle" font-family="'Instrument Serif', serif" font-size="20" fill="#1a1a1a">nothing to deploy.</text>
+  <text x="565" y="312" text-anchor="middle" font-family="'Instrument Serif', serif" font-size="20" fill="#1a1a1a">no pool contract to deploy.</text>
   <text x="565" y="336" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" font-style="italic" fill="#555">same guarantees, from the base layer.</text>
 </svg>
 </div>
 <p class="diagram-caption">The left side is a contract you deploy and maintain. The right side is the Miden base layer.</p>
+
+<p style="font-size: 14px; color: var(--text-secondary); font-style: italic;">A note on the code: the Miden snippets are illustrative and version-sensitive. They target <code class="inline-code">@demox-labs/miden-sdk</code> (~0.12); the SDK has since moved to the official <code class="inline-code">@miden-sdk/miden-sdk</code> (0.15+) with a newer <code class="inline-code">MidenClient</code> API, so check the current docs for exact signatures. The goal here is the protocol mapping, not copy-paste production code.</p>
 
 <div class="code-block">
 <div class="code-tab">miden · ts</div>
@@ -514,27 +516,28 @@
   wallet.id(), recipientId, faucetId, NoteType.Private, 100n);
 <span class="kw">const</span> txId = <span class="kw">await</span> client.submitNewTransaction(wallet.id(), req);
 <span class="cm">// consuming the note nullifies it; the kernel computes the nullifier from the</span>
-<span class="cm">// note's serial number + script root + inputs. there is no nullifier mapping</span>
+<span class="cm">// note's serial number + script root + storage. there is no nullifier mapping</span>
 <span class="cm">// for you to deploy, and no verifier contract: the client-side proof is checked</span>
 <span class="cm">// by the network itself.</span></code></pre>
 </div>
 
-<p>A note is the single primitive that replaces the whole pool contract: a bundle of assets, an executable script, the inputs to that script, and a secret serial number. The chain stores only a hash of it.</p>
+<p>A note is the single primitive that replaces most of the pool-contract machinery: it carries assets, an executable script, storage used by that script, and a secret serial number, plus public metadata (its note type and tag). For a private note the details stay off-chain and only the note hash is published, while the metadata stays public.</p>
 
 <div class="code-block">
 <div class="code-tab">miden note model</div>
 <pre><code><span class="cm">// what "a note" actually is on Miden (the fields the commitment is built from):</span>
 <span class="cm">//   assets     - the fungible / non-fungible assets the note carries</span>
 <span class="cm">//   script     - MASM code that must succeed for the note to be consumed</span>
-<span class="cm">//   inputs     - arguments passed to that script (e.g. the recipient id)</span>
+<span class="cm">//   storage    - data the script reads, e.g. the recipient id (was "inputs")</span>
 <span class="cm">//   serial_num - a secret that makes the nullifier unlinkable</span>
+<span class="cm">//   metadata   - note type + tag + sender; ALWAYS public, even for private notes</span>
 <span class="cm">//</span>
-<span class="cm">// commitment = hash(recipient, asset_commitment)   &lt;- all the chain stores</span>
-<span class="cm">// nullifier  = hash(serial_num, script_root, input_commitment, asset_hash)</span>
+<span class="cm">// commitment = hash(recipient, asset_commitment)   &lt;- the note hash</span>
+<span class="cm">// nullifier  = hash(serial_num, script_root, storage_commitment, asset_commitment, metadata, attachments)</span>
 <span class="cm">//</span>
-<span class="cm">// on the public ledger, only the commitment and (on spend) the nullifier are</span>
-<span class="cm">// visible, not the assets, script, inputs, or serial number. (node-operator</span>
-<span class="cm">// trust on the current testnet: see "the honest limit" below.)</span></code></pre>
+<span class="cm">// for a PRIVATE note the details (assets, script, storage, serial) stay off-chain;</span>
+<span class="cm">// only the commitment and (on spend) the nullifier are published, while metadata</span>
+<span class="cm">// stays public. (node-operator trust on the current testnet: see "the honest limit".)</span></code></pre>
 </div>
 
 <div class="callout">On Ethereum a privacy protocol is a contract that re-implements commitments, nullifiers, and a verifier on top of a transparent chain. On Miden those three are the chain. So Kohaku for Miden is mostly fitting each protocol's behaviour to the native note model, not redeploying its contracts.</div>
@@ -809,7 +812,7 @@
 <span class="cm">// signature. there is no EntryPoint, no bundler, no Solidity verifier: account</span>
 <span class="cm">// abstraction is simply how every Miden account works.</span>
 <span class="kw">const</span> wallet = <span class="kw">await</span> client.newWallet(
-  AccountStorageMode.private(), true, 0, seed   <span class="cm">// 0 = RPO-Falcon512 auth</span>
+  AccountStorageMode.private(), true, 0, seed   <span class="cm">// 0 = RPO-Falcon512 in this SDK (the Rust protocol enum numbers it differently)</span>
 );
 <span class="kw">const</span> key = SecretKey.rpoFalconWithRNG(seed);          <span class="cm">// native RPO-Falcon512 key</span>
 <span class="kw">const</span> commitment = key.publicKey().toCommitment();     <span class="cm">// public key as a Word</span>
@@ -871,7 +874,7 @@
 <span class="cm">// 4. collect the threshold of signatures, attach them, and submit the tx</span></code></pre>
 </div>
 
-<div class="mapsto"><span class="lbl">on Miden →</span> Kohaku's multi-key accounts and recovery turn into private-state sync plus threshold signing through Guardian. Every co-signer is a verifier, never a custodian.</div>
+<div class="mapsto"><span class="lbl">on Miden →</span> Kohaku's multi-key accounts and recovery turn into private-state sync plus threshold signing through Guardian. Every co-signer is a verifier, never a custodian. Guardian is not custody, but it is still a trust boundary: it can affect liveness, and it may see submitted state payloads unless the deployment adds encryption or self-hosts.</div>
 
 <div class="callout"><strong>Why this matters for the SDK</strong> - This is the piece that unlocks multi-party and multi-device apps: shared treasuries, social recovery, an agent whose large actions need a human co-sign. The SDK's job is to make a co-sign feel like one approval, while the Guardian never holds a key that can move funds on its own.</div>
 
@@ -1141,7 +1144,7 @@
 </div>
 <p class="diagram-caption">The component map again, now as a build sequence. Everything on the right is native or a thin wrapper.</p>
 
-<div class="callout"><strong>The one-line version</strong> - A privacy protocol on Ethereum is a contract stack that rebuilds commitments, nullifiers, and a verifier. On Miden those are the base layer. This SDK is the thin, native re-expression of Kohaku, and these are the exact pieces to build it.</div>
+<div class="callout"><strong>The one-line version</strong> - A privacy protocol on Ethereum is a contract stack that rebuilds commitments, nullifiers, and a verifier. On Miden those become base-layer primitives. So Kohaku for Miden should not be a direct port of Railgun, Tornado, or Privacy Pools. It should be a developer-facing SDK that turns native private accounts, private notes, programmable auth, Guardian coordination, and client-side proving into one obvious product surface.</div>
 
 </article>
 </body>
