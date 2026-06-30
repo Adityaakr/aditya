@@ -169,6 +169,12 @@ with react-router-dom. Single-page app, statically built, deployed from GitHub
   than chasing exact assembly on the fast-moving `next` branch.
 
 ## Decision log
+- 2026-06-30 — `prism-plan` (writing voice, MODERATE chosen): refined `prism.html` to the house
+  voice. 3-editor deliberation (structure/AI-tells/voice). Applied: §2 failure cascade de-monotoned,
+  cut throat-clearing + 2 restatements, 5 bold lead-ins → " - ", Jaccard in plain words, skeptic
+  panel why-before-what, title em-dash → colon. Structure: folded §7 "proof harness" into the eval
+  section, compressed the redundant §8 "full run", 12 → 11 sections (renumbered). Held the
+  aggressive eval-first reorder. Plan: ~/.claude/plans/shiny-strolling-sphinx.md. Divergence 0.31.
 - 2026-06-29 — Blog implemented (this session). Format chosen: content-only HTML rendered
   inside the React shell (not raw `public/` files), auto-discovered via glob; auto-publish on
   Railway via committed `railway.json`. No `docs/NN-*.md` written.

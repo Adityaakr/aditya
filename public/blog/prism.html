@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Prism — a multi-agent harness for Claude Code that measures its own value</title>
+<title>Prism: a multi-agent harness for Claude Code that measures its own value</title>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -81,18 +81,18 @@
 
 <p>It sounds right. Almost nobody checks.</p>
 
-<p>Prism checks. It is a multi-agent orchestration harness for <a href="https://claude.com/claude-code">Claude Code</a>: a set of slash commands that take a hard problem, split it across several agents that look at different evidence, judge where they disagree, verify the claims that matter, and loop until the answer settles. That much is familiar. What makes Prism unusual is the system around that loop. It remembers the project across runs, grounds every claim in real code, enforces its safety rules with hooks the model cannot skip, and ships a harness that measures whether the whole multi-agent apparatus actually beats a single careful pass.</p>
+<p>Prism checks. It is a multi-agent orchestration harness for <a href="https://claude.com/claude-code">Claude Code</a>: a set of slash commands that take a hard problem, split it across several agents that look at different evidence, judge where they disagree, verify the claims that matter, and loop until the answer settles. That much is familiar. What makes Prism unusual is the system around that loop. It remembers the project across runs, grounds every claim in real code, enforces its safety rules with hooks the model cannot skip, and ships a harness that measures whether the fleet actually beats a single careful pass.</p>
 
 <div class="callout">When it ran that measurement on its own design, the result was uncomfortable. Across twelve real design tasks about Prism's own internals, one careful Opus pass beat the eight-agent setup five times, lost three, and tied four, at about <strong>4.6 times fewer tokens.</strong></div>
 
-<p>Prism reports that plainly and keeps building from it. This article is about the whole system, not just the scoreboard. A strong model alone is already capable: it can plan, explain, critique, and write working code, so anything that wraps extra agents around it has to earn the cost and the complexity it adds. Prism holds itself to exactly that standard.</p>
+<p>Prism reports that plainly and keeps building from it. This article is about the whole system, not just the scoreboard. A strong model alone is already capable, so anything that wraps extra agents around it has to earn the cost and complexity it adds. Prism holds itself to exactly that standard.</p>
 
 <div class="divider-thin"></div>
 
 <span class="section-number">02</span>
 <h2>The problem it starts from</h2>
 
-<p>One pass through a strong model fails in a handful of predictable ways. It anchors on the first answer that sounds right and never stress-tests it. It averages two real but conflicting considerations into a vague middle instead of deciding which one wins. It hallucinates with confidence, stating things about your own code or a library's API that it never checked. It hands you a conclusion with no reasoning trail, so you cannot tell which parts to trust. It is stateless, relearning the same project facts every session. Its safety guidance is unenforced, just text it can ignore three hundred lines into a session. And the usual multi-agent cure for all of this is unfalsifiable, because the tools selling it never measure whether the agents helped.</p>
+<p>One pass through a strong model fails in predictable ways. It anchors on the first plausible answer and never stress-tests it. Faced with two real but conflicting considerations, it averages them into a vague middle instead of deciding which one wins. It states things about your own code or a library's API that it never checked, and hands you the conclusion with no reasoning trail, so you cannot tell which parts to trust. It is stateless, relearning the same project facts every session. Its safety guidance is unenforced: text it can ignore three hundred lines in. And the usual multi-agent cure is unfalsifiable, because the tools selling it never measure whether the agents helped.</p>
 
 <p>Each of those failure modes has a specific answer in the sections below. Two ideas organize the whole design: the agents are made to look at different evidence rather than wear different hats, and conflicts between them are decided, not blended into a vague middle.</p>
 
@@ -101,7 +101,7 @@
 <span class="section-number">03</span>
 <h2>The nine commands</h2>
 
-<p>Prism is not one prompt. It is a workflow, and each stage of that workflow is its own command.</p>
+<p>Prism is a workflow, and each stage is its own command.</p>
 
 <div class="data-table">
   <table>
@@ -269,28 +269,26 @@
 </div>
 <p class="diagram-caption">The lifecycle feeds one shared engine; the engine reads and writes project memory; hooks and the proof harness sit alongside. Skeptics in the verify stage are 2 Opus and 1 Sonnet under majority rule.</p>
 
-<p><strong>Fan-out with differential context.</strong> Prism launches several agents in parallel, each a distinct lens, but the important move is that they do not all get the same context. The core lenses (first-principles, adversary, practitioner) stay holistic and look at the whole problem. The domain lenses are routed to the slice of code their concern owns: the security lens reads auth, keys, and custody; the regulatory lens reads the money-movement paths; the data-integrity lens reads the schema and ledger; the cost lens reads fees and infrastructure; the UX lens reads the user flows. Each lens reports the exact <code>file:line</code> ranges it examined. This is what separates real diversity from theater. Many multi-agent systems are one model in different hats, reading identical context and unsurprisingly agreeing. Prism forces the lenses to look at different evidence, and it caches the routing as a file concern map in memory so it does not have to rediscover which files matter on every run.</p>
+<p><strong>Fan-out with differential context</strong> - This is what separates real diversity from theater: the lenses read different evidence, not the same context in different hats. The core lenses (first-principles, adversary, practitioner) stay holistic and look at the whole problem. The domain lenses are routed to the slice of code their concern owns: security reads auth, keys, and custody; regulatory reads the money-movement paths; data-integrity reads the schema and ledger; cost reads fees and infrastructure; UX reads the user flows. Each lens reports the exact <code>file:line</code> ranges it examined, and Prism caches that routing as a file concern map so it does not rediscover which files matter on every run.</p>
 
-<p><strong>Divergence score.</strong> Right after fan-out, Prism checks whether the lenses truly split or only appeared to. It computes a score: <code>0.6 x (1 minus the mean Jaccard overlap of the cited file:line sets) + 0.4 x (conclusion disagreement)</code>. The overlap term carries the most weight on purpose, because it directly tests whether the differential routing worked. If the lenses cited the same lines and reached the same conclusion, the extra agents added nothing, and Prism says so. The metric prints on every run and flags when the diversity is only cosmetic. The threshold itself is a deliberate placeholder, set to <code>0.30</code> and marked uncalibrated until the proof harness derives a real cutoff from data. It is a falsifier aimed squarely at Prism's own premise.</p>
+<p><strong>Divergence score</strong> - Right after fan-out, Prism checks whether the lenses truly split or only appeared to. It scores two things: how much the lenses overlap in the code they cite (60% of the weight), and how much their conclusions differ (40%). Overlap is measured as Jaccard similarity, the shared cited lines over the combined set, and it carries the most weight because it directly tests whether the differential routing worked. If the lenses cited the same lines and reached the same conclusion, the extra agents added nothing, and Prism says so. The score prints on every run and flags when the diversity is only cosmetic. The threshold is a deliberate placeholder, set to <code>0.30</code> and marked uncalibrated until the proof harness derives a real cutoff from data.</p>
 
-<p><strong>Judge.</strong> The judge does not blend the briefs into an average. It produces a structured read: what the lenses agree on, where they contradict each other and which side is better supported, which insights only one lens caught, and which blind spots they all share. The output is a decision, not a merge.</p>
+<p><strong>Judge</strong> - The judge does not blend the briefs into an average. It produces a structured read: what the lenses agree on, where they contradict each other and which side is better supported, which insights only one lens caught, and which blind spots they all share. The output is a decision, not a merge.</p>
 
-<p><strong>Verify, in two checks.</strong> First, grounding. Every claim about the code has to cite a <code>file:line</code>, and a verifier re-opens that line to confirm it. Every claim about a library or API is checked against installed type definitions or official docs, never the model's memory. Second, adversarial review. Each load-bearing claim is handed to a panel of skeptics whose job is to refute it: two Opus instances for rigor and one Sonnet for independence, under majority rule, so two of three votes kill a claim. The split is deliberate. The lone Sonnet cannot sink a good claim on its own, but it can be the deciding vote on a flaw both Opus instances missed.</p>
+<p><strong>Verify, in two checks</strong> - First, grounding. Every claim about the code has to cite a <code>file:line</code>, and a verifier re-opens that line to confirm it. Every claim about a library or API is checked against installed type definitions or official docs, never the model's memory. Second, adversarial review. Each load-bearing claim goes to a skeptic panel whose job is to refute it: two Opus instances for rigor and one Sonnet for independence, under majority rule. The lone Sonnet cannot sink a good claim on its own, but it can be the deciding vote on a flaw both Opus instances missed. Two of three votes kill a claim.</p>
 
-<p><strong>Loop and persist.</strong> Prism then re-attacks its own draft in critique mode, folds in only the fixes that survive, and repeats until a full round changes nothing material. That convergence loop is capped at three rounds so it cannot spin forever. The final result is saved to <code>docs/</code>, the project memory is updated, and a telemetry block is attached that records the divergence score, the model pool that ran, and how each claim survived.</p>
+<p><strong>Loop and persist</strong> - Prism then re-attacks its own draft in critique mode, folds in only the fixes that survive, and repeats until a full round changes nothing material, capped at three rounds. The final result is saved to <code>docs/</code>, the project memory is updated, and telemetry records the divergence score, the model pool that ran, and how each claim survived.</p>
 
-<p>One caveat about that verification, because Prism insists on stating it. The skeptic panel uses different Claude tiers, not different model families. The sub-agent setting selects by tier only, so this is cross-tier review, not cross-version and certainly not cross-model. Surviving the skeptics is labeled <code>cross-tier-survived</code>, and that label ranks below <code>grounded</code>, which means re-checked against live code or docs. Every decision doc Prism writes carries the caveat in plain text: cross-tier review lowers the chance that all the reviewers share the same error, but it does not remove the blind spots baked into Claude itself, so cross-tier survival is weaker evidence than grounding. A lot of AI systems quietly blur "we checked this" with "nobody objected to this." Prism keeps the two apart.</p>
+<p>One label matters here. Surviving the skeptics is marked <code>cross-tier-survived</code>, which ranks below <code>grounded</code> (re-checked against live code or docs). The panel uses different Claude tiers, not different model families, so it lowers the chance the reviewers share an error without removing the blind spots baked into Claude itself. Grounding outranks survival, and every decision doc says which is which. A lot of AI systems blur "we checked this" with "nobody objected to this." Prism keeps the two apart.</p>
 
 <div class="divider-thin"></div>
 
 <span class="section-number">05</span>
 <h2>Why the memory layer matters</h2>
 
-<p>One of Prism's most useful pieces is its project memory, and it is what makes the system stateful instead of starting cold every time.</p>
+<p>Prism keeps a single file, <code>.prism/project-model.md</code>. It holds an evidence-cited model of the codebase: architecture, invariants (each cited), conventions, danger zones, a decision log, accumulated lessons, and the file concern map that routes the fan-out step. <code>/prism-understand</code> builds it, plan and build read it before they start, and implement and retro write back to it. Over time it becomes a sharper map, so future runs route work instead of rediscovering the same local context.</p>
 
-<p>Prism keeps a single file, <code>.prism/project-model.md</code>, that holds an evidence-cited model of the codebase: its architecture, its invariants with a citation for each, its conventions, its danger zones, a decision log, accumulated lessons, and the file concern map that tells the fan-out step which files belong to which concern. <code>/prism-understand</code> builds this model, the planning and building commands read it before they start, and implement and retro write back to it. Over time it becomes a sharper map of the project, and that map lets future runs route work more intelligently instead of rediscovering the same local context.</p>
-
-<p>Most AI coding tools forget too much and burn time relearning the same facts. Prism tries to keep what matters. Just as important, it can prune. The <code>/prism-prune</code> command re-verifies cited invariants against the live code and corrects or deletes anything that has gone stale. That is what keeps the memory believable. It is not treated as permanently true. It is re-checked against reality.</p>
+<p>Just as important, Prism can prune. The <code>/prism-prune</code> command re-verifies cited invariants against the live code and corrects or deletes anything stale. That is what keeps the memory believable: it is re-checked against reality, not treated as permanently true.</p>
 
 <div class="divider-thin"></div>
 
@@ -301,30 +299,25 @@
 
 <p>The first, <code>prism-guard.sh</code>, is a PreToolUse hook that sits in front of one-way doors: force-pushes, publishes, deploys, database migrations, destructive deletes like <code>rm -rf</code>, and mainnet transactions. It blocks them unless the user explicitly approves with a <code># PRISM_OK</code> token. The second, <code>prism-gate.sh</code>, runs inside <code>/prism-implement</code> and checks for fake-green work: skipped or deleted tests, hardcoded secrets, and leftover debug code, the things that make a build look passing when it is not.</p>
 
-<p>The instinct is the right one. If an action is expensive or impossible to undo, a reminder in a prompt is not enough. It needs a real gate in front of it, and Prism puts one there.</p>
+<p>If an action is expensive or impossible to undo, a reminder in a prompt is not enough. It needs a real gate in front of it, and Prism puts one there.</p>
 
 <div class="divider-thin"></div>
 
 <span class="section-number">07</span>
-<h2>The proof harness</h2>
-
-<p>The last command, <code>/prism-eval</code>, is the one that makes the rest accountable. It runs against fixtures with known ground truth and produces four measurements: grounding precision and recall, tested against known invariants plus injected false and stale claims; a blind fleet-vs-single win rate over a task battery; injected-flaw detection, where the fleet and a single pass both review a planted bug; and a find-the-floor sweep that reports the smallest configuration that still beats a single pass. Any section that was not run reports as not run rather than being filled in with a guess.</p>
-
-<div class="divider-thin"></div>
-
-<span class="section-number">08</span>
 <h2>A full run, end to end</h2>
 
 <p>Here is what all of this looks like on a real question. Take the command <code>/prism-plan how should users pay from their existing balance?</code></p>
 
-<p>Prism classifies it as a planning task that is high-stakes because it moves money, so it picks a looped eight-lens fleet and reads project memory first. The differential fan-out sends the security lens into the auth and custody files, the regulatory lens into the money-movement paths, and the data-integrity lens into the ledger and schema, each on its own code, each reporting the lines it touched. The divergence line comes back as <code>0.62 (evidence 0.71, conclusion 0.48)</code> against the uncalibrated <code>0.30</code> threshold, high enough to confirm the lenses truly diverged and the fleet is doing real work; a low score here would have been flagged as cosmetic. The judge reconciles the agreement, rules on the contradictions, and collects the unique catches and shared blind spots. The draft comes out in a fixed expert format: the recommendation, the reasoning behind it, a steelman of the option it rejected, the assumptions it depends on and what would falsify them, the open questions, and grounded citations. Verification re-opens the cited lines, checks any SDK calls against their docs, and runs the skeptic panel on each load-bearing claim. Critique rounds run until convergence, the result is saved with its telemetry block, and a later <code>/prism-retro</code> compares what was predicted against what happened and banks a measured lesson.</p>
+<p>Prism reads it as a high-stakes planning task because it moves money, so it picks a looped eight-lens fleet and reads project memory first. Security goes into the auth and custody files, regulatory into the money-movement paths, data-integrity into the ledger and schema, each on its own code. The divergence line comes back <code>0.62</code>, well past the <code>0.30</code> threshold, so the fan-out earned its cost. From there the judge rules on the conflicts, verification re-opens the cited lines and runs the skeptic panel, the loop runs to convergence, and the result is saved with its telemetry for a later <code>/prism-retro</code> to check against what actually happened.</p>
 
 <div class="divider-thin"></div>
 
-<span class="section-number">09</span>
+<span class="section-number">08</span>
 <h2>The result that matters most</h2>
 
-<p>That brings us to the test. Prism's entire premise is a single bet: fan out, judge, verify, and loop beats asking a strong model once. The <code>/prism-eval</code> harness exists to settle that bet under one rule, no fabrication. Every number below comes from a sub-agent that was really run, around 110 of them, with token counts each agent reported. The battery was a blind A/B over twelve real design questions about Prism's own internals, none with an obvious answer: the skeptic ratio, the divergence weights, memory pruning, the <code>rm -rf</code> guard, loop convergence, and more.</p>
+<p>The last command, <code>/prism-eval</code>, makes the rest accountable. It runs against fixtures with known ground truth and reports four measurements: grounding precision and recall, a blind fleet-vs-single win rate, injected-flaw detection, and a find-the-floor sweep for the smallest fleet that still beats one pass. Anything not run reports as not run, never a guess.</p>
+
+<p>That settles Prism's central bet: does fan out, judge, verify, and loop beat asking a strong model once? Every number below comes from a sub-agent that really ran, around 110 of them, with the token counts each reported. The battery was a blind A/B over twelve real design questions about Prism's own internals, none with an obvious answer: the skeptic ratio, the divergence weights, memory pruning, the <code>rm -rf</code> guard, loop convergence, and the rest.</p>
 
 <div class="diagram-wrapper">
 <svg viewBox="0 0 760 360" xmlns="http://www.w3.org/2000/svg">
@@ -430,25 +423,25 @@
 
 <p>Grounding, tested on its own, held up cleanly: fed eight claims, four true and four planted false, the verifier struck all four false and passed all four true, for precision and recall of 1.00. The caveat is that the fixture was easy, with fabricated line numbers and obvious contradictions, and n was only eight. It is a ceiling, not a stress test.</p>
 
-<p>And the confounds are disclosed rather than buried, which is the part that makes the number trustworthy. The fleet's answer in this run was hand-synthesised from six briefs under heavy load and carried its own defects, so some of the single pass's wins reflect bad synthesis rather than the method's true ceiling; in a real Prism run that synthesis is a fresh focused pass, which means this result understates the fleet. All twelve tasks were defect-free design questions, which under-represents the fleet's one measured strength. The single passes often ran longer and more thorough, and an instruction to ignore length only goes so far. There was one judge per task, with no position swap and no second judge, and n was twelve. The verdict the report commits to is careful: shrink-leaning, not proven.</p>
+<p>The confounds are disclosed, not buried. The fleet's answer in this run was hand-synthesised from six briefs under heavy load and carried its own defects, so some of the single pass's wins reflect bad synthesis rather than the method's true ceiling; in a real Prism run that synthesis is a fresh focused pass, which means this result understates the fleet. All twelve tasks were defect-free design questions, which under-represents the fleet's one measured strength. The single passes often ran longer and more thorough, and the instruction to ignore length only goes so far. There was one judge per task, with no position swap and no second judge, and n was twelve. The verdict the report commits to is careful: shrink-leaning, not proven.</p>
 
 <div class="divider-thin"></div>
 
-<span class="section-number">10</span>
+<span class="section-number">09</span>
 <h2>Honest limitations</h2>
 
 <p>Two limits bound all of it. Prism is prompt-defined, not infrastructure: it rides Claude Code's agent loop, and the orchestration lives in prompts the model follows, with the hooks as the enforced exception. And its decorrelation is cross-tier, not cross-model, because pinning a genuinely separate model lineage is not available here, so the adversarial check still shares whatever blind spots are built into Claude. The recommendation that follows the numbers is to shrink the default fleet for open-ended design and reserve the full fleet for review and defect-finding. A firmer result would need a fixed fleet output instead of a hand-synthesis, position-swapped dual judges, and twenty-five or more tasks across more domains.</p>
 
 <div class="divider-thin"></div>
 
-<span class="section-number">11</span>
+<span class="section-number">10</span>
 <h2>How to use it</h2>
 
 <p>Using it is straightforward. Copy the command files into <code>~/.claude/commands/</code> for global use, or a repo's <code>.claude/commands/</code> to share them with a team, wire the two hooks from the example settings, and then invoke <code>/prism-*</code> from any project. Every run states its plan up front, the archetype, mode, stakes, and fleet size, and prints a divergence line before it spends agents, so you can see what it is about to do and what the fan-out actually bought.</p>
 
 <div class="divider-thin"></div>
 
-<span class="section-number">12</span>
+<span class="section-number">11</span>
 <h2>The real lesson</h2>
 
 <p>Prism does not prove that multi-agent AI is the future. If anything it points the other way: more agents should not be the default, and the gain from extra structure is narrower than the usual pitch claims. The reason the project is worth taking seriously is not the fleet. It is that Prism built the fleet, built the test, ran the test on itself, and kept a result that told it to spend less. That willingness to be wrong is rare, and it is what separates engineering from a demo.</p>
