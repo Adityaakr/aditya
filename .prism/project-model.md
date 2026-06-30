@@ -55,13 +55,16 @@ with react-router-dom. Single-page app, statically built, deployed from GitHub
 - `BrowserRouter` + raw `public/*.html`: a raw HTML file in `public/blog/` is reachable only by
   hard URL (`/blog/foo.html`); any in-app `<Link>`/anchor that react-router intercepts will 404
   to `NotFound`. Mixing the two route spaces is the main footgun for the blog feature.
-- Deployment: hosted on **Railway** (per owner, 2026-06-29). No Railway/Nixpacks/Docker config
-  is tracked (`git ls-files` shows none), so it relies on Nixpacks auto-detection with **no
-  explicit SPA fallback**. No `start` script, no static-server dep (`package.json:6-14`).
-  CONSEQUENCE: react-router deep links (`/people-say`, future `/blog/:slug`) and hard refreshes
-  will 404 unless a server with an index.html fallback is added (e.g. `serve -s dist -l $PORT`
-  or Caddy via `nixpacks.toml`). A rebuild/redeploy is always required for any content change
-  (static Vite build).
+- Deployment: **production is VERCEL** (adibuilds.in — confirmed 2026-06-30 by a Vercel `bom1::`
+  404 page; the earlier "Railway" note was wrong). `railway.json` + `public/serve.json` are
+  vestigial (harmless, left in repo). Vercel auto-detects Vite → output `dist`, build `npm run
+  build`. Deploy triggers on push to `main`.
+- **SPA fallback = `vercel.json`** (root, added 2026-06-30): `rewrites` source `/((?!.*\.).*)`
+  sends extensionless paths to `/index.html` (so `/blog/:slug`, `/people-say`, `/blog`, hard
+  refreshes resolve) while ANY path with a dot is served from the filesystem — critical so the
+  full-post iframe sources `/blog/*.html` and `/assets/*` are NOT rewritten. `cleanUrls:false`
+  so `/blog/x.html` is not 308'd to `/blog/x` (would collide with the React route + break the
+  iframe). Without this file, react-router deep links 404 on hard refresh (the original symptom).
 
 ## Blog section (built 2026-06-29)
 - **Engine**: `src/data/blog.ts` — `import.meta.glob('/src/content/blog/*.html', {query:'?raw',
