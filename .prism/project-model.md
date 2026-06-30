@@ -169,6 +169,12 @@ with react-router-dom. Single-page app, statically built, deployed from GitHub
 - 2026-06-29 — Blog implemented (this session). Format chosen: content-only HTML rendered
   inside the React shell (not raw `public/` files), auto-discovered via glob; auto-publish on
   Railway via committed `railway.json`. No `docs/NN-*.md` written.
+- 2026-06-30 — `prism-plan` (writing voice): Tier 1 voice pass applied to `kohaku-for-miden.html`
+  — killed banned phrases ("the deep reframe", 6× "maps to →" → "on Miden →" + varied prose),
+  cut throat-clearing/meta-frames, broke run-ons, dropped vague qualifiers. Tier 2 (structural
+  cut/reorder: merge §1, demote Tornado §4, trim §10, possible payoff-first reorder) HELD pending
+  owner's call on Q1 (reference vs manifesto) — recommendation was "reference → moderate, keep
+  verified technical depth, don't gut §3/§6". Open: is this the house voice for all articles?
 - 2026-06-30 — Kohaku article fact-checked + corrected (7 fixes: real Miden TS API, MASM
   spend-cap, Railgun 4-key model spending/viewing/nullifying/master, PPOI→"Private Proofs of
   Innocence" attributed to Railgun, commitment operand order, note-tag sync nuance, Tornado
