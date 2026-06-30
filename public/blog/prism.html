@@ -438,6 +438,8 @@
 
 <p>Two limits bound all of it. Prism is prompt-defined, not infrastructure: it rides Claude Code's agent loop, and the orchestration lives in prompts the model follows, with the hooks as the enforced exception. And its decorrelation is cross-tier, not cross-model, because pinning a genuinely separate model lineage is not available here, so the adversarial check still shares whatever blind spots are built into Claude. The recommendation that follows the numbers is to shrink the default fleet for open-ended design and reserve the full fleet for review and defect-finding. A firmer result would need a fixed fleet output instead of a hand-synthesis, position-swapped dual judges, and twenty-five or more tasks across more domains.</p>
 
+<p>Production-grade means something specific here. Prism is markdown playbooks plus hooks plus memory, not a runtime, so dependable means trustworthy artifacts and disciplined process, not uptime. The remaining gaps are known and small: a write protocol so two runs do not clobber <code>project-model.md</code>, a version check for the copied playbooks, a safety guard re-sorted by reversibility (today <code>prism-guard.sh</code> over-blocks <code>rm -rf node_modules</code> and under-blocks a local <code>git commit</code> on main), a <code>checkpoint.json</code> per run for resume, and a four-tier evidence ladder with citation enforcement. Each one waits until an eval fixture proves it earns its cost.</p>
+
 <div class="divider-thin"></div>
 
 <span class="section-number">10</span>
