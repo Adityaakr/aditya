@@ -504,7 +504,7 @@
 </div>
 <p class="diagram-caption">The left side is a contract you deploy and maintain. The right side is the Miden base layer.</p>
 
-<p style="font-size: 14px; color: var(--text-secondary); font-style: italic;">A note on the code: the Miden snippets are illustrative and version-sensitive. They target <code class="inline-code">@demox-labs/miden-sdk</code> (~0.12); the SDK has since moved to the official <code class="inline-code">@miden-sdk/miden-sdk</code> (0.15+) with a newer <code class="inline-code">MidenClient</code> API, so check the current docs for exact signatures. The goal here is the protocol mapping, not copy-paste production code.</p>
+<p style="font-size: 14px; color: var(--text-secondary); font-style: italic;">A note on the code: the Miden snippets are illustrative and version-sensitive. They target <code class="inline-code">@demox-labs/miden-sdk</code> (~0.12); the SDK has since moved to the official <code class="inline-code">@miden-sdk/miden-sdk</code> (0.15+) with a newer <code class="inline-code">MidenClient</code> API, so check the current docs for exact signatures. One naming note that trips people up: the native signature the 0.12 code below calls <code class="inline-code">RPO-Falcon512</code> (scheme id <code class="inline-code">0</code> in that SDK's <code class="inline-code">newWallet</code>) is now documented as <strong>Falcon-512 over Poseidon2</strong>, and the current Rust/auth surface numbers it differently (1 = ECDSA, 2 = Falcon-512). Same signature, renamed hash and a different id space. The goal here is the protocol mapping, not copy-paste production code.</p>
 
 <div class="code-block">
 <div class="code-tab">miden · ts</div>
@@ -679,7 +679,7 @@
 <p>The relayer exists only because, on Ethereum, submitting a withdrawal is itself a public act tied to an address that needs gas. The anonymity set is the count of identical deposits not yet withdrawn.</p>
 
 <h3><span class="h3-num">4.1</span> on Miden <span class="h3-kw">no relayer, by construction</span></h3>
-<p>On Miden, the relayer problem largely vanishes. You prove the spend on your own device, and a withdrawal is just a fresh transaction against your own account, so there is no separate public actor whose address leaks. A fixed-denomination mixer becomes a note script that only accepts and releases equal-value private notes.</p>
+<p>On Miden, the relayer problem largely vanishes. You prove the spend on your own device, and a withdrawal is just a fresh transaction against your own account, so there is no separate public actor whose address leaks. A fixed-denomination mixer becomes a note script that only accepts and releases equal-value private notes. No Tornado-style relayer is needed to hide the withdrawal address; an app may still use delegated proving or a transport service for fees and UX, but never to break the address link.</p>
 
 <div class="code-block">
 <div class="code-tab">miden · masm</div>
@@ -804,7 +804,7 @@
 <p>On Ethereum this is real work: you need the EntryPoint singleton, a bundler, and an expensive on-chain lattice verifier. Account abstraction itself is a standard bolted on top of accounts that are otherwise just keys.</p>
 
 <h3><span class="h3-num">6.1</span> on Miden <span class="h3-kw">this is the default</span></h3>
-<p>Miden is post-quantum at its core. Every account is programmable. Account abstraction isn't a standard you opt into; it is how accounts work. The native signature is RPO-Falcon512. So the whole pq-account package reduces to choosing the native auth: no EntryPoint, no bundler, no Solidity verifier.</p>
+<p>Miden is post-quantum at its core. Every account is programmable. Account abstraction isn't a standard you opt into; it is how accounts work. The native signature is Falcon-512 (over Poseidon2 in current docs; the 0.12 SDK below calls it RPO-Falcon512). So the whole pq-account package reduces to choosing the native auth: no EntryPoint, no bundler, no Solidity verifier.</p>
 
 <div class="code-block">
 <div class="code-tab">miden · ts</div>
