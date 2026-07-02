@@ -506,18 +506,16 @@
 </div>
 <p class="diagram-caption">The left side is a contract you deploy and maintain. The right side is the Miden base layer.</p>
 
-<p style="font-size: 14px; color: var(--text-secondary); font-style: italic;">A note on the code: the Miden snippets are illustrative and version-sensitive. They target <code class="inline-code">@demox-labs/miden-sdk</code> (~0.12); the SDK has since moved to the official <code class="inline-code">@miden-sdk/miden-sdk</code> (0.15+) with a newer <code class="inline-code">MidenClient</code> API, so check the current docs for exact signatures. One naming note that trips people up: the native signature the 0.12 code below calls <code class="inline-code">RPO-Falcon512</code> (scheme id <code class="inline-code">0</code> in that SDK's <code class="inline-code">newWallet</code>) is now documented as <strong>Falcon-512 over Poseidon2</strong>, and the current Rust/auth surface numbers it differently (1 = ECDSA, 2 = Falcon-512). Same signature, renamed hash and a different id space. The goal here is the protocol mapping, not copy-paste production code.</p>
-
 <div class="code-block">
-<div class="code-tab">miden · ts</div>
+<div class="code-tab">miden-sdk 0.15 · ts</div>
 <pre><code><span class="cm">// on Miden you deploy none of that. a private transfer IS the pattern:</span>
 <span class="cm">// the note is the commitment, the nullifier is native, the proof is the STARK.</span>
-<span class="cm">// build a private-note send request, then submit it (NoteType.Private</span>
-<span class="cm">// means the note details stay off-chain; the commitment, plus the note's</span>
-<span class="cm">// public metadata, is what lands on-chain).</span>
-<span class="kw">const</span> req = client.newSendTransactionRequest(
-  wallet.id(), recipientId, faucetId, NoteType.Private, 100n);
-<span class="kw">const</span> txId = <span class="kw">await</span> client.submitNewTransaction(wallet.id(), req);
+<span class="cm">// type: "private" means the note details stay off-chain; the commitment,</span>
+<span class="cm">// plus the note's public metadata, is what lands on-chain.</span>
+<span class="kw">const</span> { txId } = <span class="kw">await</span> client.transactions.send({
+  account: wallet, to: recipientId, token: faucetId,
+  amount: 100n, type: <span class="str">"private"</span>,
+});
 <span class="cm">// consuming the note nullifies it; the kernel computes the nullifier from the</span>
 <span class="cm">// note's own components (serial number, script, inputs, assets). no nullifier mapping</span>
 <span class="cm">// for you to deploy, and no verifier contract: the client-side proof is checked</span>
@@ -542,8 +540,7 @@
 <span class="cm">//</span>
 <span class="cm">// for a PRIVATE note the details (assets, script, inputs, serial) stay off-chain;</span>
 <span class="cm">// only the commitment and (on spend) the nullifier are published. metadata AND any</span>
-<span class="cm">// attachments stay public, on-chain, even for a private note. (node-operator trust</span>
-<span class="cm">// on the current testnet: see "the honest limit".)</span></code></pre>
+<span class="cm">// attachments stay public, on-chain, even for a private note.</span></code></pre>
 </div>
 
 <div class="callout">On Ethereum a privacy protocol is a contract that re-implements commitments, nullifiers, and a verifier on top of a transparent chain. On Miden those three are the chain. So Kohaku for Miden is mostly fitting each protocol's behaviour to the native note model, not redeploying its contracts.</div>
@@ -611,24 +608,27 @@
 <p>On Miden, the 0zk balance is just your private account. The four keys collapse to one Falcon key for signing. The other jobs do not vanish, they move off the key model and into the SDK: you still deliver the note details to the recipient over an encrypted channel, and discovery still runs over note tags. Shield, transfer, and unshield are three uses of the same native note.</p>
 
 <div class="code-block">
-<div class="code-tab">miden · ts</div>
+<div class="code-tab">miden-sdk 0.15 · ts</div>
 <pre><code><span class="cm">// Miden: your private account IS your private balance. no pool, no 0zk address,</span>
-<span class="cm">// no separate shield step. and post-quantum auth is native (RPO-Falcon512).</span>
-<span class="cm">// auth_scheme_id 0 = the native RPO-Falcon512 auth component; init seed is a</span>
-<span class="cm">// Uint8Array (or null). private storage keeps the account state off-chain.</span>
-<span class="kw">const</span> wallet = <span class="kw">await</span> client.newWallet(
-  AccountStorageMode.private(), true, 0, seed
-);
+<span class="cm">// no separate shield step. off-chain account state and post-quantum Falcon auth</span>
+<span class="cm">// are one option each:</span>
+<span class="kw">const</span> wallet = <span class="kw">await</span> client.accounts.create({
+  storage: <span class="str">"private"</span>, auth: <span class="str">"falcon"</span>
+});
 
 <span class="cm">// "shield"   -&gt; just receive value into the private account (consume a note)</span>
-<span class="cm">// "transfer" -&gt; create a PRIVATE note to the recipient</span>
-<span class="kw">const</span> req = client.newSendTransactionRequest(
-  wallet.id(), recipientId, faucetId, NoteType.Private, value);
-<span class="kw">const</span> txId = <span class="kw">await</span> client.submitNewTransaction(wallet.id(), req);
+<span class="cm">// "transfer" -&gt; create a PRIVATE note, then hand its details to the recipient</span>
+<span class="cm">// through the note transport layer (the delivery channel the client is</span>
+<span class="cm">// configured with):</span>
+<span class="kw">const</span> { txId, note } = <span class="kw">await</span> client.transactions.send({
+  account: wallet, to: recipientId, token: faucetId,
+  amount: value, type: <span class="str">"private"</span>, returnNote: <span class="kw">true</span>,
+});
+<span class="kw">await</span> client.notes.sendPrivate({ note, to: recipientId });
 
-<span class="cm">// "unshield" -&gt; send to a PUBLIC account/note instead of a private one.</span>
+<span class="cm">// "unshield" -&gt; the same send with type: "public".</span>
 <span class="cm">// the four key types collapse: one Falcon key signs; "viewing" becomes the</span>
-<span class="cm">// note details you deliver to the recipient off-band (encrypted by you).</span></code></pre>
+<span class="cm">// note details you deliver to the recipient (transport or off-band).</span></code></pre>
 </div>
 
 <div class="mapsto"><span class="lbl">on Miden →</span> RailgunSmartWallet, RelayAdapt, and the transact() Groth16 proof collapse into a private account, a private note, and a native client-side STARK proof.</div>
@@ -811,19 +811,20 @@
 <p>On Ethereum this is real work: you need the EntryPoint singleton, a bundler, and an expensive on-chain lattice verifier. Account abstraction itself is a standard bolted on top of accounts that are otherwise just keys.</p>
 
 <h3><span class="h3-num">6.1</span> on Miden <span class="h3-kw">this is the default</span></h3>
-<p>Miden is post-quantum at its core. Every account is programmable. Account abstraction isn't a standard you opt into; it is how accounts work. The native signature is Falcon-512 (over Poseidon2 in current docs; the 0.12 SDK below calls it RPO-Falcon512). So the whole pq-account package reduces to choosing the native auth: no EntryPoint, no bundler, no Solidity verifier.</p>
+<p>Miden is post-quantum at its core. Every account is programmable. Account abstraction isn't a standard you opt into; it is how accounts work. The native signature is Falcon-512 (RpoFalcon512 in the SDK's symbols). So the whole pq-account package reduces to choosing the native auth: no EntryPoint, no bundler, no Solidity verifier.</p>
 
 <div class="code-block">
-<div class="code-tab">miden · ts</div>
-<pre><code><span class="cm">// Miden: post-quantum is the DEFAULT, not an add-on. RPO-Falcon512 is the native</span>
-<span class="cm">// signature. there is no EntryPoint, no bundler, no Solidity verifier: account</span>
-<span class="cm">// abstraction is simply how every Miden account works.</span>
-<span class="kw">const</span> wallet = <span class="kw">await</span> client.newWallet(
-  AccountStorageMode.private(), true, 0, seed   <span class="cm">// 0 = RPO-Falcon512 in this SDK (the Rust protocol enum numbers it differently)</span>
-);
-<span class="kw">const</span> key = SecretKey.rpoFalconWithRNG(seed);          <span class="cm">// native RPO-Falcon512 key</span>
+<div class="code-tab">miden-sdk 0.15 · ts</div>
+<pre><code><span class="cm">// Miden: post-quantum is the DEFAULT, not an add-on. there is no EntryPoint,</span>
+<span class="cm">// no bundler, no Solidity verifier: account abstraction is simply how every</span>
+<span class="cm">// Miden account works.</span>
+<span class="kw">const</span> wallet = <span class="kw">await</span> client.accounts.create({ storage: <span class="str">"private"</span>, auth: <span class="str">"falcon"</span> });
+
+<span class="cm">// the same machinery one layer down, on the SDK's WASM surface:</span>
+<span class="kw">const</span> key = AuthSecretKey.rpoFalconWithRNG(seed);      <span class="cm">// native Falcon-512 key</span>
 <span class="kw">const</span> commitment = key.publicKey().toCommitment();     <span class="cm">// public key as a Word</span>
-<span class="kw">const</span> auth = AccountComponent.createAuthComponentFromCommitment(commitment, 0);
+<span class="kw">const</span> auth = AccountComponent.createAuthComponentFromCommitment(
+  commitment, 2);   <span class="cm">// the wasm auth enum: 2 = Falcon-512, 1 = ECDSA k256</span>
 
 <span class="cm">// the "spending policy" from pq-account becomes programmable auth: the account's</span>
 <span class="cm">// auth code runs INSIDE the tx and, using transaction introspection, can read</span>
@@ -868,17 +869,21 @@
 <p>The last account-level capability is coordination. When two parties or two devices share private state, something has to keep them in sync and gather signatures. Kohaku approaches this through multi-key accounts and recovery. On Miden it becomes private-state sync plus threshold signing, and it is where the Guardian role lives. Miden supports async transaction execution: while the executor builds a transaction it can call back into an authenticator, and it can hand a transaction summary to several co-signers who each verify it against chain state before signing.</p>
 
 <div class="code-block">
-<div class="code-tab">miden · ts</div>
-<pre><code><span class="cm">// Miden supports async execution: while building a tx the executor can call</span>
-<span class="cm">// back into an authenticator (an external keystore). that callback is where a</span>
-<span class="cm">// co-signer (a Guardian-style service) verifies the work and returns a signature.</span>
-<span class="cm">// illustrative: the real surface is the SDK's external-keystore / sign-callback.</span>
+<div class="code-tab">miden-sdk 0.15 · ts</div>
+<pre><code><span class="cm">// threshold signing is a native account component: N approver key commitments,</span>
+<span class="cm">// a default threshold, optional per-procedure thresholds.</span>
+<span class="kw">const</span> config = <span class="kw">new</span> AuthFalcon512RpoMultisigConfig(
+  [aliceKey, bobKey, guardianKey], <span class="cm">// approver public-key commitments (Words)</span>
+  2                                <span class="cm">// any 2 of the 3 must sign</span>
+);
+<span class="kw">const</span> multisigAuth = createAuthFalcon512RpoMultisig(config);
 
-<span class="cm">// 1. the executor produces a TransactionSummary describing the tx's effects</span>
-<span class="cm">// 2. distribute the summary to the co-signers (it carries deltas, not keys)</span>
-<span class="cm">// 3. each co-signer re-derives the summary, checks it against chain state, and</span>
-<span class="cm">//    signs only if it matches; it never holds a key that can move funds alone</span>
-<span class="cm">// 4. collect the threshold of signatures, attach them, and submit the tx</span></code></pre>
+<span class="cm">// co-signers plug in as an external keystore: the client calls out for each</span>
+<span class="cm">// signature, so a Guardian-style service can check the TransactionSummary</span>
+<span class="cm">// (account delta + input/output notes, never a key) and sign only if it matches.</span>
+<span class="kw">const</span> client = <span class="kw">await</span> MidenClient.create({
+  keystore: { getKey, insertKey, sign }, <span class="cm">// sign(pubKey, signingInputs) -&gt; bytes</span>
+});</code></pre>
 </div>
 
 <div class="mapsto"><span class="lbl">on Miden →</span> Kohaku's multi-key accounts and recovery turn into private-state sync plus threshold signing through Guardian. Every co-signer is a verifier, never a custodian. Guardian is not custody, but it is still a trust boundary: it can affect liveness, and it may see submitted state payloads unless the deployment adds encryption or self-hosts.</div>
@@ -921,12 +926,13 @@
 <p>Miden's client is the provider, and its sync model is already a privacy feature. The node does not push you a feed. You pull notes that match your account's <strong>note tags</strong> and filter them locally. The tags are deliberately coarse: a tag can also match other users' notes, and that fuzziness is part of the privacy, while still giving you the local, indexer-free token discovery Kohaku has to engineer around centralized services. The remaining concern, not pinning a user to one observable endpoint, carries over to Miden's own node-trust and transport choices.</p>
 
 <div class="code-block">
-<div class="code-tab">miden · ts</div>
+<div class="code-tab">miden-sdk 0.15 · ts</div>
 <pre><code><span class="cm">// Miden: the client is the provider, and tag-based pull sync IS private token</span>
 <span class="cm">// discovery. the node never pushes your data; you pull notes matching your note</span>
 <span class="cm">// tags and filter locally, so there is no centralized indexer watching balances.</span>
-<span class="kw">const</span> client = <span class="kw">await</span> WebClient.createClient(ENDPOINT);
-<span class="kw">await</span> client.syncState(); <span class="cm">// pulls notes matching your tags, then filters locally</span></code></pre>
+<span class="kw">const</span> client = <span class="kw">await</span> MidenClient.createTestnet();
+<span class="kw">await</span> client.sync();  <span class="cm">// fetch private notes from transport, then sync chain state</span>
+<span class="kw">const</span> tags = <span class="kw">await</span> client.tags.list();  <span class="cm">// the coarse tags your sync subscribes to</span></code></pre>
 </div>
 
 <div class="mapsto"><span class="lbl">on Miden →</span> the provider abstraction plus Helios plus private token discovery. The verifying-provider idea carries over; pull-only, tag-based sync gives you more private discovery than a centralized indexer, though the endpoint still sees your requests.</div>
@@ -937,7 +943,7 @@
 <span class="section-number" id="s9">09</span>
 <h2>The plugin system, and one surface</h2>
 
-<p>Kohaku is deliberately a modular toolkit with a plugin system: a wallet team takes the pieces it wants and leaves the rest, without rewriting its app. The same shape works on Miden. Each capability from this guide is a plugin behind one facade: protocol plugins (note scripts), account plugins (auth components), proving plugins (local or delegated), and provider plugins. The app sees one ergonomic call per intent.</p>
+<p>Kohaku is deliberately a modular toolkit with a plugin system: a wallet team takes the pieces it wants and leaves the rest, without rewriting its app. The same shape works on Miden. Each capability from this guide is a plugin behind one facade: protocol plugins (note scripts), account plugins (auth components), proving plugins (local or delegated), and provider plugins. The app sees one ergonomic call per intent. The 0.15 SDK's <code class="inline-code">MidenClient</code> already speaks this shape, resource namespaces with one call per intent, so the plugin layer's real work is the opinioning: private by default, delivery built in, co-signing and provenance as first-class plugins.</p>
 
 <!-- DIAGRAM 3: plugin surface -->
 <div class="diagram-wrapper">
@@ -992,37 +998,34 @@
 
 <div class="code-block">
 <div class="code-tab">kohaku-for-miden · ts</div>
-<pre><code><span class="cm">// the Kohaku-for-Miden facade (illustrative): each capability from this guide is</span>
-<span class="cm">// a plugin behind one surface; the app never touches a note, proof, nullifier, or key.</span>
+<pre><code><span class="cm">// the Kohaku-for-Miden facade: each capability from this guide is a plugin</span>
+<span class="cm">// behind one surface; the app never touches a note, proof, nullifier, or key.</span>
 <span class="kw">class</span> MidenPrivacy {
-  constructor(client, o) { this.client = client; this.seed = o.seed; this.proverUrl = o.proverUrl; }
-  <span class="kw">static</span> <span class="kw">async</span> connect(o) {
-    <span class="kw">const</span> client = <span class="kw">await</span> WebClient.createClient(o.endpoint);
-    <span class="kw">await</span> client.syncState();
-    <span class="kw">return</span> <span class="kw">new</span> MidenPrivacy(client, o);
+  <span class="kw">static</span> <span class="kw">async</span> connect(o = {}) {
+    <span class="kw">const</span> self = <span class="kw">new</span> MidenPrivacy();
+    self.client = <span class="kw">await</span> MidenClient.createTestnet({
+      seed: o.seed,
+      proverUrl: o.proverUrl ?? <span class="str">"local"</span>,  <span class="cm">// delegated proving is an explicit choice</span>
+    });
+    <span class="kw">return</span> self;
   }
-  <span class="kw">async</span> createPrivateAccount() {                       <span class="cm">// account plugin</span>
-    <span class="kw">const</span> wallet = <span class="kw">await</span> this.client.newWallet(
-      AccountStorageMode.private(), true, 0, this.seed);  <span class="cm">// 0 = RPO-Falcon512</span>
-    this.account = wallet.id();
-    <span class="kw">return</span> wallet;
+  <span class="kw">async</span> createPrivateAccount() {            <span class="cm">// account plugin</span>
+    this.account = <span class="kw">await</span> this.client.accounts.create({
+      storage: <span class="str">"private"</span>, auth: <span class="str">"falcon"</span>,  <span class="cm">// private + post-quantum by DEFAULT</span>
+    });
+    <span class="kw">return</span> this.account;
   }
-  <span class="kw">async</span> privateTransfer({ to, token, amount, delegate = false }) {  <span class="cm">// protocol plugin</span>
-    <span class="kw">const</span> prover = delegate
-      ? TransactionProver.newRemoteProver(this.proverUrl)   <span class="cm">// proving plugin</span>
-      : TransactionProver.newLocalProver();
-    <span class="kw">const</span> req = this.client.newSendTransactionRequest(
-      this.account, to, token, NoteType.Private, amount);
-    <span class="cm">// execute -&gt; prove (local or delegated) -&gt; submit</span>
-    <span class="kw">const</span> result = <span class="kw">await</span> this.client.executeTransaction(this.account, req);
-    <span class="kw">const</span> proven = <span class="kw">await</span> this.client.proveTransaction(result, prover);
-    <span class="kw">return</span> this.client.submitProvenTransaction(proven, result);
+  <span class="kw">async</span> privateTransfer({ to, token, amount }) {  <span class="cm">// protocol plugin</span>
+    <span class="kw">const</span> { txId, note } = <span class="kw">await</span> this.client.transactions.send({
+      account: this.account, to, token, amount,
+      type: <span class="str">"private"</span>, returnNote: <span class="kw">true</span>,
+    });
+    <span class="kw">await</span> this.client.notes.sendPrivate({ note, to });  <span class="cm">// delivery is part of the protocol</span>
+    <span class="kw">return</span> txId;
   }
-  <span class="kw">async</span> balance(faucetId) {
-    <span class="kw">await</span> this.client.syncState();
-    <span class="kw">const</span> account = <span class="kw">await</span> this.client.getAccount(this.account);
-    <span class="kw">if</span> (!account) <span class="kw">throw</span> <span class="kw">new</span> Error(<span class="str">"account not found"</span>);
-    <span class="kw">return</span> account.vault().getBalance(faucetId);
+  <span class="kw">async</span> balance(token) {
+    <span class="kw">await</span> this.client.sync();
+    <span class="kw">return</span> this.client.accounts.getBalance(this.account, token);
   }
 }</code></pre>
 </div>
@@ -1046,21 +1049,18 @@
 <h3><span class="h3-num">10.3</span> Note and data handling</h3>
 <ul>
   <li><strong>Default to private, choose public on purpose</strong> - Storage mode and note type are explicit. Private should be what happens when a developer does nothing.</li>
-  <li><strong>Treat note delivery as part of the protocol</strong> - A private transfer is only private if the note details reach the recipient over an encrypted channel. Miden gives you two paths: a manual off-band side channel, or the note transport service the client already takes an endpoint for (<code class="inline-code">createClient(rpc, noteTransport, seed)</code>), which routes by tag and leaves encryption to you. Build one of them into the SDK; do not leave it as a manual step over a plain message. Note transport is its own trust boundary, distinct from the RPC node and the remote prover.</li>
+  <li><strong>Treat note delivery as part of the protocol</strong> - A private transfer is only private if the note details reach the recipient over an encrypted channel. Miden gives you two paths: a manual off-band side channel, or the note transport layer the client is configured with (<code class="inline-code">noteTransportUrl</code>), spoken through <code class="inline-code">notes.sendPrivate()</code> and <code class="inline-code">notes.fetchPrivate()</code>. Build one of them into the SDK; do not leave it as a manual step over a plain message. Note transport is its own trust boundary, distinct from the RPC node and the remote prover.</li>
   <li><strong>Mind metadata, not just contents</strong> - Timing and query patterns leak. Borrow Kohaku's private-discovery thinking even when the amounts are already hidden.</li>
 </ul>
 
-<h3><span class="h3-num">10.4</span> The honest limit</h3>
-<div class="callout">On Miden's current testnet the operator is centralized, so treat privacy against the node operator as not yet guaranteed. Rely on privacy between users today, not on privacy against the operator, until the network decentralizes. It's a deliberate guardrail while the network matures. Design the SDK around that, and never promise stronger privacy than the chain gives today.</div>
-
-<h3><span class="h3-num">10.5</span> Proving</h3>
+<h3><span class="h3-num">10.4</span> Proving</h3>
 <ul>
   <li><strong>Prove locally when you can; delegate when you must</strong> - Local proving keeps everything but the proof on the device. Fall back to a remote prover for weak devices or large transactions. A remote prover is trustless for correctness but sees your transaction inputs, so this is a privacy boundary: default the choice and abstract it in the SDK, but surface it, do not hide it from the user.</li>
   <li><strong>Only use multi-threaded proving when the page is cross-origin isolated</strong> - It needs COOP and COEP headers. If you cannot set them, stay single-threaded rather than break in production.</li>
   <li><strong>Show progress</strong> - Proving takes real time; never let a confirm step look frozen.</li>
 </ul>
 
-<h3><span class="h3-num">10.6</span> Keys, auth, and compliance</h3>
+<h3><span class="h3-num">10.5</span> Keys, auth, and compliance</h3>
 <ul>
   <li><strong>Use the post-quantum default</strong> - Falcon is native. Lead with it; add ECDSA only to reuse existing key material. Keep a migration path, the equivalent of pq-account's killswitch.</li>
   <li><strong>Push limits into account code</strong> - Spend caps and rate limits belong in the account's auth logic, enforced by the chain, not in your app where they can be bypassed.</li>
@@ -1068,7 +1068,7 @@
   <li><strong>Make compliance opt-in and provable</strong> - Where provenance matters, use the association-set or PPOI pattern through the note script, so users prove innocence without revealing which note is theirs.</li>
 </ul>
 
-<h3><span class="h3-num">10.7</span> SDK design</h3>
+<h3><span class="h3-num">10.6</span> SDK design</h3>
 <ul>
   <li><strong>Modular and optional, like Kohaku</strong> - Let a team adopt one plugin without taking all of them.</li>
   <li><strong>Sane defaults over options</strong> - Most leaks are missing flags, not wrong ones.</li>

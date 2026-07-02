@@ -152,6 +152,30 @@ with react-router-dom. Single-page app, statically built, deployed from GitHub
   and the `export.auth__<name>` convention ARE real.
 - **LESSON for blog work**: SDK/protocol code in articles must be grounded against live docs, not
   recalled — Miden's TS API moves fast. Label any proposed/aspirational facade code "illustrative."
+- **0.15 UPGRADE (2026-07-02, `prism-feedback`)**: kohaku article's TS snippets now target
+  `@miden-sdk/miden-sdk` **0.15.4** (published 2026-07-02), grounded by extracting the ACTUAL npm
+  tarball into scratchpad and reading the shipped `.d.ts` + `index.js` exports (strongest method —
+  reuse it: `npm pack @miden-sdk/miden-sdk && tar -xzf` → `dist/st/api-types.d.ts` high-level,
+  `dist/st/crates/miden_client_web.d.ts` WASM layer). The 0.12 surface above is HISTORICAL — do not
+  use it for new writing. **VERIFIED 0.15.4 surface** (2 independent cross-tier skeptics, all PASS):
+  high-level `MidenClient.create({rpcUrl, noteTransportUrl, proverUrl, seed, keystore, autoSync})` /
+  `createTestnet()`; `client.accounts.create({storage:"private"|"public", auth:"falcon"|"ecdsa"})` →
+  `Promise<Account>`; `client.transactions.send({account, to, token, amount, type:"private",
+  returnNote:true})` → `{txId, note, result}`; `client.accounts.getBalance(acct, token)` →
+  `Promise<bigint>`; `client.notes.sendPrivate({note, to})` / `fetchPrivate()`; `client.sync()`
+  (NTL fetch then chain sync) / `syncChain()` / `syncNoteTransport()`; `client.tags.add/remove/list`;
+  `transactions.preview()` → `TransactionSummary` (accountDelta + input/output notes);
+  `client.compile.noteScript({code, libraries})`. WASM layer (root-exported): `AuthSecretKey.
+  rpoFalconWithRNG(seed)` → `.publicKey().toCommitment(): Word`; `AccountComponent.
+  createAuthComponentFromCommitment(word, 2)` — wasm enum AuthRpoFalcon512=2, AuthEcdsaK256Keccak=1
+  (numeric enum NOT root-exported; root `AuthScheme` = string const {Falcon:"falcon",ECDSA:"ecdsa"});
+  `NoteType.Private=0, Public=1` (CHANGED from 0.12's Private=2!); `TransactionProver.newLocalProver/
+  newRemoteProver(url, timeoutMs?)/newCallbackProver`; NATIVE MULTISIG: `new
+  AuthFalcon512RpoMultisigConfig(approvers: Word[], threshold)` + `createAuthFalcon512RpoMultisig()`.
+  **IRONY GUARD**: calls flagged FABRICATED for 0.12 (`client.transactions.send({...})`,
+  `client.accounts.getBalance`, `AuthScheme`, `getPublicKeyAsWord`) are REAL in 0.15 — do not
+  "fix" them backwards. `@demox-labs/miden-sdk` is dead at 0.12.5. Also confirmed in 0.15 d.ts:
+  attachments returned over RPC for private notes too (backs the article's metadata claim).
 - **Round 2 (`prism-feedback`, 2026-06-30, cross-TIER skeptics)** caught defects the first pass and
   even my OWN round-1 fixes missed — lesson: a "real API" fix can still be wrong; re-verify against
   the actual `.d.ts`/source. Additional verified facts (use these): `NoteType` is an ENUM
@@ -169,6 +193,35 @@ with react-router-dom. Single-page app, statically built, deployed from GitHub
   than chasing exact assembly on the fast-moving `next` branch.
 
 ## Decision log
+- 2026-07-02 — `prism-feedback` 0.15 upgrade APPLIED to kohaku-for-miden.html: all 5 Miden TS
+  blocks + §9 facade rewritten to verified `@miden-sdk/miden-sdk` 0.15.4 API (tabs relabeled
+  "miden-sdk 0.15 · ts"); the compressed version-note paragraph DELETED (nothing left to
+  disclaim); §6.1 prose now "Falcon-512 (RpoFalcon512 in the SDK's symbols)"; §7 comment-only
+  block replaced with REAL native multisig code (AuthFalcon512RpoMultisigConfig + external
+  keystore); §10.3 delivery bullet now cites noteTransportUrl + notes.sendPrivate/fetchPrivate;
+  §9 intro notes MidenClient already speaks the one-call shape so the plugin layer's job is the
+  privacy opinioning. 2 cross-tier skeptics: zero FAILs, 1 WARN (sync() comment) fixed. Not
+  committed — awaiting owner.
+- 2026-07-02 — `prism-understand` on Kohaku article "remove the two hedge blocks" proposal.
+  VERDICT: do NOT delete either outright — both are load-bearing. (A) the line-509 version note
+  is referenced by "the 0.12 SDK below" at 814 and 822; deleting orphans those and un-marks
+  genuinely stale API code. (B) 10.4 "The honest limit" is cross-referenced BY NAME from the
+  code comment at 546, and cutting the operator-centralization caveat would over-claim privacy
+  (it was added deliberately by the 2026-07-01 grounded review). Recommended fix instead:
+  COMPRESS both (A → 1 sentence, naming detail lives only in §6.1; B → 2 sentences, keep the
+  heading so 546 resolves) and attack the real problem: ~22 hedge instances (10× "illustrative",
+  2× "check the current docs", 2× "not stack-exact"), the thesis restated ~8× (cut the 549
+  callout), two comment-only code blocks (693-701, 870-881) that should be real code or prose,
+  and zero concrete numbers (proving time, tag coarseness). Independent editorial critic agreed
+  on all points. No edits applied yet — awaiting owner's go.
+- 2026-07-02 — OWNER OVERRIDE, applied: (B) "The honest limit" (old 10.4) REMOVED entirely per
+  Aditya's explicit call ("even though it's centralized, it's not to mention it, remove it").
+  The line-546 code-comment cross-reference was deleted with it (no dangling refs, verified by
+  grep) and 10.5-10.7 renumbered to 10.4-10.6. Do NOT re-add the operator-centralization callout
+  in future passes; the owner knows the tradeoff and chose to omit it. (A) the version note was
+  COMPRESSED to one sentence (0.12 → @miden-sdk/miden-sdk pointer only); the Falcon naming story
+  now lives only in §6.1 prose + code comments, which stay anchored by the "0.12 SDK" mention.
+
 - 2026-07-01 — synced prism.html with updated OVERVIEW (Jul 1): added W7 currency+audience grounding paragraph and the four-tier evidence ladder (verified/supported/unverified/contradicted) to §4 verify. §10 shipped-status already matched.
 - 2026-07-01 — `prism-feedback` on Kohaku reviewer notes (10 pts, grounded vs live Miden source). FIXED: note model (NoteInputs→NoteStorage since v0.14, metadata is always public, nullifier formula updated), softened absolutes (disappears/nothing-to-deploy/no-relayer/privacy-primitives), Guardian trust-boundary nuance, builder-focused conclusion, and a version note (code targets demox 0.12; official SDK now @miden-sdk/miden-sdk 0.15+). REJECTED reviewer pt 3: "0=RPO-Falcon512" is CORRECT for the demox TS newWallet (0=Falcon,1=ECDSA, verified v0.12-0.15); the reviewer conflated it with the Rust protocol enum (Falcon=2). Do NOT change 0→2 (would throw). Pt 1 "broken citations" = reviewer tool stripped our anchor text; links are well-formed (and user-requested).
 - 2026-06-30 — `prism.html`: corrected production-readiness para (docs/02 status flipped guard v2 / version check / write protocol / evidence ladder / checkpoint-resume from PLANNED to SHIPPED; open item = live large-repo validation) and added a "best way to use it" paragraph (lean for design, full fleet for defect-finding, read the divergence line).
