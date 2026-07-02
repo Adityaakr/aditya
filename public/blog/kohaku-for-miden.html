@@ -405,7 +405,7 @@
     <tr><td class="comp">tornado</td><td>fixed-denomination mixer contract plus a relayer</td><td>equal-value private notes; no relayer needed (proving is client-side)</td></tr>
     <tr><td class="comp">privacy-pools</td><td>pool plus approved association sets (ASP)</td><td>provenance checks inside the note script (FPI)</td></tr>
     <tr><td class="comp">pq-account</td><td>ERC-4337 account with a Falcon / ML-DSA verifier</td><td>native: Falcon is the default signature</td></tr>
-    <tr><td class="comp">provider</td><td>ethers / viem / helios, with light-client verification</td><td>the Miden client; pull-only, tag-based sync (a privacy tradeoff, not invisibility)</td></tr>
+    <tr><td class="comp">provider</td><td>ethers / viem / helios, with light-client verification</td><td>the Miden client; pull-only, tag-based sync</td></tr>
   </tbody>
 </table>
 
@@ -444,9 +444,9 @@
 }</code></pre>
 </div>
 
-<p>Every privacy protocol in Kohaku is a richer version of that contract, and every line of it is something a team has to deploy, audit, and maintain. Here is the part that matters: <strong>Miden provides all three pieces natively.</strong> A private note is a commitment in the chain's note tree. The nullifier is computed by the transaction kernel when you consume the note. And the client-side STARK proof replaces the SNARK verifier. You write no pool contract at all.</p>
+<p>Every privacy protocol in Kohaku is a richer version of that contract, and every line of it is something a team has to deploy, audit, and maintain. <strong>Miden provides all three pieces natively.</strong> A private note is a commitment in the chain's note tree. The nullifier is computed by the transaction kernel when you consume the note. And the client-side STARK proof replaces the SNARK verifier. You write no pool contract at all.</p>
 
-<div class="callout"><strong>One scope note up front</strong> - Everything in this guide describes Miden's <em>local</em> transaction path: you execute and prove on your own device, and the node verifies the proof. That is the path private transfers use, and it is where "no verifier contract" and "no relayer" hold. Miden also defines <em>network</em> transactions, executed and proved by the operator for shared public state (live on testnet and still maturing). Read the claims below as scoped to the local path, not to every transaction Miden will run.</div>
+<div class="callout"><strong>Scope: the local transaction path</strong> - Everything in this guide describes Miden's <em>local</em> transaction path: you execute and prove on your own device, and the node verifies the proof. That is the path private transfers use, and it is where "no verifier contract" and "no relayer" hold. Miden also defines <em>network</em> transactions, executed and proved by the operator for shared public state. The claims below are scoped to the local path.</div>
 
 <!-- DIAGRAM 2: shielded pool vs Miden native -->
 <div class="diagram-wrapper">
@@ -542,8 +542,6 @@
 <span class="cm">// only the commitment and (on spend) the nullifier are published. metadata AND any</span>
 <span class="cm">// attachments stay public, on-chain, even for a private note.</span></code></pre>
 </div>
-
-<div class="callout">On Ethereum a privacy protocol is a contract that re-implements commitments, nullifiers, and a verifier on top of a transparent chain. On Miden those three are the chain. So Kohaku for Miden is mostly fitting each protocol's behaviour to the native note model, not redeploying its contracts.</div>
 
 <div class="divider-thin"></div>
 
@@ -686,7 +684,7 @@
 <p>The relayer exists only because, on Ethereum, submitting a withdrawal is itself a public act tied to an address that needs gas. The anonymity set is the count of identical deposits not yet withdrawn.</p>
 
 <h3><span class="h3-num">4.1</span> on Miden <span class="h3-kw">no relayer, by construction</span></h3>
-<p>On Miden, the relayer problem largely vanishes. You prove the spend on your own device, and a withdrawal is just a fresh transaction against your own account, so there is no separate public actor whose address leaks. A fixed-denomination mixer becomes a note script that only accepts and releases equal-value private notes. No Tornado-style relayer is needed to hide the withdrawal address; an app may still use delegated proving or a transport service for fees and UX, but never to break the address link.</p>
+<p>On Miden, the relayer problem vanishes. You prove the spend on your own device, and a withdrawal is just a fresh transaction against your own account, so there is no separate public actor whose address leaks. A fixed-denomination mixer becomes a note script that only accepts and releases equal-value private notes. No Tornado-style relayer is needed to hide the withdrawal address; an app may still use delegated proving or a transport service for fees and UX, but never to break the address link.</p>
 
 <div class="code-block">
 <div class="code-tab">miden · masm</div>
@@ -920,7 +918,7 @@
 <span class="kw">const</span> tokens = <span class="kw">await</span> provider.discoverTokensLocally(account); <span class="cm">// no indexer</span></code></pre>
 </div>
 
-<h3><span class="h3-num">8.1</span> on Miden <span class="h3-kw">pull-only sync is a privacy lever, not invisibility</span></h3>
+<h3><span class="h3-num">8.1</span> on Miden <span class="h3-kw">pull-only, tag-based sync</span></h3>
 <p>Miden's client is the provider, and its sync model is already a privacy feature. The node does not push you a feed. You pull notes that match your account's <strong>note tags</strong> and filter them locally. The tags are deliberately coarse: a tag can also match other users' notes, and that fuzziness is part of the privacy, while still giving you the local, indexer-free token discovery Kohaku has to engineer around centralized services.</p>
 
 <div class="code-block">
@@ -1042,7 +1040,7 @@
 <p>Kohaku's strongest recommendation is one account per dApp, so activity in one place cannot be correlated with another. On Miden this is cheap: private accounts are easy to create, so make a fresh account per app or per role the default, and have the SDK remember which account belongs to which context.</p>
 
 <h3><span class="h3-num">10.2</span> The connection layer</h3>
-<p>Follow Kohaku's RPC hierarchy in spirit: prefer verification over trust. On Miden, lean on pull-only sync so no central indexer sees balances, and avoid pinning a user to a single observable node. Treat the endpoint as part of the threat model, not an afterthought.</p>
+<p>Follow Kohaku's RPC hierarchy in spirit: prefer verification over trust. On Miden, lean on pull-only sync so no central indexer sees balances, and avoid pinning a user to a single observable node. Treat the endpoint as part of the threat model.</p>
 
 <h3><span class="h3-num">10.3</span> Note and data handling</h3>
 <ul>

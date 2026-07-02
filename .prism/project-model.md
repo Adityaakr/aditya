@@ -193,6 +193,15 @@ with react-router-dom. Single-page app, statically built, deployed from GitHub
   than chasing exact assembly on the fast-moving `next` branch.
 
 ## Decision log
+- 2026-07-03 — De-hedge round 3 (owner-directed sweep): removed "(a privacy tradeoff, not
+  invisibility)" from the §1 provider table row AND its sibling §8.1 heading kw (now "pull-only,
+  tag-based sync"); cut "Here is the part that matters:" throat-clearer (§2); renamed scope
+  callout to declarative "Scope: the local transaction path" and trimmed its tail; CUT the
+  end-of-§2 thesis-restatement callout entirely (said better at §2 start); "largely vanishes" →
+  "vanishes" in §4.1 (the delegated-proving exception sentence keeps it honest); dropped ", not
+  an afterthought" tail in §10.2. KEPT: §5.1 "design pattern rather than a shipped standard"
+  (accuracy guard), §1 "mostly already there" (true — provider/transport still need building),
+  remaining ", not X" contrasts that do real work. Tag balance verified post-edit.
 - 2026-07-03 — OWNER de-hedge round 2 on kohaku article: removed "One honest nuance" callout
   (anonymity-set network effect), Guardian "trust boundary" sentence, §8.1 "node-trust and
   transport choices" sentence, "endpoint still sees your requests" clause, and §10.3 "note
