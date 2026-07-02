@@ -324,7 +324,7 @@
 
 <div class="divider"></div>
 
-<p class="lead-paragraph">Kohaku is an orchestration layer over several shielded-pool protocols, each of which is a tower of contracts: commitments, nullifiers, Merkle trees, and SNARK verifiers. On Miden, much of that machinery moves into base-layer primitives: private accounts, private notes, nullifiers, and client-side proving. This guide goes component by component, with real code on both sides. Building Kohaku for Miden is less about porting contracts than re-expressing the same guarantees with primitives Miden already has.</p>
+<p class="lead-paragraph">Kohaku is an orchestration layer over several shielded-pool protocols, each of which is a tower of contracts: commitments, nullifiers, Merkle trees, and SNARK verifiers. On Miden, much of that machinery moves into base-layer primitives: private accounts, private notes, nullifiers, and client-side proving. This guide goes component by component, with illustrative code on both sides. Building Kohaku for Miden is less about porting contracts than re-expressing the same guarantees with primitives Miden already has.</p>
 
 <div class="divider-thin"></div>
 
@@ -387,7 +387,7 @@
   <line x1="565" y1="194" x2="565" y2="212" stroke="#1a1a1a" stroke-width="1.2"/>
   <polygon points="560,208 565,216 570,208" fill="#1a1a1a"/>
 
-  <text x="565" y="230" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#888">no bolt-on protocols needed</text>
+  <text x="565" y="230" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#888">most bolt-on protocols unneeded</text>
   <text x="565" y="244" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#888">(privacy lives in the base layer)</text>
 
   <rect x="430" y="262" width="270" height="62" rx="6" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.5"/>
@@ -446,7 +446,7 @@
 
 <p>Every privacy protocol in Kohaku is a richer version of that contract, and every line of it is something a team has to deploy, audit, and maintain. Here is the part that matters: <strong>Miden provides all three pieces natively.</strong> A private note is a commitment in the chain's note tree. The nullifier is computed by the transaction kernel when you consume the note. And the client-side STARK proof replaces the SNARK verifier. You write no pool contract at all.</p>
 
-<div class="callout"><strong>One scope note up front</strong> - Everything in this guide describes Miden's <em>local</em> transaction path: you execute and prove on your own device, and the node verifies the proof. That is the path private transfers use, and it is where "no verifier contract" and "no relayer" hold. Miden also defines <em>network</em> transactions, executed and proved by the operator for shared public state (not yet implemented). Read the claims below as scoped to the local path, not to every transaction Miden will run.</div>
+<div class="callout"><strong>One scope note up front</strong> - Everything in this guide describes Miden's <em>local</em> transaction path: you execute and prove on your own device, and the node verifies the proof. That is the path private transfers use, and it is where "no verifier contract" and "no relayer" hold. Miden also defines <em>network</em> transactions, executed and proved by the operator for shared public state (live on testnet and still maturing). Read the claims below as scoped to the local path, not to every transaction Miden will run.</div>
 
 <!-- DIAGRAM 2: shielded pool vs Miden native -->
 <div class="diagram-wrapper">
@@ -519,27 +519,28 @@
   wallet.id(), recipientId, faucetId, NoteType.Private, 100n);
 <span class="kw">const</span> txId = <span class="kw">await</span> client.submitNewTransaction(wallet.id(), req);
 <span class="cm">// consuming the note nullifies it; the kernel computes the nullifier from the</span>
-<span class="cm">// note's serial number + script root + storage. there is no nullifier mapping</span>
+<span class="cm">// note's own components (serial number, script, inputs, assets). no nullifier mapping</span>
 <span class="cm">// for you to deploy, and no verifier contract: the client-side proof is checked</span>
 <span class="cm">// by the network itself.</span></code></pre>
 </div>
 
-<p>A note is the single primitive that replaces most of the pool-contract machinery: it carries assets, an executable script, storage used by that script, and a secret serial number, plus public metadata (sender, note type, tag) and up to four attachments. For a private note the details stay off-chain and only the note hash is published, but the metadata is always public, and attachment contents are stored on-chain even for a private note. That is a real privacy boundary: what you put in metadata or attachments is visible regardless of note type.</p>
+<p>A note is the single primitive that replaces most of the pool-contract machinery: it carries assets, an executable script, the inputs that script reads, and a secret serial number, plus public metadata (sender, note type, tag) and up to four attachments. For a private note the details stay off-chain and only the note hash is published, but the metadata is always public, and attachment contents are stored on-chain even for a private note. That is a real privacy boundary: what you put in metadata or attachments is visible regardless of note type.</p>
 
 <div class="code-block">
 <div class="code-tab">miden note model</div>
 <pre><code><span class="cm">// what "a note" actually is on Miden (the fields the commitment is built from):</span>
 <span class="cm">//   assets     - the fungible / non-fungible assets the note carries</span>
 <span class="cm">//   script     - MASM code that must succeed for the note to be consumed</span>
-<span class="cm">//   storage    - data the script reads, e.g. the recipient id (was "inputs")</span>
+<span class="cm">//   inputs     - data the script reads, e.g. the recipient id</span>
 <span class="cm">//   serial_num - a secret that makes the nullifier unlinkable</span>
 <span class="cm">//   metadata   - sender + note type + tag + attachments; ALWAYS public</span>
 <span class="cm">//</span>
-<span class="cm">// commitment = hash(recipient, asset_commitment)   &lt;- illustrative; 0.15 split note</span>
-<span class="cm">//              identity (NoteId now commits to metadata too), so check current docs.</span>
-<span class="cm">// nullifier  = hash(serial_num, script_root, storage_commitment, asset_commitment, metadata, attachments)</span>
+<span class="cm">// commitment ~ hash(recipient, asset_commitment)   &lt;- illustrative; note identity was</span>
+<span class="cm">//              reworked in a recent release, so check the current docs for exact fields.</span>
+<span class="cm">// nullifier  &lt;- derived from the note's own components (serial_num, script_root,</span>
+<span class="cm">//              inputs, assets): you must know the full note to compute it.</span>
 <span class="cm">//</span>
-<span class="cm">// for a PRIVATE note the details (assets, script, storage, serial) stay off-chain;</span>
+<span class="cm">// for a PRIVATE note the details (assets, script, inputs, serial) stay off-chain;</span>
 <span class="cm">// only the commitment and (on spend) the nullifier are published. metadata AND any</span>
 <span class="cm">// attachments stay public, on-chain, even for a private note. (node-operator trust</span>
 <span class="cm">// on the current testnet: see "the honest limit".)</span></code></pre>
@@ -587,7 +588,7 @@
 </table>
 
 <h3><span class="h3-num">3.2</span> the operations <span class="h3-kw">shield, transfer, unshield</span></h3>
-<p>All three operations build notes and Groth16 proofs through one pipeline. Note selection (<code class="inline-code">getTransactNotes</code>) gathers unspent input notes, creates a change note for the remainder, and a send note for the recipient. The on-chain commitment is encrypted with AES-GCM under the recipient's viewing key, so only they can read it.</p>
+<p>All three operations build notes and Groth16 proofs through one pipeline. Note selection gathers unspent input notes, creates a change note for the remainder, and a send note for the recipient. The on-chain commitment is encrypted (AES-GCM in the V2 note format, XChaCha20-Poly1305 in V3) under an ECDH shared secret derived from the recipient's viewing key, so only they can read it.</p>
 
 <div class="code-block">
 <div class="code-tab">kohaku · ts</div>
@@ -597,7 +598,7 @@
 <span class="cm">// calls RailgunSmartWallet. native ETH is wrapped to WETH via RelayAdapt first.</span>
 <span class="kw">const</span> shieldTx = <span class="kw">await</span> account.createShieldTx(token, value);
 
-<span class="cm">// private transfer: 0zk -&gt; 0zk. getTransactNotes() selects unspent input notes,</span>
+<span class="cm">// private transfer: 0zk -&gt; 0zk. note selection picks unspent input notes,</span>
 <span class="cm">// makes a change Note for you + a SendNote for the receiver, then transact()</span>
 <span class="cm">// produces a Groth16 proof. unshieldType = 0, nothing leaves the private set.</span>
 <span class="kw">const</span> transferTx = <span class="kw">await</span> account.createPrivateTransferTx(token, value, <span class="str">"0zk1..."</span>);
@@ -632,14 +633,15 @@
 
 <div class="mapsto"><span class="lbl">on Miden →</span> RailgunSmartWallet, RelayAdapt, and the transact() Groth16 proof collapse into a private account, a private note, and a native client-side STARK proof.</div>
 
-<h3><span class="h3-num">3.4</span> what a private note is <span class="h3-kw">in real code</span></h3>
+<h3><span class="h3-num">3.4</span> what a private note is <span class="h3-kw">as an illustrative sketch</span></h3>
 <p>A note is a small MASM program. Here is a simplified sketch of it, pay-to-ID, close to what runs when the recipient consumes a private transfer: it checks that the consuming account is the intended recipient, then moves the assets into their vault. A privacy SDK ships notes like this so an app never writes MASM.</p>
 
 <div class="code-block">
 <div class="code-tab">miden · masm</div>
 <pre><code><span class="cm"># illustrative / simplified, not stack-exact. the canonical p2id.masm reads a</span>
-<span class="cm"># two-felt account id from note storage and compares via account_id::is_equal.</span>
+<span class="cm"># two-felt account id from the note's inputs and compares via account_id::is_equal.</span>
 <span class="kw">use</span>.miden::account
+<span class="kw">use</span>.miden::account_id
 <span class="kw">use</span>.miden::note
 
 <span class="cm"># Pay-to-ID: only the intended account can consume the note. this is the shape</span>
@@ -701,7 +703,7 @@
 
 <div class="mapsto"><span class="lbl">on Miden →</span> MerkleTreeWithHistory plus the Verifier plus the relayer. The tree and verifier are native; the relayer is unnecessary because proving is local and the note model breaks the link.</div>
 
-<div class="callout"><strong>One honest nuance</strong> - An anonymity set still has to come from somewhere: many identical private notes. On Miden you get unlinkability from the note model for free, but a large mixing set is still a function of how many people use the same denomination. The primitive is easier; the network effect is the same.</div>
+<div class="callout"><strong>One honest nuance</strong> - An anonymity set still has to come from somewhere: many identical private notes. On Miden you get unlinkability from the note model by construction, but a large mixing set is still a function of how many people use the same denomination. The primitive is easier; the network effect is the same.</div>
 
 <div class="divider-thin"></div>
 
@@ -916,7 +918,7 @@
 </div>
 
 <h3><span class="h3-num">8.1</span> on Miden <span class="h3-kw">pull-only sync is a privacy lever, not invisibility</span></h3>
-<p>Miden's client is the provider, and its sync model is already a privacy feature. The node does not push you a feed. You pull notes that match your account's <strong>note tags</strong> and filter them locally. The tags are deliberately coarse: a tag can also match other users' notes, and that fuzziness is part of the privacy, while still giving you the local, indexer-free token discovery Kohaku has to engineer around centralized services. The remaining concern, not pinning a user to one observable endpoint, maps onto Miden's own node-trust and transport choices.</p>
+<p>Miden's client is the provider, and its sync model is already a privacy feature. The node does not push you a feed. You pull notes that match your account's <strong>note tags</strong> and filter them locally. The tags are deliberately coarse: a tag can also match other users' notes, and that fuzziness is part of the privacy, while still giving you the local, indexer-free token discovery Kohaku has to engineer around centralized services. The remaining concern, not pinning a user to one observable endpoint, carries over to Miden's own node-trust and transport choices.</p>
 
 <div class="code-block">
 <div class="code-tab">miden · ts</div>
@@ -947,7 +949,7 @@
   <!-- App / Wallet -->
   <rect x="130" y="50" width="500" height="58" rx="8" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.2"/>
   <text x="380" y="74" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="13" font-weight="600" fill="#1a1a1a">APP / WALLET</text>
-  <text x="380" y="94" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#555">one call: privateTransfer() · privateInteract() · createPrivateAccount()</text>
+  <text x="380" y="94" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#555">one call: createPrivateAccount() · privateTransfer() · balance()</text>
   <line x1="380" y1="110" x2="380" y2="130" stroke="#1a1a1a" stroke-width="1.2"/>
   <polygon points="375,126 380,134 385,126" fill="#1a1a1a"/>
 
@@ -993,14 +995,17 @@
 <pre><code><span class="cm">// the Kohaku-for-Miden facade (illustrative): each capability from this guide is</span>
 <span class="cm">// a plugin behind one surface; the app never touches a note, proof, nullifier, or key.</span>
 <span class="kw">class</span> MidenPrivacy {
+  constructor(client, o) { this.client = client; this.seed = o.seed; this.proverUrl = o.proverUrl; }
   <span class="kw">static</span> <span class="kw">async</span> connect(o) {
     <span class="kw">const</span> client = <span class="kw">await</span> WebClient.createClient(o.endpoint);
     <span class="kw">await</span> client.syncState();
     <span class="kw">return</span> <span class="kw">new</span> MidenPrivacy(client, o);
   }
   <span class="kw">async</span> createPrivateAccount() {                       <span class="cm">// account plugin</span>
-    <span class="kw">return</span> this.client.newWallet(
+    <span class="kw">const</span> wallet = <span class="kw">await</span> this.client.newWallet(
       AccountStorageMode.private(), true, 0, this.seed);  <span class="cm">// 0 = RPO-Falcon512</span>
+    this.account = wallet.id();
+    <span class="kw">return</span> wallet;
   }
   <span class="kw">async</span> privateTransfer({ to, token, amount, delegate = false }) {  <span class="cm">// protocol plugin</span>
     <span class="kw">const</span> prover = delegate
@@ -1041,12 +1046,12 @@
 <h3><span class="h3-num">10.3</span> Note and data handling</h3>
 <ul>
   <li><strong>Default to private, choose public on purpose</strong> - Storage mode and note type are explicit. Private should be what happens when a developer does nothing.</li>
-  <li><strong>Treat off-band note delivery as part of the protocol</strong> - A private transfer is only private if the note details reach the recipient over an encrypted channel. Build that into the SDK; do not leave it as a manual step over a plain message.</li>
+  <li><strong>Treat note delivery as part of the protocol</strong> - A private transfer is only private if the note details reach the recipient over an encrypted channel. Miden gives you two paths: a manual off-band side channel, or the note transport service the client already takes an endpoint for (<code class="inline-code">createClient(rpc, noteTransport, seed)</code>), which routes by tag and leaves encryption to you. Build one of them into the SDK; do not leave it as a manual step over a plain message. Note transport is its own trust boundary, distinct from the RPC node and the remote prover.</li>
   <li><strong>Mind metadata, not just contents</strong> - Timing and query patterns leak. Borrow Kohaku's private-discovery thinking even when the amounts are already hidden.</li>
 </ul>
 
 <h3><span class="h3-num">10.4</span> The honest limit</h3>
-<div class="callout">On Miden's current testnet, the node can re-execute every transaction. Users get privacy from each other, not against the node operator. It's a deliberate guardrail while the network matures. Design the SDK around that, and never promise stronger privacy than the chain gives today.</div>
+<div class="callout">On Miden's current testnet the operator is centralized, so treat privacy against the node operator as not yet guaranteed. Rely on privacy between users today, not on privacy against the operator, until the network decentralizes. It's a deliberate guardrail while the network matures. Design the SDK around that, and never promise stronger privacy than the chain gives today.</div>
 
 <h3><span class="h3-num">10.5</span> Proving</h3>
 <ul>
