@@ -703,8 +703,6 @@
 
 <div class="mapsto"><span class="lbl">on Miden →</span> MerkleTreeWithHistory plus the Verifier plus the relayer. The tree and verifier are native; the relayer is unnecessary because proving is local and the note model breaks the link.</div>
 
-<div class="callout"><strong>One honest nuance</strong> - An anonymity set still has to come from somewhere: many identical private notes. On Miden you get unlinkability from the note model by construction, but a large mixing set is still a function of how many people use the same denomination. The primitive is easier; the network effect is the same.</div>
-
 <div class="divider-thin"></div>
 
 <!-- ===================== SECTION 5 ===================== -->
@@ -886,7 +884,7 @@
 });</code></pre>
 </div>
 
-<div class="mapsto"><span class="lbl">on Miden →</span> Kohaku's multi-key accounts and recovery turn into private-state sync plus threshold signing through Guardian. Every co-signer is a verifier, never a custodian. Guardian is not custody, but it is still a trust boundary: it can affect liveness, and it may see submitted state payloads unless the deployment adds encryption or self-hosts.</div>
+<div class="mapsto"><span class="lbl">on Miden →</span> Kohaku's multi-key accounts and recovery turn into private-state sync plus threshold signing through Guardian. Every co-signer is a verifier, never a custodian.</div>
 
 <div class="callout"><strong>Why this matters for the SDK</strong> - This is the piece that unlocks multi-party and multi-device apps: shared treasuries, social recovery, an agent whose large actions need a human co-sign. The SDK's job is to make a co-sign feel like one approval, while the Guardian never holds a key that can move funds on its own.</div>
 
@@ -923,7 +921,7 @@
 </div>
 
 <h3><span class="h3-num">8.1</span> on Miden <span class="h3-kw">pull-only sync is a privacy lever, not invisibility</span></h3>
-<p>Miden's client is the provider, and its sync model is already a privacy feature. The node does not push you a feed. You pull notes that match your account's <strong>note tags</strong> and filter them locally. The tags are deliberately coarse: a tag can also match other users' notes, and that fuzziness is part of the privacy, while still giving you the local, indexer-free token discovery Kohaku has to engineer around centralized services. The remaining concern, not pinning a user to one observable endpoint, carries over to Miden's own node-trust and transport choices.</p>
+<p>Miden's client is the provider, and its sync model is already a privacy feature. The node does not push you a feed. You pull notes that match your account's <strong>note tags</strong> and filter them locally. The tags are deliberately coarse: a tag can also match other users' notes, and that fuzziness is part of the privacy, while still giving you the local, indexer-free token discovery Kohaku has to engineer around centralized services.</p>
 
 <div class="code-block">
 <div class="code-tab">miden-sdk 0.15 · ts</div>
@@ -935,7 +933,7 @@
 <span class="kw">const</span> tags = <span class="kw">await</span> client.tags.list();  <span class="cm">// the coarse tags your sync subscribes to</span></code></pre>
 </div>
 
-<div class="mapsto"><span class="lbl">on Miden →</span> the provider abstraction plus Helios plus private token discovery. The verifying-provider idea carries over; pull-only, tag-based sync gives you more private discovery than a centralized indexer, though the endpoint still sees your requests.</div>
+<div class="mapsto"><span class="lbl">on Miden →</span> the provider abstraction plus Helios plus private token discovery. The verifying-provider idea carries over; pull-only, tag-based sync gives you more private discovery than a centralized indexer.</div>
 
 <div class="divider-thin"></div>
 
@@ -1049,7 +1047,7 @@
 <h3><span class="h3-num">10.3</span> Note and data handling</h3>
 <ul>
   <li><strong>Default to private, choose public on purpose</strong> - Storage mode and note type are explicit. Private should be what happens when a developer does nothing.</li>
-  <li><strong>Treat note delivery as part of the protocol</strong> - A private transfer is only private if the note details reach the recipient over an encrypted channel. Miden gives you two paths: a manual off-band side channel, or the note transport layer the client is configured with (<code class="inline-code">noteTransportUrl</code>), spoken through <code class="inline-code">notes.sendPrivate()</code> and <code class="inline-code">notes.fetchPrivate()</code>. Build one of them into the SDK; do not leave it as a manual step over a plain message. Note transport is its own trust boundary, distinct from the RPC node and the remote prover.</li>
+  <li><strong>Treat note delivery as part of the protocol</strong> - A private transfer is only private if the note details reach the recipient over an encrypted channel. Miden gives you two paths: a manual off-band side channel, or the note transport layer the client is configured with (<code class="inline-code">noteTransportUrl</code>), spoken through <code class="inline-code">notes.sendPrivate()</code> and <code class="inline-code">notes.fetchPrivate()</code>. Build one of them into the SDK; do not leave it as a manual step over a plain message.</li>
   <li><strong>Mind metadata, not just contents</strong> - Timing and query patterns leak. Borrow Kohaku's private-discovery thinking even when the amounts are already hidden.</li>
 </ul>
 

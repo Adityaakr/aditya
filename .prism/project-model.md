@@ -193,6 +193,12 @@ with react-router-dom. Single-page app, statically built, deployed from GitHub
   than chasing exact assembly on the fast-moving `next` branch.
 
 ## Decision log
+- 2026-07-03 — OWNER de-hedge round 2 on kohaku article: removed "One honest nuance" callout
+  (anonymity-set network effect), Guardian "trust boundary" sentence, §8.1 "node-trust and
+  transport choices" sentence, "endpoint still sees your requests" clause, and §10.3 "note
+  transport is its own trust boundary" sentence. KEPT (substance, owner may still overrule):
+  §2 local-vs-network scope callout, attachments-visibility line, remote-prover-sees-inputs
+  point in §10.4. Do not re-add the removed trust hedges in future passes.
 - 2026-07-02 — `prism-feedback` 0.15 upgrade APPLIED to kohaku-for-miden.html: all 5 Miden TS
   blocks + §9 facade rewritten to verified `@miden-sdk/miden-sdk` 0.15.4 API (tabs relabeled
   "miden-sdk 0.15 · ts"); the compressed version-note paragraph DELETED (nothing left to
