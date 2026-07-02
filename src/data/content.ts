@@ -264,6 +264,14 @@ export const projects: Project[] = [
     link: "https://github.com/Adityaakr/varix-perps",
     tags: ["perps", "vara", "trading"],
   },
+  {
+    title: "prism-claude-code",
+    description: "A multi-agent harness for Claude Code that measures its own value. Prompt-defined commands fan parallel lenses over a task, adversarially verify each finding across model tiers, loop to convergence, and persist what they learn. The differentiator is honesty: its own eval reports when a single pass beats the fleet, instead of assuming more agents is always better.",
+    status: "live",
+    link: "https://github.com/Adityaakr/prism-claude-code",
+    website: "https://www.adibuilds.in/blog/prism",
+    tags: ["AI", "agents", "claude-code", "devtools"],
+  },
 ];
 
 export const principles = [
