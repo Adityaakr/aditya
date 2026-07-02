@@ -511,7 +511,8 @@
 <pre><code><span class="cm">// on Miden you deploy none of that. a private transfer IS the pattern:</span>
 <span class="cm">// the note is the commitment, the nullifier is native, the proof is the STARK.</span>
 <span class="cm">// build a private-note send request, then submit it (NoteType.Private</span>
-<span class="cm">// means only a commitment is published on-chain).</span>
+<span class="cm">// means the note details stay off-chain; the commitment, plus the note's</span>
+<span class="cm">// public metadata, is what lands on-chain).</span>
 <span class="kw">const</span> req = client.newSendTransactionRequest(
   wallet.id(), recipientId, faucetId, NoteType.Private, 100n);
 <span class="kw">const</span> txId = <span class="kw">await</span> client.submitNewTransaction(wallet.id(), req);
