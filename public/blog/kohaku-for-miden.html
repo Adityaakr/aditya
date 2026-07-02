@@ -735,7 +735,7 @@
 <p>Two takes on the same idea sit underneath this: Privacy Pools' <strong>association sets</strong> (the ASP root) and Railgun's <strong>PPOI</strong> (Private Proofs of Innocence). Both let you prove your funds are not in a flagged set, without revealing which note is yours. This is the compliance-aware direction the whole space is moving in.</p>
 
 <h3><span class="h3-num">5.1</span> on Miden <span class="h3-kw">provenance in the note itself</span></h3>
-<p>Miden lets you push this logic into the note. Because a note carries an executable script and can call into other accounts with foreign procedure invocation, a note can require an inclusion proof, against an approved-set root held by a registry account, before it will release its assets. Compliance becomes a property the note enforces, not a gate a central pool keeps.</p>
+<p>Miden lets you express this logic in the note itself. Because a note carries an executable script and can call into other accounts with foreign procedure invocation, a note can require an inclusion proof, against an approved-set root held by a registry account, before it will release its assets. Compliance becomes a property the note enforces, not a gate a central pool keeps. Treat this as a design pattern rather than a shipped standard: FPI supports the read-only cross-account call it needs, but the full flow (where the association witness lives, how its freshness is checked, what the ragequit equivalent is) is still yours to specify.</p>
 
 <div class="code-block">
 <div class="code-tab">miden · masm</div>
@@ -751,7 +751,7 @@
 <span class="cm"># release the assets. compliance is enforced by the note, not a central pool.</span></code></pre>
 </div>
 
-<div class="mapsto"><span class="lbl">on Miden →</span> the PrivacyPool contract (withdraw + ragequit) plus its association sets. On Miden the approved-set check moves into the note script and FPI, so the note refuses to consume unless its provenance is approved.</div>
+<div class="mapsto"><span class="lbl">on Miden →</span> the PrivacyPool contract (withdraw + ragequit) plus its association sets. On Miden the approved-set check can be expressed in the note script plus FPI, so the note refuses to consume unless its provenance is approved.</div>
 
 <div class="divider-thin"></div>
 
