@@ -521,7 +521,7 @@
 <span class="cm">// by the network itself.</span></code></pre>
 </div>
 
-<p>A note is the single primitive that replaces most of the pool-contract machinery: it carries assets, an executable script, storage used by that script, and a secret serial number, plus public metadata (its note type and tag). For a private note the details stay off-chain and only the note hash is published, while the metadata stays public.</p>
+<p>A note is the single primitive that replaces most of the pool-contract machinery: it carries assets, an executable script, storage used by that script, and a secret serial number, plus public metadata (sender, note type, tag) and up to four attachments. For a private note the details stay off-chain and only the note hash is published, but the metadata is always public, and attachment contents are stored on-chain even for a private note. That is a real privacy boundary: what you put in metadata or attachments is visible regardless of note type.</p>
 
 <div class="code-block">
 <div class="code-tab">miden note model</div>
