@@ -446,6 +446,8 @@
 
 <p>Every privacy protocol in Kohaku is a richer version of that contract, and every line of it is something a team has to deploy, audit, and maintain. Here is the part that matters: <strong>Miden provides all three pieces natively.</strong> A private note is a commitment in the chain's note tree. The nullifier is computed by the transaction kernel when you consume the note. And the client-side STARK proof replaces the SNARK verifier. You write no pool contract at all.</p>
 
+<div class="callout"><strong>One scope note up front</strong> - Everything in this guide describes Miden's <em>local</em> transaction path: you execute and prove on your own device, and the node verifies the proof. That is the path private transfers use, and it is where "no verifier contract" and "no relayer" hold. Miden also defines <em>network</em> transactions, executed and proved by the operator for shared public state (not yet implemented). Read the claims below as scoped to the local path, not to every transaction Miden will run.</div>
+
 <!-- DIAGRAM 2: shielded pool vs Miden native -->
 <div class="diagram-wrapper">
 <svg viewBox="0 0 760 432" xmlns="http://www.w3.org/2000/svg">
