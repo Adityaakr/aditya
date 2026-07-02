@@ -1050,7 +1050,7 @@
 
 <h3><span class="h3-num">10.5</span> Proving</h3>
 <ul>
-  <li><strong>Prove locally when you can; delegate when you must</strong> - Local proving keeps everything but the proof on the device. Fall back to a remote prover for weak devices or large transactions, and hide the choice.</li>
+  <li><strong>Prove locally when you can; delegate when you must</strong> - Local proving keeps everything but the proof on the device. Fall back to a remote prover for weak devices or large transactions. A remote prover is trustless for correctness but sees your transaction inputs, so this is a privacy boundary: default the choice and abstract it in the SDK, but surface it, do not hide it from the user.</li>
   <li><strong>Only use multi-threaded proving when the page is cross-origin isolated</strong> - It needs COOP and COEP headers. If you cannot set them, stay single-threaded rather than break in production.</li>
   <li><strong>Show progress</strong> - Proving takes real time; never let a confirm step look frozen.</li>
 </ul>
@@ -1080,7 +1080,7 @@
 
 <ol class="steps">
   <li><strong>Client and accounts</strong> - The provider wrapper plus create-and-manage for private accounts with native Falcon auth. Nothing else is usable until this is smooth.</li>
-  <li><strong>Notes, transfers, and proving</strong> - One-call private transfers, encrypted off-band delivery, and the local-or-delegated proving choice hidden. This is the Railgun and Tornado behaviour, on the native note model.</li>
+  <li><strong>Notes, transfers, and proving</strong> - One-call private transfers, encrypted off-band delivery, and a defaulted local-or-delegated proving choice (abstracted, but visible, since a remote prover sees your inputs). This is the Railgun and Tornado behaviour, on the native note model.</li>
   <li><strong>Programmable auth</strong> - Account-level spend caps and rate limits via transaction introspection. This is pq-account's spending policy, native.</li>
   <li><strong>Compliance and private state</strong> - Provenance in note scripts (Privacy Pools' association sets and Railgun's PPOI), plus shared private state and threshold signing through Guardian. This is Privacy Pools (and Railgun's compliance), on Miden.</li>
   <li><strong>Reference app, plugins, and docs</strong> - A small private app built entirely on the SDK, the plugin interfaces other teams extend, and the tutorials that make them copy it. Subrosa is most of this proof already.</li>
