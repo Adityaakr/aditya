@@ -607,7 +607,7 @@
 </div>
 
 <h3><span class="h3-num">3.3</span> on Miden <span class="h3-kw">the pool collapses into the account</span></h3>
-<p>On Miden, the 0zk balance is just your private account. The four keys collapse to one Falcon key, plus the note details you hand the recipient off-band. Shield, transfer, and unshield are three uses of the same native note.</p>
+<p>On Miden, the 0zk balance is just your private account. The four keys collapse to one Falcon key for signing. The other jobs do not vanish, they move off the key model and into the SDK: you still deliver the note details to the recipient over an encrypted channel, and discovery still runs over note tags. Shield, transfer, and unshield are three uses of the same native note.</p>
 
 <div class="code-block">
 <div class="code-tab">miden · ts</div>
