@@ -531,14 +531,16 @@
 <span class="cm">//   script     - MASM code that must succeed for the note to be consumed</span>
 <span class="cm">//   storage    - data the script reads, e.g. the recipient id (was "inputs")</span>
 <span class="cm">//   serial_num - a secret that makes the nullifier unlinkable</span>
-<span class="cm">//   metadata   - note type + tag + sender; ALWAYS public, even for private notes</span>
+<span class="cm">//   metadata   - sender + note type + tag + attachments; ALWAYS public</span>
 <span class="cm">//</span>
-<span class="cm">// commitment = hash(recipient, asset_commitment)   &lt;- the note hash</span>
+<span class="cm">// commitment = hash(recipient, asset_commitment)   &lt;- illustrative; 0.15 split note</span>
+<span class="cm">//              identity (NoteId now commits to metadata too), so check current docs.</span>
 <span class="cm">// nullifier  = hash(serial_num, script_root, storage_commitment, asset_commitment, metadata, attachments)</span>
 <span class="cm">//</span>
 <span class="cm">// for a PRIVATE note the details (assets, script, storage, serial) stay off-chain;</span>
-<span class="cm">// only the commitment and (on spend) the nullifier are published, while metadata</span>
-<span class="cm">// stays public. (node-operator trust on the current testnet: see "the honest limit".)</span></code></pre>
+<span class="cm">// only the commitment and (on spend) the nullifier are published. metadata AND any</span>
+<span class="cm">// attachments stay public, on-chain, even for a private note. (node-operator trust</span>
+<span class="cm">// on the current testnet: see "the honest limit".)</span></code></pre>
 </div>
 
 <div class="callout">On Ethereum a privacy protocol is a contract that re-implements commitments, nullifiers, and a verifier on top of a transparent chain. On Miden those three are the chain. So Kohaku for Miden is mostly fitting each protocol's behaviour to the native note model, not redeploying its contracts.</div>
