@@ -915,7 +915,7 @@
 <span class="kw">const</span> tokens = <span class="kw">await</span> provider.discoverTokensLocally(account); <span class="cm">// no indexer</span></code></pre>
 </div>
 
-<h3><span class="h3-num">8.1</span> on Miden <span class="h3-kw">pull-only sync is the private query</span></h3>
+<h3><span class="h3-num">8.1</span> on Miden <span class="h3-kw">pull-only sync is a privacy lever, not invisibility</span></h3>
 <p>Miden's client is the provider, and its sync model is already a privacy feature. The node does not push you a feed. You pull notes that match your account's <strong>note tags</strong> and filter them locally. The tags are deliberately coarse: a tag can also match other users' notes, and that fuzziness is part of the privacy, while still giving you the local, indexer-free token discovery Kohaku has to engineer around centralized services. The remaining concern, not pinning a user to one observable endpoint, maps onto Miden's own node-trust and transport choices.</p>
 
 <div class="code-block">
@@ -927,7 +927,7 @@
 <span class="kw">await</span> client.syncState(); <span class="cm">// pulls notes matching your tags, then filters locally</span></code></pre>
 </div>
 
-<div class="mapsto"><span class="lbl">on Miden →</span> the provider abstraction plus Helios plus private token discovery. The verifying-provider idea carries over; pull-only sync gives you private discovery without a separate indexer.</div>
+<div class="mapsto"><span class="lbl">on Miden →</span> the provider abstraction plus Helios plus private token discovery. The verifying-provider idea carries over; pull-only, tag-based sync gives you more private discovery than a centralized indexer, though the endpoint still sees your requests.</div>
 
 <div class="divider-thin"></div>
 
