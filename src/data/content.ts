@@ -296,6 +296,13 @@ export interface ContentItem {
 
 export const contentItems: ContentItem[] = [
   {
+    title: "A secret that opens itself",
+    type: "essay",
+    date: "2026-06",
+    link: "https://x.com/adityakrx/status/2071593948423115043",
+    summary: "Giving Ethereum a secret it can open itself. Software as a service lets you rent computation instead of running it yourself. This is the same idea applied to a harder problem: secrets as a service.",
+  },
+  {
     title: "The Six Products the Agentic Economy Needs on Ethereum",
     type: "thread",
     date: "2026-04",
