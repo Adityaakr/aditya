@@ -29,10 +29,10 @@ export interface BlogPost {
 const fullPosts: BlogPost[] = [
   {
     slug: "fiscus",
-    title: "Fiscus: Private Asset Management on Miden",
-    date: "2026-06-30",
+    title: "Fiscus, explained: a fund that shows nothing and proves everything",
+    date: "2026-07-04",
     excerpt:
-      "Onchain asset management is growing up — but it is transparent by force. Fiscus is a private asset-management protocol on Miden, where every piece maps to a native primitive.",
+      "The complete guide to Fiscus, a private fund protocol on Miden: positions stay sealed while honesty stays checkable — the product, the machinery, the money, and the plan.",
     kind: "full",
     file: "/blog/fiscus.html",
   },
