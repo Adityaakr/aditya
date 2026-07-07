@@ -83,6 +83,17 @@ const Projects = () => (
                   <span>website</span>
                 </a>
               )}
+              {project.protocol && (
+                <a
+                  href={project.protocol}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-[12px] font-medium text-muted-foreground/50 hover:text-foreground transition-colors duration-200"
+                >
+                  <ExternalLink size={11} />
+                  <span>protocol</span>
+                </a>
+              )}
               {project.social && (
                 <a
                   href={project.social}

@@ -187,6 +187,7 @@ export interface Project {
   status: ProjectStatus;
   link: string;
   website?: string;
+  protocol?: string;
   social?: string;
   tags: string[];
   highlight?: string;
@@ -219,6 +220,15 @@ export const projects: Project[] = [
     website: "https://polybaskets.xyz",
     tags: ["prediction markets", "vara", "DeFi"],
     highlight: "4.8M+ tx · 23K+ bets · 52K+ baskets · 4K+ claims - app.polybaskets.xyz/stats",
+  },
+  {
+    title: "peal network",
+    description: "encryption with a release date - the programmable disclosure network. seal data to the Peal committee and it stays unreadable, even to operators, until the cue fires and the whole batch opens at once. fair reveals for any dapp, every share verified in public.",
+    status: "building",
+    link: "https://github.com/Adityaakr/peal-network",
+    website: "https://peal.network",
+    protocol: "https://peal.network/#/protocol",
+    tags: ["encryption", "cryptography", "protocol"],
   },
   {
     title: "vaultera",
