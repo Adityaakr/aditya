@@ -10,7 +10,7 @@ const Intro = () => (
       finance. My work sits at the intersection of DeFi, prediction markets, AI
       agents, privacy, and post-quantum security, turning protocol-level ideas
       into things people actually use. Lately that means applied cryptography: RAILGUN-based private
-      payments, Kohaku on Miden, and batched threshold encryption for fair
+      payments, the Kohaku SDK, and batched threshold encryption for fair
       on-chain reveals.
     </p>
     <p className="text-[15px] text-foreground/80 leading-[1.75]">
@@ -22,7 +22,7 @@ const Intro = () => (
       <a href="https://gear-tech.io" target="_blank" rel="noopener noreferrer" className={link}>
         Gear Foundation
       </a>
-      , where I lead developer adoption, technical education, and ecosystem
+      , where I work on developer adoption, technical education, and ecosystem
       growth across web3. Alongside that I'm building{" "}
       <a href="https://monaris.co" target="_blank" rel="noopener noreferrer" className={link}>
         Monaris
@@ -35,7 +35,7 @@ const Intro = () => (
       <a href="https://polybaskets.xyz" target="_blank" rel="noopener noreferrer" className={link}>
         PolyBaskets
       </a>
-      , an agent-native index fund.
+      , an agent-native index fund for prediction markets.
     </p>
     <p className="text-[15px] text-foreground/80 leading-[1.75]">
       I've judged at{" "}
