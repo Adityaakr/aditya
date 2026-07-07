@@ -233,7 +233,7 @@ export const experience: ExperienceEntry[] = [
     dateRange: "2024 - Present",
     bullets: [
       "Lead developer relations and ecosystem growth for Vara Network and Gear Foundation end to end, owning the full builder journey from first touch to production: adoption strategy, technical education, documentation, developer tooling, and hands-on support.",
-      "Showcased Vara's agentic development stack to builders, using Vara Skills to ship a complete dApp live in about 40 minutes and prove how fast the build loop can be; also built a Vara MCP server that speeds up AI-assisted development in Cursor by 40 to 100x.",
+      "Showcased Vara's agentic development stack to builders, using Vara Skills to ship a complete dApp live in about 40 minutes and prove how fast the build loop can be.",
       "Ran the Vara Agents hackathon (agents.vara.network), onboarding builders to ship autonomous agents that each deploy a Sails program, register, coordinate with other agents, post identity updates, and earn from real on-chain interactions.",
       "Authored the Sails tutorial series, interactive learning paths, and core developer documentation on the Vara wiki, building the primary onboarding path that takes a new builder from zero to a deployed Gear program.",
       "Produced explainer and educational content that grew Vara's developer mindshare, from a getting-started walkthrough that reaches a deployed program in under five minutes to deep dives on vara.eth's real-time parallel execution on Ethereum L1; combined with PolyBaskets' growth, this helped drive 10,990 active accounts and 2,999 new accounts on Vara.",
@@ -243,7 +243,7 @@ export const experience: ExperienceEntry[] = [
     ],
     links: [
       { label: "vara skills", href: "https://vara.network/agentic-development" },
-      { label: "vara agents", href: "https://agents.vara.network/" },
+      { label: "agents.vara.network", href: "https://agents.vara.network/" },
       { label: "messari report", href: "https://messari.io/report/state-of-vara-q4-2025" },
     ],
   },
