@@ -1,7 +1,7 @@
 export const siteConfig = {
   name: "Aditya",
   handle: "@adityakrx",
-  role: "i build and explain programmable money",
+  role: "I build and explain programmable money",
   avatar: "/aditya.png",
   title: "Aditya - Builder, Operator, DevRel",
   description: "i build products, developer ecosystems, and internet-native finance ideas.",
@@ -244,7 +244,7 @@ export const experience: ExperienceEntry[] = [
     ],
   },
   {
-    role: "Builder",
+    role: "Creator & Lead Engineer",
     company: "Monaris",
     dateRange: "2025 - Present",
     bullets: [
@@ -258,7 +258,7 @@ export const experience: ExperienceEntry[] = [
     ],
   },
   {
-    role: "Builder",
+    role: "Protocol Design & Research",
     company: "Cusp",
     dateRange: "2025 - Present",
     bullets: [
@@ -270,7 +270,7 @@ export const experience: ExperienceEntry[] = [
     ],
   },
   {
-    role: "Builder",
+    role: "Creator & Maintainer",
     company: "PolyBaskets",
     dateRange: "2025 - Present",
     bullets: [
@@ -280,7 +280,7 @@ export const experience: ExperienceEntry[] = [
     links: [{ label: "polybaskets.xyz", href: "https://polybaskets.xyz" }],
   },
   {
-    role: "Builder, Researcher & Community",
+    role: "Hackathons, Research & Community",
     company: "Independent · Multi-chain",
     dateRange: "2024 - 2025",
     bullets: [

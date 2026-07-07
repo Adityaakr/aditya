@@ -8,8 +8,8 @@ const Intro = () => (
     <p className="text-[15px] text-foreground/80 leading-[1.75]">
       Hi, I'm Aditya. I build products, developer ecosystems, and internet-native
       finance. My work sits at the intersection of DeFi, prediction markets, AI
-      agents, and privacy, turning protocol-level ideas into things people
-      actually use. Lately that means applied cryptography: RAILGUN-based private
+      agents, privacy, and post-quantum security, turning protocol-level ideas
+      into things people actually use. Lately that means applied cryptography: RAILGUN-based private
       payments, Kohaku on Miden, and batched threshold encryption for fair
       on-chain reveals.
     </p>
@@ -27,11 +27,15 @@ const Intro = () => (
       <a href="https://monaris.co" target="_blank" rel="noopener noreferrer" className={link}>
         Monaris
       </a>{" "}
-      (18,160+ waitlist), a private credit layer for the stablecoin economy, and{" "}
+      (18,160+ waitlist), a private credit layer for the stablecoin economy,{" "}
       <a href="https://cusp.fi" target="_blank" rel="noopener noreferrer" className={link}>
         Cusp
       </a>
-      , the execution layer for agentic, event-driven capital.
+      , the capital markets layer for prediction markets, and{" "}
+      <a href="https://polybaskets.xyz" target="_blank" rel="noopener noreferrer" className={link}>
+        PolyBaskets
+      </a>
+      , an agent-native index fund.
     </p>
     <p className="text-[15px] text-foreground/80 leading-[1.75]">
       I've judged at{" "}
@@ -40,8 +44,8 @@ const Intro = () => (
       </a>
       , partnered at ETH Pragma, won 20+ hackathons, and run 25+ workshops across
       Vara, Avalanche, Stellar, and Solana. Always up for a good
-      conversation about crypto, cryptography, or what to build next, feel free
-      to reach out.
+      conversation about AI, crypto, cryptography, philosophy, or what to build
+      next, feel free to reach out.
     </p>
   </AnimatedSection>
 );
