@@ -286,7 +286,7 @@ export const experience: ExperienceEntry[] = [
     bullets: [
       "Won 20+ hackathons including ETH Global, judged at ETH Global New Delhi, and partnered at ETH Pragma.",
       "Shipped experiments across ecosystems: ETH-Vara bridge, k-blackbox Rust SDK, Vaultera AI vaults on Hedera, and a post-quantum migration tool.",
-      "Ran workshops and builder activations across Avalanche, Stellar, and Hedera. Member of Superteam.",
+      "Ran workshops and builder activations across Avalanche, Stellar, and Solana. Member of Superteam.",
     ],
   },
 ];

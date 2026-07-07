@@ -39,7 +39,7 @@ const Intro = () => (
         ETH Global
       </a>
       , partnered at ETH Pragma, won 20+ hackathons, and run 25+ workshops across
-      Vara, Avalanche, Stellar, and Hedera. Always up for a good
+      Vara, Avalanche, Stellar, and Solana. Always up for a good
       conversation about crypto, cryptography, or what to build next, feel free
       to reach out.
     </p>
