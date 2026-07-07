@@ -236,7 +236,7 @@ export const experience: ExperienceEntry[] = [
       "Built Vara Skills, the agent skill pack that lets AI code, test, and ship full dApps on Vara autonomously (40min+ demo).",
       "Authored interactive Sails tutorials and docs on the Vara wiki, and ran builders office hours with protocol leadership.",
       "Led India and APAC ecosystem growth, featured in Messari's State of Vara Q4 2025 report.",
-      "Ran 25+ hands-on sessions, bridge launches, and GOAT SDK integrations bridging protocol concepts with real code.",
+      "Ran 25+ hands-on sessions, bridge launches, and GOAT SDK & Eliza agent integrations bridging protocol concepts with real code.",
     ],
     links: [
       { label: "vara skills", href: "https://vara.network/agentic-development" },
@@ -244,7 +244,7 @@ export const experience: ExperienceEntry[] = [
     ],
   },
   {
-    role: "Creator & Lead Engineer",
+    role: "Creator & Chief",
     company: "Monaris",
     dateRange: "2025 - Present",
     bullets: [
@@ -267,6 +267,7 @@ export const experience: ExperienceEntry[] = [
     links: [
       { label: "beta.cusp.fi", href: "https://beta.cusp.fi" },
       { label: "docs.cusp.fi", href: "https://docs.cusp.fi" },
+      { label: "whitepaper", href: "https://drive.google.com/file/d/1FrhRtRtgE8hl8EqvbibSXJ_LHzzDWwsx/view" },
     ],
   },
   {
