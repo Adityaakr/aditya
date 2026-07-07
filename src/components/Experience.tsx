@@ -11,9 +11,11 @@ const Experience = () => (
             <h3 className="text-[14.5px] font-semibold text-indigo-600 dark:text-indigo-400">
               {job.role}
             </h3>
-            <span className="shrink-0 text-[13px] text-muted-foreground/70 tabular-nums">
-              {job.dateRange}
-            </span>
+            {job.dateRange && (
+              <span className="shrink-0 text-[13px] text-muted-foreground/70 tabular-nums">
+                {job.dateRange}
+              </span>
+            )}
           </div>
           <p className="text-[13px] text-muted-foreground mt-0.5">{job.company}</p>
           <ul className="mt-3 space-y-2">

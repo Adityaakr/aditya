@@ -221,7 +221,7 @@ export const publications: Publication[] = [
 export interface ExperienceEntry {
   role: string;
   company: string;
-  dateRange: string;
+  dateRange?: string;
   bullets: string[];
   links?: { label: string; href: string }[];
 }
@@ -232,11 +232,11 @@ export const experience: ExperienceEntry[] = [
     company: "Vara Network · Gear Foundation",
     dateRange: "2024 - Present",
     bullets: [
-      "Own developer adoption, technical education, and builder support across the Vara and Gear ecosystem.",
-      "Built Vara Skills, the agent skill pack that lets AI code, test, and ship full dApps on Vara autonomously (40min+ demo).",
-      "Authored interactive Sails tutorials and docs on the Vara wiki, and ran builders office hours with protocol leadership.",
-      "Led India and APAC ecosystem growth, featured in Messari's State of Vara Q4 2025 report.",
-      "Ran 25+ hands-on sessions, bridge launches, and GOAT SDK & Eliza agent integrations bridging protocol concepts with real code.",
+      "Own developer relations and ecosystem growth end to end: adoption, technical education, docs, and builder support across the Vara and Gear stack.",
+      "Built Vara Skills, an agent skill pack that lets AI scaffold, code, test, and ship full dApps on Vara autonomously, shown in a 40min+ live demo.",
+      "Wrote the Sails tutorials, interactive learning paths, and developer docs on the Vara wiki that onboard new builders to Gear protocol.",
+      "Grew the builder base in India and globally across the US, Europe, and Asia through workshops, office hours with protocol leadership, and ecosystem showcases, with the India ecosystem featured in Messari's State of Vara Q4 2025 report.",
+      "Shipped 25+ hands-on sessions and reference integrations, including the ETH-Vara bridge, GOAT SDK, and Eliza agents, turning protocol concepts into working code.",
     ],
     links: [
       { label: "vara skills", href: "https://vara.network/agentic-development" },
@@ -246,7 +246,6 @@ export const experience: ExperienceEntry[] = [
   {
     role: "Creator & Chief",
     company: "Monaris",
-    dateRange: "2025 - Present",
     bullets: [
       "Private credit layer for the stablecoin economy: turns receivables and recurring cashflow into instant liquidity, backed by private, verifiable credit.",
       "One layer for working capital, BNPL-style financing, automated repayments, treasury, and one-click private payments.",
@@ -260,9 +259,9 @@ export const experience: ExperienceEntry[] = [
   {
     role: "Protocol Design & Research",
     company: "Cusp",
-    dateRange: "2025 - Present",
     bullets: [
       "The capital markets layer for prediction markets: risk, credit, settlement, and liquidation infrastructure for event-driven positions.",
+      "Supported by Superteam.",
     ],
     links: [
       { label: "beta.cusp.fi", href: "https://beta.cusp.fi" },
@@ -273,7 +272,6 @@ export const experience: ExperienceEntry[] = [
   {
     role: "Creator & Maintainer",
     company: "PolyBaskets",
-    dateRange: "2025 - Present",
     bullets: [
       "The index fund for prediction markets: bundle, weight, and let AI agents trade for you.",
       "4.8M+ transactions, 23K+ bets, 52K+ baskets, and 4K+ claims on Vara.",
@@ -283,7 +281,6 @@ export const experience: ExperienceEntry[] = [
   {
     role: "Hackathons, Research & Community",
     company: "Independent · Multi-chain",
-    dateRange: "2024 - 2025",
     bullets: [
       "Won 20+ hackathons including ETH Global, judged at ETH Global New Delhi, and partnered at ETH Pragma.",
       "Shipped experiments across ecosystems: ETH-Vara bridge, k-blackbox Rust SDK, Vaultera AI vaults on Hedera, and a post-quantum migration tool.",
