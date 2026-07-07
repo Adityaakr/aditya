@@ -30,10 +30,12 @@ interface AnimatedSectionProps {
   children: ReactNode;
   className?: string;
   delay?: number;
+  id?: string;
 }
 
-const AnimatedSection = ({ children, className, delay = 0 }: AnimatedSectionProps) => (
+const AnimatedSection = ({ children, className, delay = 0, id }: AnimatedSectionProps) => (
   <motion.div
+    id={id}
     variants={sectionVariants}
     initial="hidden"
     whileInView="visible"

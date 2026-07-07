@@ -1,5 +1,8 @@
 export const siteConfig = {
-  name: "aditya",
+  name: "Aditya",
+  handle: "@adityakrx",
+  role: "i build and explain programmable money",
+  avatar: "/aditya.png",
   title: "Aditya - Builder, Operator, DevRel",
   description: "i build products, developer ecosystems, and internet-native finance ideas.",
   email: "hello@aditya.dev",
@@ -13,12 +16,12 @@ export const siteConfig = {
   varaWiki: "https://wiki.vara.network",
 };
 
+// Inline nav tabs shown under the profile header (each routes to its own page).
 export const navLinks = [
-  { label: "work", href: "#work" },
-  { label: "projects", href: "#projects" },
-  { label: "blog", href: "/blog" },
-  { label: "content", href: "#content" },
-  { label: "contact", href: "#contact" },
+  { label: "experiments", href: "/experiments" },
+  { label: "experience", href: "/experience" },
+  { label: "content", href: "/content" },
+  { label: "posts", href: "/blog" },
 ];
 
 export interface TrustLogo {
@@ -32,7 +35,6 @@ export const trustLogos: TrustLogo[] = [
   { name: "arbitrum", href: "https://arbitrum.io" },
   { name: "stellar", href: "https://stellar.org" },
   { name: "avalanche", href: "https://avax.network" },
-  { name: "aptos", href: "https://aptosfoundation.org" },
   { name: "hedera", href: "https://hedera.com" },
   { name: "solana", href: "https://solana.com" },
 ];
@@ -179,6 +181,116 @@ export const selectedWork = [
   },
 ];
 
+// Long-form writing worth surfacing at the top (curated from contentItems).
+export interface Publication {
+  title: string;
+  date: string; // display string, e.g. "Jun 2026"
+  link: string;
+}
+
+export const publications: Publication[] = [
+  {
+    title: "A secret that opens itself",
+    date: "Jun 2026",
+    link: "https://x.com/adityakrx/status/2071593948423115043",
+  },
+  {
+    title: "The Six Products the Agentic Economy Needs on Ethereum",
+    date: "Apr 2026",
+    link: "https://x.com/adityakrx/status/2046818743612031223",
+  },
+  {
+    title: "Where does the yield actually come from? State of onchain yield",
+    date: "Apr 2026",
+    link: "https://x.com/adityakrx/status/2037844194333794377",
+  },
+  {
+    title: "The hidden courtroom inside prediction markets: who decides the truth?",
+    date: "Mar 2026",
+    link: "https://x.com/adityakrx/status/2022529296062124404",
+  },
+  {
+    title: "Where do builders go in 2025? High performance apps on ETH L1",
+    date: "Mar 2026",
+    link: "https://x.com/adityakrx/status/2036059896043741630",
+  },
+];
+
+// Work history. NOTE: date ranges are placeholders derived from selectedWork,
+// correct them to your real timeline.
+export interface ExperienceEntry {
+  role: string;
+  company: string;
+  dateRange: string;
+  bullets: string[];
+  links?: { label: string; href: string }[];
+}
+
+export const experience: ExperienceEntry[] = [
+  {
+    role: "Developer Relations & Ecosystem Growth",
+    company: "Vara Network · Gear Foundation",
+    dateRange: "2024 - Present",
+    bullets: [
+      "Own developer adoption, technical education, and builder support across the Vara and Gear ecosystem.",
+      "Built Vara Skills, the agent skill pack that lets AI code, test, and ship full dApps on Vara autonomously (40min+ demo).",
+      "Authored interactive Sails tutorials and docs on the Vara wiki, and ran builders office hours with protocol leadership.",
+      "Led India and APAC ecosystem growth, featured in Messari's State of Vara Q4 2025 report.",
+      "Ran 25+ hands-on sessions, bridge launches, and GOAT SDK integrations bridging protocol concepts with real code.",
+    ],
+    links: [
+      { label: "vara skills", href: "https://vara.network/agentic-development" },
+      { label: "messari report", href: "https://messari.io/report/state-of-vara-q4-2025" },
+    ],
+  },
+  {
+    role: "Builder",
+    company: "Monaris",
+    dateRange: "2025 - Present",
+    bullets: [
+      "Private credit layer for the stablecoin economy: turns receivables and recurring cashflow into instant liquidity, backed by private, verifiable credit.",
+      "One layer for working capital, BNPL-style financing, automated repayments, treasury, and one-click private payments.",
+      "18,160+ waitlist.",
+    ],
+    links: [
+      { label: "monaris.co", href: "https://monaris.co" },
+      { label: "@monaris_fi", href: "https://x.com/monaris_fi" },
+    ],
+  },
+  {
+    role: "Builder",
+    company: "Cusp",
+    dateRange: "2025 - Present",
+    bullets: [
+      "The capital markets layer for prediction markets: risk, credit, settlement, and liquidation infrastructure for event-driven positions.",
+    ],
+    links: [
+      { label: "beta.cusp.fi", href: "https://beta.cusp.fi" },
+      { label: "docs.cusp.fi", href: "https://docs.cusp.fi" },
+    ],
+  },
+  {
+    role: "Builder",
+    company: "PolyBaskets",
+    dateRange: "2025 - Present",
+    bullets: [
+      "The index fund for prediction markets: bundle, weight, and let AI agents trade for you.",
+      "4.8M+ transactions, 23K+ bets, 52K+ baskets, and 4K+ claims on Vara.",
+    ],
+    links: [{ label: "polybaskets.xyz", href: "https://polybaskets.xyz" }],
+  },
+  {
+    role: "Builder, Researcher & Community",
+    company: "Independent · Multi-chain",
+    dateRange: "2024 - 2025",
+    bullets: [
+      "Won 20+ hackathons including ETH Global, judged at ETH Global New Delhi, and partnered at ETH Pragma.",
+      "Shipped experiments across ecosystems: ETH-Vara bridge, k-blackbox Rust SDK, Vaultera AI vaults on Hedera, and a post-quantum migration tool.",
+      "Ran workshops and builder activations across Avalanche, Stellar, and Hedera. Member of Superteam.",
+    ],
+  },
+];
+
 export type ProjectStatus = "live" | "building" | "research";
 
 export interface Project {
@@ -196,10 +308,9 @@ export interface Project {
 export const projects: Project[] = [
   {
     title: "monaris",
-    description: "private finance for the stablecoin era - cashflow-first financial product built on payfi rails",
+    description: "private credit layer for the stablecoin economy. Monaris turns receivables and recurring cashflow into instant liquidity, backed by private, verifiable credit. one layer for working capital, BNPL-style financing, automated repayments, treasury, and one-click private payments.",
     status: "building",
-    link: "https://x.com/monaris_fi",
-    website: "https://monaris.co",
+    link: "https://monaris.co",
     social: "https://x.com/monaris_fi",
     tags: ["stablecoins", "payfi", "finance"],
     highlight: "18,160+ waitlist",
@@ -208,8 +319,8 @@ export const projects: Project[] = [
     title: "cusp",
     description: "Cusp is the capital markets layer for prediction markets. It provides risk, credit, settlement, and liquidation infrastructure for event-driven positions, and for any short-maturity claim that resolves against a contractual source and pays out after the fact.",
     status: "building",
-    link: "https://beta.cusp.fi",
-    website: "https://dev.cusp.fi",
+    link: "https://docs.cusp.fi",
+    website: "https://beta.cusp.fi",
     tags: ["AI agents", "capital", "prediction markets"],
   },
   {
@@ -219,7 +330,7 @@ export const projects: Project[] = [
     link: "https://github.com/Adityaakr/polybaskets",
     website: "https://polybaskets.xyz",
     tags: ["prediction markets", "vara", "DeFi"],
-    highlight: "4.8M+ tx · 23K+ bets · 52K+ baskets · 4K+ claims - app.polybaskets.xyz/stats",
+    highlight: "4.8M+ tx · 23K+ bets · 52K+ baskets · 4K+ claims",
   },
   {
     title: "peal network",
@@ -480,12 +591,6 @@ export const contentItems: ContentItem[] = [
     type: "thread",
     date: "2024-12",
     link: "https://x.com/adityakrx/status/1937005797554397261",
-  },
-  {
-    title: "exploring thala protocol - unleashing DeFi innovation on aptos",
-    type: "essay",
-    date: "2024-09",
-    link: "https://adityakrx.substack.com/p/unlocking-the-potential-of-thala",
   },
   {
     title: "messari state of vara Q4 2025 - india & APAC ecosystem growth",

@@ -101,7 +101,7 @@ const fullPosts: BlogPost[] = [
   },
   {
     slug: "polybaskets-board",
-    title: "PolyBaskets — Product & Architecture Board",
+    title: "PolyBaskets: Product & Architecture Board",
     date: "2026-06-27",
     excerpt:
       "How the PolyBaskets product and architecture fit together — and how the new perps feature works.",

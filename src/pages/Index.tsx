@@ -1,31 +1,16 @@
-import Header from "@/components/Header";
-import Hero from "@/components/Hero";
-import TrustStrip from "@/components/TrustStrip";
-import About from "@/components/About";
-import Testimonials from "@/components/Testimonials";
-import Highlights from "@/components/Highlights";
-import SelectedWork from "@/components/SelectedWork";
-import Projects from "@/components/Projects";
-import ContentSection from "@/components/ContentSection";
-import Contact from "@/components/Contact";
-import Footer from "@/components/Footer";
+import PageShell from "@/components/PageShell";
+import Intro from "@/components/Intro";
+import Publications from "@/components/Publications";
+import ProjectsList from "@/components/ProjectsList";
+import Videos from "@/components/Videos";
 
 const Index = () => (
-  <div className="noise-overlay">
-    <Header />
-    <main>
-      <Hero />
-      <TrustStrip />
-      <About />
-      <Testimonials />
-      <Highlights />
-      <SelectedWork />
-      <Projects />
-      <ContentSection />
-      <Contact />
-    </main>
-    <Footer />
-  </div>
+  <PageShell>
+    <Intro />
+    <Publications moreHref="/content" />
+    <ProjectsList heading="Projects" limit={4} moreHref="/experiments" />
+    <Videos />
+  </PageShell>
 );
 
 export default Index;

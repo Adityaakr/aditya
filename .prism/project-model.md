@@ -1,6 +1,6 @@
 # Project Model — aditya-portfolio
 
-_Last updated: 2026-06-30 by `prism-understand`/`prism-feedback` (Kohaku article fact-check + fixes)_
+_Last updated: 2026-07-08 by `prism-understand` (map for minimal-researcher restructure)_
 
 A personal portfolio site. Vite + React 18 + TypeScript + Tailwind + shadcn/ui, client-routed
 with react-router-dom. Single-page app, statically built, deployed from GitHub
@@ -192,7 +192,63 @@ with react-router-dom. Single-page app, statically built, deployed from GitHub
   (6 fields). DECISION: MASM blocks relabeled "illustrative/simplified — not stack-exact" rather
   than chasing exact assembly on the fast-moving `next` branch.
 
+## Restructure target — minimal researcher layout (mapped 2026-07-08, `prism-understand`)
+Goal: restyle the home page to a single-column, monochrome, text-first "researcher" layout
+(reference: Dhruv Agarwal `@0xdhruv`). Bones already fit — shared section shell is
+`py-24 px-6 lg:px-8` + `mx-auto max-w-[860px]` (single column), tokens are monochrome Satoshi
+(`src/index.css:8-89`). Gaps are STRUCTURAL (3 reference blocks have no backing data):
+- **Header** (`src/components/Header.tsx`) is a text wordmark only — reference needs avatar +
+  name + `@handle` + role subtitle, underlined inline nav, social-icon row top-right.
+- **Intro** — merge `Hero.tsx` (decorative: gradient blobs `Hero.tsx:7-10`, status pill, CTAs) +
+  `About.tsx` (paragraphs `About.tsx:35-62`, hardcoded, no `@/data` import) → plain bio paragraphs.
+  Bio should move to data as `bio: string[]`.
+- **Publications** — DOES NOT EXIST. Add `Publication { title; date; link }` + `publications[]`.
+- **Experience** — DOES NOT EXIST as structured data. `selectedWork` (`content.ts:130`, shape
+  `{title,description,link,website?,websiteLabel?}`) is the nearest but has NO company/role/
+  dateRange/bullets. Add `Experience { role; company; dateRange; bullets: string[]; links? }` +
+  `experience[]`. **User must supply real work history** (not in repo — flagged).
+- **Posts** — `blogPosts` (`src/data/blog.ts:150`, ISO `date`, sorted newest-first) maps directly;
+  render dated list + `more »` → `/blog`.
+Social links currently flat keys on `siteConfig` (`content.ts:1`: twitter/github/linkedin/
+substack/telegram/email) — reference wants an icon row, may want a `socialLinks[]` array.
+Proposed `Index.tsx` order: Header → Intro → Publications → Experience → Posts → Footer. Drop
+from mount: TrustStrip, Testimonials, Highlights, ContentSection, `.noise-overlay` (optional),
+Hero decoration. Reusable as-is: `Projects.tsx` grid (fits an "oss and projects" tab), Footer,
+860px shell, tokens, `AnimatedSection`.
+
 ## Decision log
+- 2026-07-08 — MULTI-PAGE SPLIT + em-dash purge (uncommitted, follow-up to the reskin). Nav tabs now
+  ROUTE to dedicated pages instead of on-page anchors: `navLinks` = experiments→/experiments,
+  experience→/experience, writing→/writing, posts→/blog (`content.ts`). NEW shared `PageShell.tsx`
+  (720px column + ProfileHeader + footer) used by every page. `ProfileHeader` nav now uses react-router
+  `<Link>` for internal hrefs with active-tab underline via `useLocation`; avatar + name link to `/`.
+  NEW pages: `pages/ExperiencePage.tsx`, `pages/ExperimentsPage.tsx`, `pages/WritingPage.tsx` (routes
+  added in `App.tsx` + a `ScrollToTop` on pathname change). NEW `components/Writing.tsx` renders ALL
+  `contentItems` grouped Writing/Videos/Talks & Workshops/Events (completeness). Home (`Index.tsx`) =
+  Intro + Publications(moreHref=/writing) + Posts(recent 6, more→/blog). `Blog.tsx` restyled to
+  PageShell + minimal dated list (heading "Posts"), old sticky-header/excerpt layout removed.
+  ProjectsList heading "Projects"→"Experiments". Experience roles relabeled Founder→**Builder** for
+  Monaris/Cusp/PolyBaskets (per owner) + expanded to 5 entries with more detail; dates still PLACEHOLDER.
+  EM-DASHES removed from all generated content (Intro, experience, publications) + the one visible blog
+  title (`PolyBaskets — ` → `: `); blog.ts excerpts still hold em-dashes but are no longer rendered.
+  tsc clean, build green, verified via Playwright on /, /experience, /experiments, /writing, /blog.
+- 2026-07-08 — MINIMAL RESEARCHER RESKIN shipped (uncommitted, `prism-understand`→build). Home page
+  rebuilt to a single 720px column matching the Dhruv Agarwal reference. NEW components (plain blocks,
+  no full-width shell): `ProfileHeader.tsx` (avatar+name+`@handle`+role, nav tabs `#projects/#experience/
+  #posts`, social icons + theme toggle), `Intro.tsx` (bio paragraphs), `Publications.tsx`, `Experience.tsx`,
+  `ProjectsList.tsx` (minimal list, replaces the card grid — data still `projects[]`), `Posts.tsx`
+  (recent 6 from `blogPosts` + `more »` → /blog). `Index.tsx` rewritten to compose them; dropped
+  `.noise-overlay` + fixed `Header`. `AnimatedSection.tsx` gained an `id?` prop for anchor targets.
+  NEW data in `content.ts`: `siteConfig.{handle,role,avatar}`, `publications[]` (curated featured
+  writing), `experience[]` (ExperienceEntry, 4 roles derived from selectedWork + About — **date ranges
+  are PLACEHOLDERS, user to correct**); `navLinks` retrimmed to 3 anchor tabs. Accent = indigo-600/
+  indigo-400 for links (only color in the monochrome layout). tsc clean, `npm run build` green,
+  verified via Playwright light+dark full-page screenshots (all sections + Peal card render).
+  NOW-UNUSED (left in repo, prune later): Hero, About, TrustStrip, Testimonials, Highlights,
+  SelectedWork, ContentSection, Contact, Footer, Projects, Header.
+- 2026-07-08 — Peal Network added to `projects` (`content.ts`) + new optional `protocol?` field on
+  `Project` interface, rendered in `Projects.tsx` (github · website · protocol links). Pushed to
+  `origin/blog/peal-protocol` (commit 48927dd).
 - 2026-07-03 — De-hedge round 3 (owner-directed sweep): removed "(a privacy tradeoff, not
   invisibility)" from the §1 provider table row AND its sibling §8.1 heading kw (now "pull-only,
   tag-based sync"); cut "Here is the part that matters:" throat-clearer (§2); renamed scope
@@ -287,3 +343,36 @@ with react-router-dom. Single-page app, statically built, deployed from GitHub
   (0=RPO-Falcon512, 1=ECDSA) vs the Rust protocol enum (`Falcon512Poseidon2`=2, ECDSA=1) are
   DIFFERENT spaces; ECDSA=1 in both invites a wrong "fix". Don't change `0→2`. (verified
   miden-client v0.12.5–v0.15.2 web-client new_account.rs.)
+
+## Decision log — 2026-07-04 · About-section spiral accent
+- SHIPPED (uncommitted): `SpiralAccent.tsx` — Archimedean spiral (3.5 turns, 1px non-scaling stroke,
+  `currentColor` at `text-foreground/10`, radial mask fading outer edge), rendered absolutely behind the
+  About photo at 185% of its box, draw-in once via framer `pathLength` with house easing [0.22,1,0.36,1],
+  `useReducedMotion` → static. Wired in `About.tsx` (wrapper now `relative`, img `relative z-10`).
+- REJECTED: embedding the reference CloudFront hero video (third-party user-scoped asset — can 403 anytime;
+  dark cinematic block clashes with light monochrome brand); section-wide spiral wash (sits under body copy);
+  continuous rotation (would be the page's only looping motion, beside reading text).
+- INVARIANTS (verified this run): dark mode IS live — next-themes ThemeProvider `App.tsx:16`, toggle
+  `Header.tsx:60,88` → decorative strokes must use theme tokens, never hardcoded grays. Ancestor
+  `AnimatedSection` animates transforms → absolute-position decorations must anchor to the inner
+  non-transformed wrapper, or they slide during entrance.
+
+### Telemetry
+- divergence: 0.39 (evidence 0.55, conclusion 0.15) | threshold 0.30 UNCALIBRATED
+- grounding: n/a (no eval fixtures)
+- models: draft=fable · lenses=3x explore (practitioner/adversary/taste); verify panel skipped (two-way door)
+- claims: dark-mode-live grounded (App.tsx:16, Header.tsx:60) · containing-block-trap grounded (AnimatedSection.tsx:5-10) · video-hotlink-fragile unverified-by-probe (rejected on ownership regardless)
+- fleet: 3 lenses · token-multiple vs single-pass ≈ 3x
+
+## Decision log — 2026-07-04 (later) · spiral v2→v7: user override
+- User REJECTED the monochrome thin-line spiral ("nowhere close") — wants the literal luminous
+  galaxy of the reference. Lesson: when Aditya supplies a visual reference, match its LOOK,
+  not a tasteful abstraction of it.
+- SHIPPED (uncommitted) v7 `SpiralAccent.tsx`: two-arm spiral + glow layers (#7fa3ff/#cfe0ff/#f2f7ff)
+  + star particles w/ gold flecks (#ffc76e) on tilted squashed plane (rotate -16°, scaleY .46),
+  26s orbit; dark nebula vignette div behind photo (glow needs darkness); wrap via two clipped
+  copies (back=top 58%, front=bottom 42% at z-20 — complementary clips avoid double-draw mud).
+  Reduced-motion guard REMOVED at user's insistence on visible motion.
+- Verified via playwright screenshots + computed-transform sampling (ROTATING: true).
+- FINAL: user removed the spiral/galaxy accent entirely — About section reverted to plain photo.
+  Do not re-add decoration there unless explicitly asked.
