@@ -233,13 +233,17 @@ export const experience: ExperienceEntry[] = [
     dateRange: "2024 - Present",
     bullets: [
       "Lead developer relations and ecosystem growth for Vara Network and Gear Foundation end to end, owning the full builder journey from first touch to production: adoption strategy, technical education, documentation, developer tooling, and hands-on support.",
-      "Created Vara Skills, an agent skill pack that lets AI scaffold, build, test, and deploy complete dApps on Vara autonomously, and shipped a companion Vara MCP server that speeds up AI-assisted development in Cursor by 40 to 100x; demonstrated the full loop in a 40-minute live build.",
+      "Showcased Vara's agentic development stack to builders, using Vara Skills to ship a complete dApp live in about 40 minutes and prove how fast the build loop can be; also built a Vara MCP server that speeds up AI-assisted development in Cursor by 40 to 100x.",
+      "Ran the Vara Agents hackathon (agents.vara.network), onboarding builders to ship autonomous agents that each deploy a Sails program, register, coordinate with other agents, post identity updates, and earn from real on-chain interactions.",
       "Authored the Sails tutorial series, interactive learning paths, and core developer documentation on the Vara wiki, building the primary onboarding path that takes a new builder from zero to a deployed Gear program.",
+      "Produced explainer and educational content that grew Vara's developer mindshare, from a getting-started walkthrough that reaches a deployed program in under five minutes to deep dives on vara.eth and its real-time parallel execution on Ethereum L1.",
       "Expanded the builder community across India, the US, Europe, and Asia through workshops, hackathon activations, ecosystem showcases, and the Vara Builder Office Hours I started with protocol leadership; India's growth was highlighted in Messari's State of Vara Q4 2025 report.",
+      "Supported grant projects with technical integrations and continued engineering guidance, tracking delivery against KPI and milestone-based grant targets.",
       "Delivered 25+ hands-on sessions and reference integrations, including the ETH-Vara bridge launch, GOAT SDK and Eliza agent integrations, and ecosystem features like growwstreams payment streams and the rivr DEX, translating protocol capabilities into production-ready code.",
     ],
     links: [
       { label: "vara skills", href: "https://vara.network/agentic-development" },
+      { label: "vara agents", href: "https://agents.vara.network/" },
       { label: "messari report", href: "https://messari.io/report/state-of-vara-q4-2025" },
     ],
   },
