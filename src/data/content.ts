@@ -232,11 +232,11 @@ export const experience: ExperienceEntry[] = [
     company: "Vara Network · Gear Foundation",
     dateRange: "2024 - Present",
     bullets: [
-      "Own developer relations and ecosystem growth end to end: adoption, technical education, docs, and builder support across the Vara and Gear stack.",
-      "Built Vara Skills, an agent skill pack that lets AI scaffold, code, test, and ship full dApps on Vara autonomously, shown in a 40min+ live demo.",
-      "Wrote the Sails tutorials, interactive learning paths, and developer docs on the Vara wiki that onboard new builders to Gear protocol.",
-      "Grew the builder base in India and globally across the US, Europe, and Asia through workshops, office hours with protocol leadership, and ecosystem showcases, with the India ecosystem featured in Messari's State of Vara Q4 2025 report.",
-      "Shipped 25+ hands-on sessions and reference integrations, including the ETH-Vara bridge, GOAT SDK, and Eliza agents, turning protocol concepts into working code.",
+      "Lead developer relations and ecosystem growth for Vara Network and Gear Foundation end to end, owning the full builder journey from first touch to production: adoption strategy, technical education, documentation, developer tooling, and hands-on support.",
+      "Created Vara Skills, an agent skill pack that lets AI scaffold, build, test, and deploy complete dApps on Vara autonomously, and shipped a companion Vara MCP server that speeds up AI-assisted development in Cursor by 40 to 100x; demonstrated the full loop in a 40-minute live build.",
+      "Authored the Sails tutorial series, interactive learning paths, and core developer documentation on the Vara wiki, building the primary onboarding path that takes a new builder from zero to a deployed Gear program.",
+      "Expanded the builder community across India, the US, Europe, and Asia through workshops, hackathon activations, ecosystem showcases, and regular office hours with protocol leadership including the Gear CEO; India's growth was highlighted in Messari's State of Vara Q4 2025 report.",
+      "Delivered 25+ hands-on sessions and reference integrations, including the ETH-Vara bridge launch, GOAT SDK and Eliza agent integrations, and ecosystem features like growwstreams payment streams and the rivr DEX, translating protocol capabilities into production-ready code.",
     ],
     links: [
       { label: "vara skills", href: "https://vara.network/agentic-development" },
