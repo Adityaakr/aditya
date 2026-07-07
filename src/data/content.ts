@@ -415,6 +415,20 @@ export interface ContentItem {
 
 export const contentItems: ContentItem[] = [
   {
+    title: "Every Asset Class Gets Its Wall Street. Prediction Markets Are Next.",
+    type: "thread",
+    date: "2026-06",
+    link: "https://x.com/usecusp/status/2065306601511399896",
+    featured: true,
+  },
+  {
+    title: "Introducing CUSP: The DeFi Capital Layer for Prediction Markets on Solana",
+    type: "thread",
+    date: "2026-05",
+    link: "https://x.com/usecusp/status/2059508915751313442",
+    featured: true,
+  },
+  {
     title: "A secret that opens itself",
     type: "essay",
     date: "2026-06",
