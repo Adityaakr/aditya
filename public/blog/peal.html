@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Peal: encryption with a release date</title>
+<meta name="description" content="Peal seals data now and guarantees it opens later, decrypted by a threshold committee on a set time or block. How it wraps Commonware's batched threshold encryption, the cryptography in depth, and the five things worth building on it.">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FAFAF8;
+    --text: #1a1a1a;
+    --text-secondary: #555;
+    --accent: #2563eb;
+    --accent-light: #dbeafe;
+    --border: #e5e5e0;
+    --diagram-bg: #fefefe;
+    --diagram-border: #d4d4c8;
+    --sketch-fill-blue: #dbeafe;
+    --sketch-fill-green: #dcfce7;
+    --sketch-fill-amber: #fef3c7;
+    --sketch-fill-rose: #ffe4e6;
+    --sketch-fill-purple: #f3e8ff;
+    --sketch-fill-gray: #f3f4f6;
+    --callout-bg: #f8f7f4;
+    --verify: #16a34a;
+    --warn: #b45309;
+    --abort: #dc2626;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.72;
+    font-size: 17.5px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .article-container { max-width: 720px; margin: 0 auto; padding: 60px 24px 100px; }
+
+  .article-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 20px; font-weight: 500;
+  }
+
+  h1 {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(32px, 5vw, 46px);
+    line-height: 1.15; font-weight: 400; color: var(--text);
+    margin-bottom: 24px; letter-spacing: -0.5px;
+  }
+  h1 em { font-style: italic; color: var(--accent); }
+
+  .subtitle { font-size: 19px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 40px; font-weight: 400; }
+
+  .divider { width: 48px; height: 2px; background: var(--text); margin: 40px 0; }
+  .divider-thin { width: 100%; height: 1px; background: var(--border); margin: 48px 0; }
+
+  h2 {
+    font-family: 'Instrument Serif', serif;
+    font-size: 28px; font-weight: 400; color: var(--text);
+    margin-bottom: 20px; margin-top: 8px; letter-spacing: -0.3px;
+  }
+  h3 {
+    font-family: 'Instrument Serif', serif;
+    font-size: 22px; font-weight: 400; color: var(--text);
+    margin: 34px 0 14px; letter-spacing: -0.2px;
+  }
+
+  .section-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; color: var(--accent); font-weight: 500;
+    margin-bottom: 8px; display: block;
+  }
+
+  p { margin-bottom: 18px; color: var(--text); }
+  strong { font-weight: 600; color: var(--text); }
+  a { color: var(--accent); }
+  .mono { font-family: 'JetBrains Mono', monospace; font-size: 0.9em; }
+
+  .lead-paragraph { font-size: 19.5px; line-height: 1.65; color: var(--text); }
+
+  /* prose bullets */
+  ul.bul { list-style: none; margin: 20px 0 24px; }
+  ul.bul li { position: relative; padding: 5px 0 5px 22px; color: var(--text); line-height: 1.6; }
+  ul.bul li::before { content: ""; position: absolute; left: 2px; top: 14px; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+  ul.bul li b { font-weight: 600; }
+
+  .callout {
+    background: var(--callout-bg); border-left: 3px solid var(--text);
+    padding: 20px 24px; margin: 32px 0;
+    font-family: 'Instrument Serif', serif; font-size: 20px; line-height: 1.55;
+    font-style: italic; color: var(--text);
+  }
+  .callout .ct {
+    font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 1.2px;
+    text-transform: uppercase; font-style: normal; color: var(--accent);
+    margin-bottom: 10px; font-weight: 500;
+  }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout.warn { border-left-color: var(--abort); background: #fef6f5; }
+  .callout.warn .ct { color: var(--abort); }
+
+  /* ruled feature list */
+  .flist {
+    list-style: none; margin: 26px 0 30px; border: 1px solid var(--border);
+    border-radius: 10px; overflow: hidden; background: var(--border);
+    display: grid; gap: 1px;
+  }
+  .flist li { background: #fff; padding: 20px 22px; }
+  .flist .ft {
+    font-family: 'Instrument Serif', serif; font-size: 19px; letter-spacing: -0.2px;
+    display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px;
+  }
+  .flist .ft .ix { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: var(--accent); font-weight: 500; flex: none; }
+  .flist li p { margin: 0; color: var(--text-secondary); font-size: 15px; line-height: 1.6; }
+  .flist li p + p { margin-top: 8px; }
+  .flist li p.api { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent); margin-top: 8px; }
+  .flist li .moat { font-size: 13.5px; color: var(--text); }
+  .flist li .moat b { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.6px; text-transform: uppercase; color: var(--verify); font-weight: 500; }
+
+  /* tables */
+  table { width: 100%; border-collapse: collapse; margin: 28px 0; font-size: 15.5px; }
+  thead th {
+    font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.6px;
+    text-transform: uppercase; text-align: left; color: var(--text-secondary);
+    font-weight: 500; padding: 10px 14px; border-bottom: 1px solid var(--text);
+  }
+  tbody td { padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.5; color: var(--text-secondary); }
+  tbody td:first-child { color: var(--text); font-weight: 600; width: 42%; }
+  table.mono-key tbody td:first-child { font-family: 'JetBrains Mono', monospace; font-weight: 500; font-size: 13.5px; color: var(--accent); }
+  table.triple tbody td:first-child { width: 24%; }
+
+  /* diagram frame */
+  .fig { margin: 40px 0; }
+  .fig-frame { border: 1px solid var(--diagram-border); border-radius: 12px; background: var(--diagram-bg); padding: 24px 22px; }
+  .fig-title { font-family: 'Instrument Serif', serif; font-size: 19px; letter-spacing: -0.2px; text-align: center; margin-bottom: 4px; }
+  .fig-kicker { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.5px; color: var(--text-secondary); text-align: center; margin-bottom: 22px; }
+  .fig-cap { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--text-secondary); text-align: center; margin: 14px auto 0; max-width: 60ch; letter-spacing: 0.3px; line-height: 1.6; }
+
+  /* node + connector */
+  .node { border: 1.5px solid var(--diagram-border); border-radius: 10px; background: #fff; padding: 14px 15px; text-align: center; }
+  .node .nl { font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 13px; display: block; margin-bottom: 3px; }
+  .node .ns { font-size: 12px; line-height: 1.45; color: var(--text-secondary); display: block; }
+  .node--blue { background: var(--sketch-fill-blue); border-color: #1a1a1a; }
+  .node--green { background: var(--sketch-fill-green); border-color: #1a1a1a; }
+  .node--green .nl { color: var(--verify); }
+  .node--gray { background: var(--sketch-fill-gray); border-color: #1a1a1a; }
+  .node--amber { background: var(--sketch-fill-amber); border-color: #1a1a1a; border-style: dashed; }
+  .node--rose { background: var(--sketch-fill-rose); border-color: #1a1a1a; }
+  .node--rose .nl { color: var(--abort); }
+
+  .flow { display: flex; align-items: stretch; gap: 4px; }
+  .flow .node { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+  .conn { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 4px; padding: 0 6px; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; letter-spacing: 0.4px; text-transform: uppercase; color: var(--text-secondary); text-align: center; }
+  .conn .ar { color: var(--accent); font-size: 17px; line-height: 1; }
+
+  /* two-panel compare */
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .compare .col { display: flex; flex-direction: column; gap: 8px; }
+  .compare .ch { font-family: 'Instrument Serif', serif; font-size: 20px; text-align: center; margin-bottom: 2px; }
+  .compare .cs { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.6px; text-transform: uppercase; text-align: center; margin-bottom: 8px; }
+  .compare .cs.a { color: var(--accent); }
+  .compare .cs.g { color: var(--verify); }
+
+  /* formula cards */
+  .eqs { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--border); display: grid; gap: 1px; margin: 26px 0; }
+  .eqs .row { background: #fff; display: grid; grid-template-columns: 168px 1fr; gap: 18px; padding: 14px 20px; align-items: baseline; }
+  .eqs .lb { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.4px; text-transform: uppercase; color: var(--text-secondary); }
+  .eqs .fx { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--text); line-height: 1.5; word-break: break-word; }
+  .eqs .fx sup { font-size: 0.72em; }
+
+  /* stat strip */
+  .facts { display: flex; flex-wrap: wrap; gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin: 30px 0; }
+  .facts div { background: #fff; flex: 1 1 130px; padding: 14px 18px; }
+  .facts span { display: block; font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 4px; }
+  .facts strong { font-family: 'JetBrains Mono', monospace; font-size: 17px; color: var(--text); font-weight: 500; }
+
+  /* committee band */
+  .committee { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 8px; }
+  .committee .op { border: 1.5px solid #1a1a1a; border-radius: 9px; background: var(--sketch-fill-green); padding: 12px 6px; text-align: center; }
+  .committee .op b { font-family: 'DM Sans', sans-serif; font-size: 12.5px; display: block; }
+  .committee .op small { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; letter-spacing: 0.3px; text-transform: uppercase; color: var(--text-secondary); }
+
+  .pill-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 22px 0; }
+  .pill { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: var(--accent); background: var(--accent-light); border-radius: 999px; padding: 6px 14px; }
+
+  /* card grid */
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(196px, 1fr)); gap: 14px; margin: 24px 0 8px; }
+  .card { border: 1px solid var(--border); border-radius: 12px; background: #fff; padding: 18px 20px; }
+  .card.lead { border-color: var(--accent); background: var(--accent-light); }
+  .card h4 { font-family: 'Instrument Serif', serif; font-size: 19px; font-weight: 400; letter-spacing: -0.2px; margin-bottom: 8px; }
+  .card p { font-size: 14px; color: var(--text-secondary); line-height: 1.55; margin: 0; }
+  .card .tag { display: inline-block; margin-top: 10px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.8px; text-transform: uppercase; color: var(--accent); font-weight: 500; }
+
+  /* dark code block */
+  .code-file { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-secondary); margin: 28px 0 6px; padding-left: 2px; }
+  pre { font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.7; background: #1f1d1a; color: #e9e2d4; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 0 0 28px; }
+  pre code { font-family: inherit; font-size: inherit; background: none; padding: 0; color: inherit; }
+  .tok-c { color: #8a8578; }
+  .tok-k { color: #d98a5b; }
+  .tok-s { color: #9ec78f; }
+
+  .colophon { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.4px; color: var(--text-secondary); text-transform: uppercase; margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--border); }
+  .colophon a { color: var(--accent); }
+  .colophon .links { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 18px; text-transform: none; letter-spacing: 0; }
+
+  @media (max-width: 600px) {
+    .article-container { padding: 36px 18px 72px; }
+    body { font-size: 16.5px; }
+    h2 { font-size: 24px; }
+    .flow { flex-direction: column; }
+    .conn { flex-direction: row; padding: 4px 0; }
+    .conn .ar { transform: rotate(90deg); }
+    .compare { grid-template-columns: 1fr; }
+    .eqs .row { grid-template-columns: 1fr; gap: 4px; }
+    .committee { grid-template-columns: repeat(2, 1fr); }
+    table.triple, table.triple thead, table.triple tbody, table.triple tr, table.triple td, table.triple th { display: block; }
+  }
+</style>
+</head>
+<body>
+<article class="article-container">
+
+<div class="article-tag">Programmable Disclosure · Batched Threshold Encryption</div>
+
+<h1>Peal: encryption with a <em>release date</em></h1>
+
+<p class="subtitle">Seal a payload today. It stays unreadable, even to the servers holding it, until a time or block you set. Then the network itself decrypts it, in the open, whether you come back or not. Peal is a thin coordination layer over Commonware's batched threshold encryption; this is how it works and what it unlocks.</p>
+
+<div class="divider"></div>
+
+<p class="lead-paragraph">Most ways to hide data on a public chain hide it with a hash and ask the user to reveal the real value later. Peal encrypts it instead, and hands the reveal to a committee that is obligated to open it on cue. The result behaves like a sealed envelope with a printed open-by date that opens itself.</p>
+
+<div class="facts">
+  <div><span>committee</span><strong>n = 5</strong></div>
+  <div><span>threshold</span><strong>t = 3</strong></div>
+  <div><span>batch</span><strong>B = 64</strong></div>
+  <div><span>seal overhead</span><strong>64 B</strong></div>
+  <div><span>share size</span><strong>48 B</strong></div>
+  <div><span>reveal</span><strong>&lt; 1 s</strong></div>
+</div>
+
+<div class="divider-thin"></div>
+
+<!-- SECTION 1 -->
+<span class="section-number">01 · The problem</span>
+<h2>Reveal is a step the loser can <span style="color:var(--accent)">skip</span></h2>
+
+<p>Commit-reveal is the standard trick: post a hash of your secret now, post the secret later. It works only if people come back, and the people who lose have every reason not to.</p>
+
+<ul class="bul">
+  <li><b>Sealed-bid auctions</b> cannot tell a griefing bidder from a crashed one. The loser never opens their bid.</li>
+  <li><b>On-chain votes</b> stall when a voter who saw the early tally move decides silence is better.</li>
+  <li><b>Treasury trades</b> leak the moment intent hits a governance forum, and the market reprices before a unit moves.</li>
+</ul>
+
+<p>Every app built on voluntary reveal pays the same tax: reveal windows, timeout knobs, slashing deposits sized to a guess, incomplete data, and a support queue of honest users who missed their window. The root cause is structural. <strong>If revealing is a user action, users decline it exactly when declining pays.</strong></p>
+
+<div class="divider-thin"></div>
+
+<!-- SECTION 2 -->
+<span class="section-number">02 · The idea</span>
+<h2>Make the reveal a network <span style="color:var(--accent)">duty</span></h2>
+
+<p>Peal removes the second step. You encrypt the payload in your browser and submit it once. A cue you choose, a wall-clock time or a block height, freezes a batch of these ciphertexts. A committee of operators then decrypts the whole batch in public. Before the cue, nobody can read anything, and that includes the coordinator that stores the data. After it, everyone can. Your only action was the seal.</p>
+
+<div class="fig">
+<div class="fig-frame">
+  <div class="fig-title">Where the two patterns diverge</div>
+  <div class="fig-kicker">commit-reveal ends in a step the user can skip · Peal has none</div>
+  <div class="compare">
+    <div class="col">
+      <div class="ch">commit-reveal</div>
+      <div class="cs a">reveal is a user action</div>
+      <div class="node node--blue"><span class="nl">post hash(secret)</span></div>
+      <div class="conn"><span class="ar">↓</span></div>
+      <div class="node node--gray"><span class="nl">deadline passes</span><span class="ns">everyone waits</span></div>
+      <div class="conn"><span class="ar">↓</span></div>
+      <div class="node node--rose"><span class="nl">user must return to reveal</span><span class="ns">or simply does not</span></div>
+    </div>
+    <div class="col">
+      <div class="ch">Peal</div>
+      <div class="cs g">reveal is a network duty</div>
+      <div class="node node--gray"><span class="nl">seal ciphertext, once</span><span class="ns">encrypted in the browser</span></div>
+      <div class="conn"><span class="ar">↓</span></div>
+      <div class="node node--green"><span class="nl">the cue fires</span><span class="ns">time or block, batch freezes</span></div>
+      <div class="conn"><span class="ar">↓</span></div>
+      <div class="node node--green"><span class="nl">committee reveals the batch</span><span class="ns">every slot opens, automatically</span></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="divider-thin"></div>
+
+<!-- SECTION 3 -->
+<span class="section-number">03 · How it works</span>
+<h2>A committee, a batch, one share <span style="color:var(--accent)">each</span></h2>
+
+<p>Five operators hold key material. Any three can open a batch; fewer than three can open nothing. Each operator keeps its keys locally and only ever calls outward to the coordinator, so no single machine, the coordinator included, can decrypt on its own. The coordinator is a scheduler and aggregator, not a key holder.</p>
+
+<div class="fig">
+<div class="fig-frame">
+  <div class="fig-title">The network, end to end</div>
+  <div class="fig-kicker">operators connect outbound only · any 3 of 5 complete a reveal</div>
+  <div class="flow">
+    <div class="node node--blue"><span class="nl">dapp + SDK</span><span class="ns">seals in wasm</span></div>
+    <div class="conn"><span class="ar">→</span>ciphertext</div>
+    <div class="node" style="border-color:var(--accent);"><span class="nl" style="color:var(--accent)">coordinator</span><span class="ns">freeze · verify · recover</span></div>
+    <div class="conn"><span class="ar">→</span>root</div>
+    <div class="node node--amber"><span class="nl">onchain anchor</span><span class="ns">optional</span></div>
+  </div>
+  <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.6px;text-transform:uppercase;color:var(--verify);text-align:center;margin-bottom:10px;">the committee · each posts one 48-byte share</div>
+    <div class="committee">
+      <div class="op"><b>node 1</b><small>keystore</small></div>
+      <div class="op"><b>node 2</b><small>keystore</small></div>
+      <div class="op"><b>node 3</b><small>keystore</small></div>
+      <div class="op"><b>node 4</b><small>keystore</small></div>
+      <div class="op"><b>node 5</b><small>keystore</small></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<p>A payload moves through five stages:</p>
+
+<ol class="flist">
+  <li>
+    <div class="ft"><span class="ix">01</span> Seal in the browser</div>
+    <p>Wasm runs the encryption locally. Only the sealed bytes leave the device; the plaintext never exists outside the tab that typed it.</p>
+  </li>
+  <li>
+    <div class="ft"><span class="ix">02</span> Submit to a condition</div>
+    <p>The coordinator stores the blob under its cue and content-addresses it by hash. That hash is the stable handle your app keeps.</p>
+  </li>
+  <li>
+    <div class="ft"><span class="ix">03</span> The cue fires, the batch freezes</div>
+    <p>A 500 ms tick loop watches every condition. When one fires, the coordinator pads to 64 slots, sorts ciphertexts by hash, and locks positions. The frozen layout is deterministic: anyone with the same seals rebuilds the same board.</p>
+  </li>
+  <li>
+    <div class="ft"><span class="ix">04</span> Operators post shares</div>
+    <p>Each node computes one 48-byte partial for the entire batch and posts it. The coordinator verifies every share against public keys before counting it, so a forged share is caught and attributed to its operator, not trusted.</p>
+  </li>
+  <li>
+    <div class="ft"><span class="ix">05</span> The batch reveals</div>
+    <p>Any three valid shares open every slot at once. The reveal ships with a merkle root over all slots, so anyone can download the batch and recompute it. If fewer than three shares arrive within 120 s the condition stalls honestly, and one late valid share still completes it.</p>
+  </li>
+</ol>
+
+<div class="divider-thin"></div>
+
+<!-- SECTION 4 -->
+<span class="section-number">04 · Inside the cryptography</span>
+<h2>How Peal uses Commonware's <span style="color:var(--accent)">BTE</span></h2>
+
+<p>Peal does not invent cryptography. The primitive underneath is Commonware's batched threshold encryption (<a href="https://eprint.iacr.org/2026/760" rel="noopener">eprint 2026/760</a>, implemented in <a href="https://github.com/commonwarexyz/simple-bte" rel="noopener">simple-bte</a>), used unmodified. Everything that turns a scheme into a network, conditions, transport, verification, persistence, is the wrapper.</p>
+
+<table class="mono-key">
+  <thead><tr><th>simple-bte provides</th><th>Peal wraps it with</th></tr></thead>
+  <tbody>
+    <tr><td>the BTE scheme + punctured CRS setup</td><td>conditions: cues on wall-clock time or block height</td></tr>
+    <tr><td>seal, partial-decrypt, combine</td><td>a coordinator state machine: pending → frozen → revealed</td></tr>
+    <tr><td>the Fujisaki-Okamoto transform</td><td>outbound operator transport + keystores</td></tr>
+    <tr><td>pairing-based share verification</td><td>share attribution, deterministic freeze, merkle root, onchain anchor, SDK + explorer</td></tr>
+  </tbody>
+</table>
+
+<h3>The punctured setup</h3>
+<p>The whole scheme turns on one idea. The setup publishes powers of a secret <span class="mono">τ</span> up to <span class="mono">2B</span>, with exactly one power, <span class="mono">τ<sup>B+1</sup></span>, left out. Everyone can encrypt toward that missing power; nobody holds it. A single ciphertext cannot be climbed from a published power to the missing one, so it cannot be decrypted alone. The batch structure is what routes around the hole: pairing each ciphertext against the right published powers produces cross-terms in which the missing power appears only multiplied by the operators' secret-shared low powers. Combine <span class="mono">t</span> operators and it cancels; with fewer than <span class="mono">t</span> it stays hidden behind Shamir secrecy.</p>
+
+<div class="eqs">
+  <div class="row"><div class="lb">published</div><div class="fx">[τ<sup>j</sup>] for j = 0 … 2B, except j = B+1 (zeroed)</div></div>
+  <div class="row"><div class="lb">encrypt toward</div><div class="fx">ek = [τ<sup>B+1</sup>]ₜ, the one power never published</div></div>
+  <div class="row"><div class="lb">dealt to operators</div><div class="fx">Shamir shares of τ¹ … τ<sup>B</sup>, threshold t of n</div></div>
+</div>
+
+<p>This is also why a batch is always exactly 64 slots: the setup material and FFT domain are sized to <span class="mono">B</span>, so short batches are padded with self-sealed dummies rather than shrinking the math.</p>
+
+<h3>The seal, and why tampering is caught</h3>
+<p>A sealed ciphertext is a 48-byte KEM header plus a masked key and body, 64 bytes of overhead total. The last line below is the Fujisaki-Okamoto discipline: the ephemeral scalar is not stored, it is re-derived from the recovered plaintext at decrypt time. A ciphertext anyone tampered with recovers to a plaintext whose re-derived scalar no longer reproduces the header, so that slot is flagged corrupt and quarantined while the other 63 open cleanly.</p>
+
+<div class="eqs">
+  <div class="row"><div class="lb">KEM header</div><div class="fx">ct₀ = [k]₁, 48 bytes compressed G1</div></div>
+  <div class="row"><div class="lb">masked key + body</div><div class="fx">ct₁ = Hₖ([k·τ<sup>B+1</sup>]ₜ) xor K &nbsp;·&nbsp; ct₂ = Hₘ(K) xor payload</div></div>
+  <div class="row"><div class="lb">integrity check</div><div class="fx">k = Hᵣ(K, payload), verify [k]₁ = ct₀</div></div>
+</div>
+
+<h3>Shares and public verification</h3>
+<p>To open a batch, operator <span class="mono">j</span> runs a single multi-scalar multiplication over all 64 frozen headers and emits one compressed G1 point, 48 bytes, no matter how full the batch is. Before that share counts, the coordinator checks it against public verification keys with a pairing equation. Nothing secret is needed to verify, so anyone can re-run the check; a forged share simply fails it and is logged under the operator's identity.</p>
+
+<div class="eqs">
+  <div class="row"><div class="lb">operator's share</div><div class="fx">pdⱼ = Σᵢ σⱼᵢ · ctᵢ,₀</div></div>
+  <div class="row"><div class="lb">public check</div><div class="fx">e(pdⱼ, g₂) = Πᵢ e(ctᵢ,₀, vⱼᵢ)</div></div>
+  <div class="row"><div class="lb">recover</div><div class="fx">Lagrange-combine any t valid shares at x = 0</div></div>
+</div>
+
+<h3>Recovery is pipelined</h3>
+<p>The expensive half of decryption never waits for operators. The FFT cross-terms cost <span class="mono">O(B log B)</span> group operations and <span class="mono">O(B)</span> pairings, not a naive <span class="mono">B²</span> loop, and they depend only on the frozen ciphertexts, so the coordinator computes them at freeze time while shares are still in flight. When three verified shares land, finalize is one Lagrange interpolation at <span class="mono">x = 0</span> plus the per-slot integrity re-check. On the devnet that is roughly 250 ms of pre-decrypt and 40 to 150 ms of finalize, so the user-visible gap between cue and plaintext is the share round-trip, not the math.</p>
+
+<div class="callout">
+  <div class="ct">The efficiency in one line</div>
+  <p>One constant-size share per operator opens up to 64 payloads at once, so committee cost per reveal stays flat as a batch fills, and every share is a public equation anyone can check.</p>
+</div>
+
+<p>The reveal is bound by a merkle root over <span class="mono">(position, payload)</span> for all 64 slots, padding included, and that root can be anchored onchain. A published reveal cannot be edited without breaking the root, and anyone can download the batch and recompute it.</p>
+
+<div class="divider-thin"></div>
+
+<!-- SECTION 5 -->
+<span class="section-number">05 · Use cases</span>
+<h2>What you can <span style="color:var(--accent)">build</span></h2>
+
+<p>The filter that matters is the moat test: <em>could plain commit-reveal do this?</em> If it could, someone will do it cheaper. The five below only work when reveal is guaranteed by a committee the user does not control.</p>
+
+<ol class="flist">
+  <li>
+    <div class="ft"><span class="ix">01</span> Verifiable AI agent track records</div>
+    <p>An agent seals each prediction before the event, cue set to resolution time. When it fires, the whole batch opens, wins and losses together, so a record cannot be cherry-picked. Complete, unfakeable track records are the missing trust layer of the agent economy.</p>
+    <p class="moat"><b>why peal</b> under commit-reveal the agent reveals its own calls and buries the losers; completeness exists only when it cannot choose.</p>
+  </li>
+  <li>
+    <div class="ft"><span class="ix">02</span> Sealed-bid auctions and fair launches</div>
+    <p>Token sales, NFT drops, and domain auctions where every bid stays sealed until close, then opens at one instant and one clearing price (uniform, or Vickrey where truthful bidding is optimal). No sniping, no whale wait-and-outbid, no gas war.</p>
+    <p class="moat"><b>why peal</b> ENS tried sealed-bid on commit-reveal in 2017 and got locked funds and forgotten reveals; guaranteed reveal removes the second transaction and strategic non-reveal.</p>
+  </li>
+  <li>
+    <div class="ft"><span class="ix">03</span> Sealed treasury execution</div>
+    <p>A DAO commits a large clip under a cue; qualified market makers seal competing bids; the batch opens at once, clears at one price, and settles atomically against the reveal root, with a full audit trail after. Discretion before, transparency after.</p>
+    <p class="moat"><b>why peal</b> the announcement is the leak, and guaranteed reveal stops bidders fishing with quotes they plan to abandon. No OTC desk offers that pairing.</p>
+  </li>
+  <li>
+    <div class="ft"><span class="ix">04</span> On-chain voting</div>
+    <p>Ballots stay secret until the poll closes, then all reveal together. No reveal window to police, no voter swayed by a partial early tally, no abandoned ballots skewing the count.</p>
+    <p class="moat"><b>why peal</b> a voluntary reveal lets whoever dislikes the running result simply not open, which is the exact failure a committee removes.</p>
+  </li>
+  <li>
+    <div class="ft"><span class="ix">05</span> Encrypted mempools and fair ordering</div>
+    <p>Transactions are sealed until after they are ordered, then the batch reveals for execution. The front-running window closes because the intent a searcher would trade against does not exist until ordering is fixed.</p>
+    <p class="moat"><b>why peal</b> MEV feeds on reading intent early; a batch that only opens post-ordering starves it of the signal.</p>
+  </li>
+</ol>
+
+<h3>More the same primitive unlocks</h3>
+<p>One primitive, a secret handed to the network with a deadline that opens itself, reaches well past finance.</p>
+
+<div class="cards">
+  <div class="card lead">
+    <h4>Responsible disclosure</h4>
+    <p>A bug report sealed for 90 days. It opens on that date, and the vendor cannot bury it.</p>
+    <span class="tag">the clearest use</span>
+  </div>
+  <div class="card">
+    <h4>Embargoed releases</h4>
+    <p>Research or earnings sealed until a set date, with proof they were untouched in between.</p>
+  </div>
+  <div class="card">
+    <h4>Scheduled access handover</h4>
+    <p>Keys or access that unlock at a set time, with no custodian holding them meanwhile.</p>
+  </div>
+  <div class="card">
+    <h4>Dead man's switch</h4>
+    <p>Files stay sealed unless you keep checking in, then open on a preset schedule.</p>
+  </div>
+</div>
+
+<p>One capability sits underneath all of these. The threshold reveal is public by design, which is exactly what auctions and votes need. For personal data, Peal adds a second client-side layer: the browser encrypts the payload again with a key that lives only in the share link's fragment and never touches a server. The network still proves <em>when</em> it opened; only the link holder learns <em>what</em> it said.</p>
+
+<div class="divider-thin"></div>
+
+<!-- SECTION 6 -->
+<span class="section-number">06 · Building on it</span>
+<h2>Four calls, no reveal <span style="color:var(--accent)">to chase</span></h2>
+
+<p>Create a cue, seal locally, keep the returned hash, wait for the reveal. There is no second transaction to build.</p>
+
+<div class="code-file">app.ts · sealed-bid auction</div>
+<pre><code><span class="tok-k">import</span> { BteClient } <span class="tok-k">from</span> <span class="tok-s">'bte-sdk'</span>;
+<span class="tok-k">const</span> peal = <span class="tok-k">new</span> BteClient({ url: <span class="tok-s">'https://peal.network'</span> });
+
+<span class="tok-c">// a cue 60 seconds out, tagged so this app finds its own rounds</span>
+<span class="tok-k">const</span> conditionId = <span class="tok-k">await</span> peal.condition({ <span class="tok-k">in</span>: 60, tag: <span class="tok-s">'auction-v1'</span> });
+
+<span class="tok-c">// seal locally; bind app context inside the encrypted bytes</span>
+<span class="tok-k">const</span> sealed = <span class="tok-k">await</span> peal.seal(JSON.stringify({
+  conditionId, bid: 42, nonce: crypto.randomUUID()
+}), conditionId);
+
+<span class="tok-c">// the network does the rest</span>
+<span class="tok-k">const</span> reveal = <span class="tok-k">await</span> peal.waitForReveal(conditionId);
+<span class="tok-k">const</span> slot = reveal.slots.find((s) =&gt; s.ctHash === sealed.ctHash);
+console.log(slot.valid ? slot.text : <span class="tok-s">'did not recover'</span>);</code></pre>
+
+<p>Two habits keep integrations safe:</p>
+
+<ul class="bul">
+  <li><b>Bind the payload.</b> Put the condition id, app name, and a nonce inside the encrypted bytes so a copied ciphertext cannot be replayed into another context.</li>
+  <li><b>Pin the committee.</b> Ship the expected parameter digest with your app instead of accepting whatever committee the coordinator names.</li>
+</ul>
+
+<div class="divider-thin"></div>
+
+<!-- SECTION 7 -->
+<span class="section-number">07 · Status</span>
+<h2>Live on devnet <span style="color:var(--accent)">today</span></h2>
+
+<p>Peal runs a public devnet now: a real five-operator committee, public share verification, durable state, restart recovery, and an explorer. The scheme underneath is published and peer-reviewed; only the network layer is new.</p>
+
+<div class="callout warn">
+  <div class="ct">One caveat before real value</div>
+  <p>v0 generates keys with a single trusted setup, so it is built for testnets, demos, and integration work, not for protecting funds. A distributed key ceremony and an audit are the path to that. Verifiable agent records can live on v0; auctions and treasury flows wait for v1.</p>
+</div>
+
+<div class="colophon">
+  Peal · Encryption with a release date · written by Aditya Kumar · <a href="https://adibuilds.in">adibuilds.in</a>
+  <div class="links">
+    <a href="https://peal.network" rel="noopener">the network</a>
+    <a href="https://github.com/Adityaakr/peal-network" rel="noopener">source</a>
+    <a href="https://eprint.iacr.org/2026/760" rel="noopener">the paper</a>
+    <a href="https://github.com/commonwarexyz/simple-bte" rel="noopener">simple-bte</a>
+  </div>
+</div>
+
+</article>
+</body>
+</html>
