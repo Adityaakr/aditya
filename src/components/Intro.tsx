@@ -10,8 +10,8 @@ const Intro = () => (
       finance. My work sits at the intersection of DeFi, prediction markets, AI
       agents, privacy, and post-quantum security, turning protocol-level ideas
       into things people actually use. Lately that means applied cryptography: RAILGUN-based private
-      payments, the Kohaku SDK, and batched threshold encryption for fair
-      on-chain reveals.
+      payments, the Kohaku SDK, and batched threshold encryption, encryption with
+      a release date.
     </p>
     <p className="text-[15px] text-foreground/80 leading-[1.75]">
       I'm part of the DevRel and ecosystem team at{" "}
