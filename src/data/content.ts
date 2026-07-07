@@ -433,6 +433,13 @@ export const contentItems: ContentItem[] = [
     featured: true,
   },
   {
+    title: "Vara A2A Hack: build a fully autonomous agent economy on Vara and win $8,000",
+    type: "thread",
+    date: "2026-05",
+    link: "https://x.com/adityakrx/status/2054543991321092173",
+    featured: true,
+  },
+  {
     title: "A secret that opens itself",
     type: "essay",
     date: "2026-06",
