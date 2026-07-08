@@ -28,6 +28,15 @@ export interface BlogPost {
 // (title/date/excerpt for the list page). The page itself is shown exactly as authored.
 const fullPosts: BlogPost[] = [
   {
+    slug: "how-peal-is-built",
+    title: "How Peal v0 is built, crate by crate",
+    date: "2026-07-09",
+    excerpt:
+      "A reveal-later encryption network is five Rust crates, one wasm bridge, a TypeScript SDK, and a browser app. The whole thing wired together: what each part does, why it exists, and how a single secret travels from a browser tab to a committee and back.",
+    kind: "full",
+    file: "/blog/how-peal-is-built.html",
+  },
+  {
     slug: "peal",
     title: "Peal: encryption with a release date",
     date: "2026-07-08",
