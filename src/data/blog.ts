@@ -64,15 +64,6 @@ const fullPosts: BlogPost[] = [
     file: "/blog/mainnet-moment-gtm.html",
   },
   {
-    slug: "kohaku-for-miden",
-    title: "Kohaku for Miden",
-    date: "2026-06-30",
-    excerpt:
-      "Building Kohaku for Miden is less about porting contracts and more about re-expressing the same privacy guarantees with primitives Miden already has: native private accounts, notes, nullifiers, and client-side proofs.",
-    kind: "full",
-    file: "/blog/kohaku-for-miden.html",
-  },
-  {
     slug: "monaris-railgun",
     title: "Inside Monaris × RAILGUN: private payments that feel like one tap",
     date: "2026-06-29",
