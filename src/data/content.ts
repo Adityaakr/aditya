@@ -389,7 +389,7 @@ export const projects: Project[] = [
   },
   {
     title: "prism-claude-code",
-    description: "A multi-agent harness for Claude Code that measures its own value. Prompt-defined commands fan parallel lenses over a task, adversarially verify each finding across model tiers, loop to convergence, and persist what they learn. The differentiator is honesty: its own eval reports when a single pass beats the fleet, instead of assuming more agents is always better.",
+    description: "An independent proof layer for AI-generated software. Prism verifies coding-agent claims against the actual repository, routes risky changes to specialist verification, and blocks unsafe work before it merges. The differentiator is honesty: its own eval reports when a single pass beats the fleet, instead of assuming more agents is always better.",
     status: "live",
     link: "https://github.com/Adityaakr/prism-claude-code",
     website: "https://www.adibuilds.in/blog/prism",

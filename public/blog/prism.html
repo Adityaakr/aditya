@@ -3,7 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Prism: a multi-agent harness for Claude Code that measures its own value</title>
+<title>Prism: The Proof Layer for AI-Generated Software</title>
+<meta name="description" content="Prism independently verifies coding-agent claims, grounds decisions in repository evidence, and blocks unsafe changes before they ship.">
+<link rel="canonical" href="https://www.adibuilds.in/blog/prism">
+<meta property="og:title" content="Prism — The Proof Layer for AI-Generated Software">
+<meta property="og:description" content="An independent verification system for grounding coding-agent claims, challenging weak reasoning and blocking unsafe changes.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://www.adibuilds.in/blog/prism">
+<meta property="og:image" content="https://www.adibuilds.in/blog/prism-og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Prism — The Proof Layer for AI-Generated Software">
+<meta name="twitter:description" content="An independent verification system for grounding coding-agent claims, challenging weak reasoning and blocking unsafe changes.">
+<meta name="twitter:image" content="https://www.adibuilds.in/blog/prism-og.png">
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -21,7 +34,7 @@
   .subtitle { font-size: 19px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 40px; font-weight: 400; }
   .divider { width: 48px; height: 2px; background: var(--text); margin: 40px 0; }
   .divider-thin { width: 100%; height: 1px; background: var(--border); margin: 48px 0; }
-  h2 { font-family: 'Instrument Serif', serif; font-size: 28px; font-weight: 400; color: var(--text); margin-bottom: 20px; margin-top: 8px; letter-spacing: -0.3px; }
+  h2 { font-family: 'Instrument Serif', serif; font-size: 28px; font-weight: 400; color: var(--text); margin-bottom: 20px; margin-top: 8px; letter-spacing: -0.3px; scroll-margin-top: 24px; }
   .section-number { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--accent); font-weight: 500; margin-bottom: 8px; display: block; }
   p { margin-bottom: 18px; color: var(--text); }
   strong { font-weight: 600; color: var(--text); }
@@ -33,9 +46,17 @@
   .callout strong { font-style: normal; font-weight: 600; }
   ul, ol { margin: 0 0 18px; padding-left: 24px; }
   li { margin-bottom: 8px; }
+  .pipeline { font-family: 'JetBrains Mono', monospace; font-size: 13.5px; background: var(--callout-bg); border: 1px solid var(--border); border-radius: 6px; padding: 16px 20px; margin: 28px 0; overflow-x: auto; white-space: nowrap; color: var(--text); }
   .diagram-wrapper { margin: 40px -20px; padding: 0; }
   .diagram-wrapper svg { width: 100%; height: auto; display: block; }
   .diagram-caption { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--text-secondary); text-align: center; margin-top: 12px; letter-spacing: 0.3px; padding: 0 20px; }
+  .diagram-note { font-size: 13.5px; color: var(--text-secondary); text-align: center; margin-top: 8px; padding: 0 20px; font-style: italic; }
+  .toc { background: var(--callout-bg); border: 1px solid var(--border); border-radius: 6px; padding: 24px 28px 16px; margin: 36px 0 48px; }
+  .toc-title { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; font-weight: 500; }
+  .toc ol { margin: 0; padding-left: 22px; }
+  .toc li { margin-bottom: 6px; font-size: 15px; }
+  .toc a { border-bottom: none; color: var(--text); }
+  .toc a:hover { color: var(--accent); }
   .glossary { background: var(--callout-bg); border: 1px solid var(--border); border-radius: 6px; padding: 28px 28px 12px; margin: 36px 0; }
   .glossary-title { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); margin-bottom: 16px; font-weight: 500; }
   .glossary-item { margin-bottom: 14px; font-size: 16px; line-height: 1.6; }
@@ -47,10 +68,6 @@
   tbody td { padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.55; }
   tbody tr:last-child td { border-bottom: 0; }
   tbody td:first-child { white-space: nowrap; }
-  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin: 32px 0; }
-  .card { background: var(--callout-bg); border: 1px solid var(--border); border-radius: 6px; padding: 18px 20px; }
-  .card-title { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 8px; }
-  .card p { font-size: 14.5px; color: var(--text-secondary); margin: 0; line-height: 1.55; }
   .punch { font-family: 'Instrument Serif', serif; font-size: clamp(22px,4vw,30px); line-height: 1.3; margin: 36px 0 8px; }
   .punch .a { color: var(--accent); }
   .punch .b { color: #16a34a; display: block; }
@@ -59,6 +76,7 @@
     body { font-size: 16.5px; }
     h2 { font-size: 24px; }
     .glossary { padding: 20px 20px 8px; }
+    .toc { padding: 20px 20px 10px; }
     .diagram-wrapper { margin: 32px -10px; }
   }
 </style>
@@ -66,342 +84,341 @@
 <body>
 <article class="article-container">
 
-<div class="article-tag">Prism · Multi-Agent Harness for Claude Code</div>
+<div class="article-tag">Prism · Independent Verification for Coding Agents</div>
 
-<h1>A multi-agent harness that measures its own value</h1>
+<h1>The proof layer for AI-generated software</h1>
 
-<p class="subtitle">A complete agent workflow, from reading a codebase to shipping and reviewing it, built on grounded claims, compounding memory, and enforced safety. And a rare experiment: does the fleet actually beat one careful pass?</p>
+<p class="subtitle">Prism verifies what coding agents claim, records the evidence behind every decision, and blocks unsafe changes before they merge or deploy.</p>
+
+<figure class="diagram-wrapper" role="img" aria-label="Prism, the proof layer for AI-generated software">
+<svg viewBox="0 0 760 300" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="760" height="300" fill="var(--diagram-bg)" rx="8"/>
+  <text x="48" y="76" font-family="'JetBrains Mono', monospace" font-size="11" letter-spacing="2" fill="#2563eb">PRISM · PROOF LAYER</text>
+  <text x="48" y="122" font-family="'Instrument Serif', serif" font-size="33" fill="#1a1a1a">The proof layer for</text>
+  <text x="48" y="162" font-family="'Instrument Serif', serif" font-size="33" fill="#1a1a1a">AI-generated software</text>
+  <text x="48" y="200" font-family="'DM Sans', sans-serif" font-size="13" fill="#555">Verify the claims. Record the evidence.</text>
+  <text x="48" y="220" font-family="'DM Sans', sans-serif" font-size="13" fill="#555">Block unsafe changes before they ship.</text>
+
+  <!-- prism glyph: one unverified change in, three verdicts out -->
+  <line x1="452" y1="140" x2="574" y2="140" stroke="#1a1a1a" stroke-width="1.6"/>
+  <text x="512" y="128" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9.5" fill="#555">change</text>
+  <polygon points="604,84 542,196 666,196" fill="var(--sketch-fill-purple)" stroke="#1a1a1a" stroke-width="1.6"/>
+  <line x1="641" y1="126" x2="716" y2="102" stroke="#16a34a" stroke-width="1.8"/>
+  <line x1="652" y1="148" x2="716" y2="148" stroke="#d97706" stroke-width="1.8"/>
+  <line x1="661" y1="170" x2="716" y2="194" stroke="#e11d48" stroke-width="1.8"/>
+  <g font-family="'JetBrains Mono', monospace" font-size="9.5">
+    <text x="722" y="105" fill="#16a34a">accept</text>
+    <text x="722" y="151" fill="#d97706">review</text>
+    <text x="722" y="197" fill="#e11d48">block</text>
+  </g>
+</svg>
+</figure>
+
+<nav class="toc" aria-label="Table of contents">
+  <div class="toc-title">In this article</div>
+  <ol>
+    <li><a href="#introducing-prism">Introducing Prism</a></li>
+    <li><a href="#generation-to-verification">The problem is moving from generation to verification</a></li>
+    <li><a href="#independent-proof-layer">Prism is an independent proof layer</a></li>
+    <li><a href="#evidence-capture">Evidence capture</a></li>
+    <li><a href="#risk-based-verification">Risk-based verification</a></li>
+    <li><a href="#differential-evidence-routing">Differential evidence routing</a></li>
+    <li><a href="#evidence-judge-and-skeptics">Evidence judge and skeptic review</a></li>
+    <li><a href="#proof-packet">The Proof Packet</a></li>
+    <li><a href="#project-memory">Revalidated project memory</a></li>
+    <li><a href="#enforced-safety">Enforced safety</a></li>
+    <li><a href="#measuring-more-agents">Measuring whether more agents helped</a></li>
+    <li><a href="#conclusion">Less agent theater, more proof</a></li>
+  </ol>
+</nav>
 
 <div class="divider"></div>
 
 <span class="section-number">01</span>
-<h2>The bet nobody checks</h2>
+<h2 id="introducing-prism">Introducing Prism</h2>
 
-<p class="lead-paragraph">Most multi-agent AI tools rest on one assumption: if one model is useful, a coordinated group should be better. So people add roles. One agent plans, another critiques, another verifies, and the hope is that more perspectives produce a better answer.</p>
+<p class="lead-paragraph">A careful Claude Opus pass recently beat my eight-agent setup on five out of twelve design tasks. The eight-agent system performed better only three times, while the remaining four were ties. The single-agent pass also used around 4.6 times fewer tokens.</p>
 
-<p>It sounds right. Almost nobody checks.</p>
+<p>At first, that might sound like a disappointing result for a multi-agent system. For me, it was one of the most useful results Prism has produced. It is worth saying clearly that this was a small internal evaluation over twelve tasks, not a universal benchmark. But even at that scale it taught me something real.</p>
 
-<p>Prism checks. It is a multi-agent orchestration harness for <a href="https://claude.com/claude-code">Claude Code</a>: a set of slash commands that take a hard problem, split it across several agents that look at different evidence, judge where they disagree, verify the claims that matter, and loop until the answer settles. That much is familiar. What makes Prism unusual is the system around that loop. It remembers the project across runs, grounds every claim in real code, enforces its safety rules with hooks the model cannot skip, and ships a harness that measures whether the fleet actually beats a single careful pass.</p>
+<p>It showed that adding more agents does not automatically produce better work. Sometimes a wider set of perspectives catches something important. Sometimes it adds cost and complexity without adding meaningful evidence. And sometimes one careful agent is simply better than a fleet that has to divide the problem and combine its conclusions later.</p>
 
-<div class="callout">When it ran that measurement on its own design, the result was uncomfortable. Across twelve real design tasks about Prism's own internals, one careful Opus pass beat the eight-agent setup five times, lost three, and tied four, at about <strong>4.6 times fewer tokens.</strong></div>
+<p>That result helped clarify what Prism should become.</p>
 
-<p>Prism reports that plainly and keeps building from it. This article is about the whole system, not just the scoreboard. A strong model alone is already capable, so anything that wraps extra agents around it has to earn the cost and complexity it adds. Prism holds itself to exactly that standard.</p>
+<p>Prism began as a multi-agent harness around Claude Code. But the more I tested it, the clearer the real problem became. The next bottleneck in coding agents is not their ability to generate more code. It is our ability to determine when their work can be trusted.</p>
+
+<p>So Prism is now being developed as something more specific: an independent proof layer for AI-generated software, the verification step between a coding agent completing work and that work being accepted, merged or deployed. The rest of this article is about what that layer does, how it is built, and what the numbers say so far.</p>
 
 <div class="divider-thin"></div>
 
 <span class="section-number">02</span>
-<h2>The problem it starts from</h2>
+<h2 id="generation-to-verification">The problem is moving from generation to verification</h2>
 
-<p>One pass through a strong model fails in predictable ways. It anchors on the first plausible answer and never stress-tests it. Faced with two real but conflicting considerations, it averages them into a vague middle instead of deciding which one wins. It states things about your own code or a library's API that it never checked, and hands you the conclusion with no reasoning trail, so you cannot tell which parts to trust. It is stateless, relearning the same project facts every session. Its safety guidance is unenforced: text it can ignore three hundred lines in. And the usual multi-agent cure is unfalsifiable, because the tools selling it never measure whether the agents helped.</p>
+<p>Coding agents can already produce large volumes of plausible code quickly. Generation is no longer the scarce resource. The emerging problem is establishing whether that work is correct, grounded in the actual repository, current with the libraries it touches, and safe to ship.</p>
 
-<p>Each of those failure modes has a specific answer in the sections below. Eight principles organize the design:</p>
+<p>A single pass through a strong model fails in predictable ways. It anchors on the first plausible answer and never stress-tests it. It states things about your code or a library's API that it never checked. It hands you a conclusion with no reasoning trail, so you cannot tell which parts to trust. And its confident tone is the same whether the claim is verified or invented, which is exactly the trap: confidence is not proof.</p>
 
-<ul>
-  <li><strong>Diversity over cloning</strong> - more agents help only if they see different things, so lenses get different evidence, not just different prompts.</li>
-  <li><strong>Judge, don't merge</strong> - resolve the contradiction and pick the better-supported side; averaging dilutes the right answer.</li>
-  <li><strong>Adversarial, decorrelated verification</strong> - skeptics from a different tier try to refute the load-bearing claims, and only survivors make the cut.</li>
-  <li><strong>Grounded, not asserted</strong> - every claim about code or an API is checked against a source, never recall.</li>
-  <li><strong>Compounding memory</strong> - a per-project code model and a global user model, so each run gets smarter about both this project and this person.</li>
-  <li><strong>Enforced, not requested</strong> - the critical safety guards are real hooks the model cannot bypass.</li>
-  <li><strong>Measured, not claimed</strong> - the harness can prove or disprove its own value, and will recommend shrinking itself.</li>
-  <li><strong>Honest over reassuring</strong> - flag uncertainty, label confidence, report what held up and what broke.</li>
-</ul>
+<p>None of this means the agents are useless. It means the missing infrastructure sits after generation, not inside it. Someone has to reopen the files, rerun the tests, check the claims against current documentation, and decide what the change is actually worth. Doing that by hand does not scale with the volume agents now produce.</p>
 
 <div class="divider-thin"></div>
 
 <span class="section-number">03</span>
-<h2>The eleven commands</h2>
+<h2 id="independent-proof-layer">Prism is an independent proof layer</h2>
 
-<p>Prism is a workflow, and each stage is its own command.</p>
+<p>Prism sits between the agent that produced a change and the decision to trust it. In workflow terms:</p>
 
-<div class="data-table">
-  <table>
-    <thead>
-      <tr><th>Command</th><th>What it does</th><th>How it works</th></tr>
-    </thead>
-    <tbody>
-      <tr><td><code>/prism-understand</code></td><td>Map existing code or a concept</td><td>Parallel explorers produce one synthesized model plus a <code>file:line</code> map, and seed project memory. Read-only.</td></tr>
-      <tr><td><code>/prism-plan</code></td><td>Design a feature, change, or architecture decision</td><td>Differential fan-out, divergence score, judge, grounding plus cross-tier verification, refinement loop, saved decision doc.</td></tr>
-      <tr><td><code>/prism-build</code></td><td>Stand up a new project, or build into one</td><td>Detect and conform to the existing stack, architect with verification, produce a phased, dependency-checked roadmap.</td></tr>
-      <tr><td><code>/prism-implement</code></td><td>Turn a milestone into working code</td><td>Detect the stack, verify rather than guess, write, run tests, and fix in a loop until green. Never fakes a pass.</td></tr>
-      <tr><td><code>/prism-feedback</code></td><td>Adversarially stress-test a target</td><td>Confirm what it is and who owns it, run active probes on your own code or a passive assessment on third-party code, reproduce findings.</td></tr>
-      <tr><td><code>/prism-retro</code></td><td>Learn from a shipped plan</td><td>Compare predicted against actual, consume telemetry, write measured lessons back into memory.</td></tr>
-      <tr><td><code>/prism-prune</code></td><td>Keep memory trustworthy</td><td>Re-verify cited invariants against live code, prune or correct stale entries.</td></tr>
-      <tr><td><code>/prism-eval</code></td><td>Prove the fleet beats one pass</td><td>Divergence threshold, grounding precision and recall, fleet-vs-single win rate, injected-flaw detection, find-the-floor.</td></tr>
-      <tr><td><code>/prism-write</code></td><td>Write human docs for what you built</td><td>Turns code and project memory into a README, a change summary, retroactive comments, or a self-contained HTML article with an architecture diagram. Every claim is re-derived from the real files, no slop.</td></tr>
-      <tr><td><code>/prism-ship</code></td><td>Drive an idea to a working app in one command</td><td>Chains the whole lifecycle: frame, architect on a lean fleet, decompose, build each milestone in self-correcting loops, attack with the full feedback fleet, retro. Pauses only at scope, the architecture, and irreversible doors.</td></tr>
-      <tr><td><code>/prism</code></td><td>Route the task</td><td>Auto-classify the request and run the right stage.</td></tr>
-    </tbody>
-  </table>
-</div>
+<div class="pipeline">Coding agent → proposed change → Prism verification → accept, human review or block</div>
 
-<p>The heavy commands (plan, build, implement, and feedback) all run on one shared engine, and <code>/prism-ship</code> chains them end to end. That engine is where most of Prism's interesting decisions live.</p>
+<div class="callout">The agent that writes the code should not be the only system responsible for deciding whether that code is correct.</div>
+
+<p>"Independent" here means Prism evaluates the work separately from the generation path. It does not reuse the generating agent's reasoning or take its claims at face value; it reopens the evidence and judges the change on what it finds. It does not mean cryptographic proof or mathematical certainty. The output is a structured, evidence-backed verdict, not a formal guarantee.</p>
+
+<p>In one line, Prism is verification and evaluation infrastructure for coding agents. The current implementation is a set of slash commands, hooks and memory files that run inside Claude Code, where the project started. The architecture itself does not depend on which agent produced the change, and making the layer agent-independent is the direction the work is heading.</p>
+
+<figure class="diagram-wrapper">
+<svg viewBox="0 0 760 780" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Prism verification architecture showing evidence capture, risk routing, independent verification, an evidence judge, a proof packet and accept, review or block outcomes">
+  <rect x="0" y="0" width="760" height="780" fill="var(--diagram-bg)" rx="8"/>
+  <text x="380" y="34" text-anchor="middle" font-family="'Instrument Serif', serif" font-size="19" fill="#1a1a1a">Prism Verification Architecture</text>
+
+  <!-- coding agents (conceptual inputs) -->
+  <text x="383" y="56" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#555">coding agents · dashed = conceptual, not yet supported</text>
+  <g stroke="#1a1a1a" stroke-width="1.3">
+    <rect x="200" y="64" width="130" height="34" rx="7" fill="var(--sketch-fill-gray)"/>
+    <rect x="358" y="64" width="90" height="34" rx="7" fill="var(--sketch-fill-gray)" stroke-dasharray="5,4"/>
+    <rect x="476" y="64" width="90" height="34" rx="7" fill="var(--sketch-fill-gray)" stroke-dasharray="5,4"/>
+  </g>
+  <g font-family="'DM Sans', sans-serif" font-size="12.5" font-weight="600" fill="#1a1a1a" text-anchor="middle">
+    <text x="265" y="85">Claude Code</text>
+    <text x="403" y="85">Codex</text>
+    <text x="521" y="85">Cursor</text>
+  </g>
+
+  <!-- into proposed change -->
+  <g stroke="#1a1a1a" stroke-width="1.2" fill="none">
+    <path d="M265,98 C265,114 340,120 366,131"/>
+    <line x1="403" y1="98" x2="386" y2="129"/>
+    <path d="M521,98 C521,114 420,120 396,131"/>
+  </g>
+  <rect x="255" y="132" width="250" height="48" rx="7" fill="var(--sketch-fill-purple)" stroke="#1a1a1a" stroke-width="1.3"/>
+  <text x="380" y="152" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13" font-weight="600" fill="#1a1a1a">Proposed change</text>
+  <text x="380" y="169" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">diff · agent claims · test output</text>
+
+  <line x1="380" y1="180" x2="380" y2="206" stroke="#1a1a1a" stroke-width="1.3"/>
+  <polygon points="375,204 380,214 385,204" fill="#1a1a1a"/>
+
+  <!-- evidence capture -->
+  <rect x="110" y="214" width="540" height="80" rx="7" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.3"/>
+  <text x="380" y="238" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13" font-weight="600" fill="#1a1a1a">Evidence capture</text>
+  <text x="380" y="258" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">task · diff · agent claims · file:line references · test results</text>
+  <text x="380" y="276" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11.5" fill="#555">version-sensitive docs · project rules · unresolved assumptions</text>
+
+  <line x1="380" y1="294" x2="380" y2="320" stroke="#1a1a1a" stroke-width="1.3"/>
+  <polygon points="375,318 380,328 385,318" fill="#1a1a1a"/>
+
+  <!-- risk routing diamond -->
+  <polygon points="380,328 476,382 380,436 284,382" fill="var(--sketch-fill-amber)" stroke="#1a1a1a" stroke-width="1.3"/>
+  <text x="380" y="376" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12.5" font-weight="600" fill="#1a1a1a">Risk routing</text>
+  <text x="380" y="394" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="10.5" fill="#555">how risky is this change?</text>
+
+  <!-- branch labels -->
+  <text x="200" y="368" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#555">low risk</text>
+  <text x="562" y="368" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#555">high risk</text>
+
+  <!-- branches -->
+  <g stroke="#1a1a1a" stroke-width="1.2" fill="none">
+    <path d="M284,382 C230,382 160,400 150,444"/>
+    <path d="M476,382 C530,382 555,400 565,444"/>
+  </g>
+  <polygon points="145,442 150,452 155,442" fill="#1a1a1a"/>
+  <polygon points="560,442 565,452 570,442" fill="#1a1a1a"/>
+
+  <!-- single verifier -->
+  <rect x="60" y="452" width="180" height="66" rx="7" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.3"/>
+  <text x="150" y="478" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13" font-weight="600" fill="#1a1a1a">One verifier</text>
+  <text x="150" y="497" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">well-grounded, low-risk</text>
+
+  <!-- specialist verifiers -->
+  <rect x="430" y="452" width="270" height="106" rx="7" fill="var(--sketch-fill-rose)" stroke="#1a1a1a" stroke-width="1.3"/>
+  <text x="565" y="474" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13" font-weight="600" fill="#1a1a1a">Specialist verifiers</text>
+  <g stroke="#1a1a1a" stroke-width="1" fill="#ffffff">
+    <rect x="446" y="486" width="116" height="26" rx="6"/>
+    <rect x="572" y="486" width="116" height="26" rx="6"/>
+    <rect x="446" y="520" width="116" height="26" rx="6"/>
+    <rect x="572" y="520" width="116" height="26" rx="6"/>
+  </g>
+  <g font-family="'DM Sans', sans-serif" font-size="11" fill="#1a1a1a" text-anchor="middle">
+    <text x="504" y="503">security</text>
+    <text x="630" y="503">data integrity</text>
+    <text x="504" y="537">UX flow</text>
+    <text x="630" y="537">cost</text>
+  </g>
+
+  <!-- converge to judge -->
+  <g stroke="#1a1a1a" stroke-width="1.2" fill="none">
+    <path d="M150,518 C160,570 240,586 268,596"/>
+    <path d="M565,558 C555,586 500,592 476,600"/>
+  </g>
+  <polygon points="264,591 274,598 264,601" fill="#1a1a1a"/>
+  <polygon points="480,595 470,602 480,605" fill="#1a1a1a"/>
+
+  <!-- judge -->
+  <rect x="230" y="586" width="300" height="56" rx="7" fill="var(--sketch-fill-amber)" stroke="#1a1a1a" stroke-width="1.3"/>
+  <text x="380" y="608" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13" font-weight="600" fill="#1a1a1a">Evidence judge · skeptic review</text>
+  <text x="380" y="627" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">resolves contradictions · challenges key conclusions</text>
+
+  <line x1="380" y1="642" x2="380" y2="666" stroke="#1a1a1a" stroke-width="1.3"/>
+  <polygon points="375,664 380,674 385,664" fill="#1a1a1a"/>
+
+  <!-- proof packet -->
+  <rect x="280" y="674" width="200" height="46" rx="7" fill="var(--sketch-fill-purple)" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="380" y="702" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13.5" font-weight="600" fill="#1a1a1a">Proof Packet</text>
+
+  <!-- outcomes -->
+  <g stroke="#1a1a1a" stroke-width="1.2" fill="none">
+    <path d="M280,712 C240,720 210,728 196,740"/>
+    <line x1="380" y1="720" x2="380" y2="742"/>
+    <path d="M480,712 C520,720 550,728 564,740"/>
+  </g>
+  <polygon points="192,736 188,746 200,743" fill="#1a1a1a"/>
+  <polygon points="375,740 380,750 385,740" fill="#1a1a1a"/>
+  <polygon points="560,743 572,746 568,736" fill="#1a1a1a"/>
+
+  <g stroke="#1a1a1a" stroke-width="1.3">
+    <rect x="118" y="742" width="120" height="32" rx="7" fill="var(--sketch-fill-green)"/>
+    <rect x="310" y="742" width="140" height="32" rx="7" fill="var(--sketch-fill-amber)"/>
+    <rect x="522" y="742" width="100" height="32" rx="7" fill="var(--sketch-fill-rose)"/>
+  </g>
+  <g font-family="'DM Sans', sans-serif" font-size="12.5" font-weight="600" fill="#1a1a1a" text-anchor="middle">
+    <text x="178" y="763">Accept</text>
+    <text x="380" y="763">Human review</text>
+    <text x="572" y="763">Block</text>
+  </g>
+</svg>
+<figcaption class="diagram-caption">Prism sits between an agent-generated change and the decision to accept, review or block it.</figcaption>
+<p class="diagram-note">Conceptual architecture. The current implementation began around Claude Code; broader coding-agent support is part of the direction.</p>
+</figure>
 
 <div class="divider-thin"></div>
 
 <span class="section-number">04</span>
-<h2>The deliberation engine</h2>
+<h2 id="evidence-capture">Evidence capture</h2>
 
-<p>Every heavy command feeds the same pipeline: fan out across lenses, score how much they diverged, judge the results, verify the claims that matter, loop until the answer stops changing, and persist what was learned. Here is the lifecycle and the engine together.</p>
+<p>Verification starts with knowing what to verify. For every proposed change, Prism assembles a case file before any judgment happens:</p>
 
-<div class="diagram-wrapper">
-<svg viewBox="0 0 760 560" xmlns="http://www.w3.org/2000/svg">
-  <rect x="0" y="0" width="760" height="560" fill="var(--diagram-bg)" rx="8"/>
+<ul>
+  <li>The requested task, as originally stated</li>
+  <li>The resulting diff</li>
+  <li>The claims the coding agent made about its own work</li>
+  <li>The <code>file:line</code> references those claims rest on</li>
+  <li>Test results, as actually run</li>
+  <li>Version-sensitive documentation for the libraries and APIs involved</li>
+  <li>Project-specific architectural and security rules</li>
+  <li>Assumptions the agent left unresolved</li>
+</ul>
 
-  <text x="380" y="30" text-anchor="middle" font-family="'Instrument Serif', serif" font-size="18" fill="#1a1a1a">The deliberation engine</text>
-
-  <!-- lifecycle row -->
-  <g fill="var(--sketch-fill-gray)" stroke="#1a1a1a" stroke-width="1.3">
-    <rect x="24" y="50" width="70" height="36" rx="7"/>
-    <rect x="110" y="50" width="95" height="36" rx="7"/>
-    <rect x="221" y="50" width="95" height="36" rx="7"/>
-    <rect x="332" y="50" width="95" height="36" rx="7"/>
-    <rect x="443" y="50" width="90" height="36" rx="7"/>
-    <rect x="549" y="50" width="85" height="36" rx="7"/>
-    <rect x="650" y="50" width="86" height="36" rx="7"/>
-  </g>
-  <g font-family="'DM Sans', sans-serif" fill="#1a1a1a" text-anchor="middle">
-    <text x="59" y="73" font-size="12" font-weight="600">User</text>
-    <text x="157" y="69" font-size="12" font-weight="600">/prism</text>
-    <text x="157" y="81" font-family="'DM Sans', sans-serif" font-size="10" fill="#555">router</text>
-    <text x="268" y="73" font-size="12" font-weight="600">understand</text>
-    <text x="379" y="73" font-size="12" font-weight="600">plan / build</text>
-    <text x="488" y="73" font-size="12" font-weight="600">implement</text>
-    <text x="591" y="73" font-size="12" font-weight="600">feedback</text>
-    <text x="693" y="73" font-size="12" font-weight="600">retro</text>
-  </g>
-  <!-- lifecycle arrows -->
-  <g stroke="#1a1a1a" stroke-width="1.2">
-    <line x1="94" y1="68" x2="108" y2="68"/>
-    <line x1="205" y1="68" x2="219" y2="68"/>
-    <line x1="316" y1="68" x2="330" y2="68"/>
-    <line x1="427" y1="68" x2="441" y2="68"/>
-    <line x1="533" y1="68" x2="547" y2="68"/>
-    <line x1="634" y1="68" x2="648" y2="68"/>
-  </g>
-  <g fill="#1a1a1a">
-    <polygon points="98,64 108,68 98,72"/>
-    <polygon points="209,64 219,68 209,72"/>
-    <polygon points="320,64 330,68 320,72"/>
-    <polygon points="431,64 441,68 431,72"/>
-    <polygon points="537,64 547,68 537,72"/>
-    <polygon points="638,64 648,68 638,72"/>
-  </g>
-
-  <!-- drop arrows into engine -->
-  <g stroke="#9aa1ab" stroke-width="1.3" stroke-dasharray="5,4">
-    <line x1="268" y1="86" x2="268" y2="160"/>
-    <line x1="379" y1="86" x2="379" y2="160"/>
-    <line x1="488" y1="86" x2="488" y2="160"/>
-    <line x1="591" y1="86" x2="591" y2="160"/>
-  </g>
-  <g fill="#9aa1ab">
-    <polygon points="263,152 268,162 273,152"/>
-    <polygon points="374,152 379,162 384,152"/>
-    <polygon points="483,152 488,162 493,152"/>
-    <polygon points="586,152 591,162 596,152"/>
-  </g>
-
-  <!-- engine container -->
-  <rect x="60" y="162" width="640" height="150" rx="10" fill="#ffffff" stroke="#1a1a1a" stroke-width="1.6"/>
-  <text x="78" y="184" font-family="'JetBrains Mono', monospace" font-size="11" fill="#2563eb" letter-spacing="1">DELIBERATION ENGINE</text>
-
-  <!-- stage boxes -->
-  <rect x="78" y="200" width="86" height="74" rx="7" fill="var(--sketch-fill-purple)" stroke="#1a1a1a" stroke-width="1.3"/>
-  <rect x="180" y="200" width="86" height="74" rx="7" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.3"/>
-  <rect x="282" y="200" width="86" height="74" rx="7" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.3"/>
-  <rect x="384" y="200" width="86" height="74" rx="7" fill="var(--sketch-fill-amber)" stroke="#1a1a1a" stroke-width="1.3"/>
-  <rect x="486" y="200" width="86" height="74" rx="7" fill="var(--sketch-fill-rose)" stroke="#1a1a1a" stroke-width="1.3"/>
-  <rect x="588" y="200" width="86" height="74" rx="7" fill="var(--sketch-fill-gray)" stroke="#1a1a1a" stroke-width="1.3"/>
-
-  <g font-family="'DM Sans', sans-serif" fill="#1a1a1a" text-anchor="middle">
-    <text x="121" y="233" font-size="13" font-weight="600">fan-out</text>
-    <text x="121" y="249" font-size="11" fill="#555">differential</text>
-    <text x="223" y="233" font-size="13" font-weight="600">divergence</text>
-    <text x="223" y="249" font-size="11" fill="#555">score</text>
-    <text x="325" y="241" font-size="13" font-weight="600">judge</text>
-    <text x="427" y="230" font-size="13" font-weight="600">verify</text>
-    <text x="427" y="246" font-size="11" fill="#555">grounding +</text>
-    <text x="427" y="259" font-size="11" fill="#555">skeptics</text>
-    <text x="529" y="241" font-size="13" font-weight="600">loop</text>
-    <text x="631" y="233" font-size="13" font-weight="600">persist</text>
-    <text x="631" y="249" font-size="11" fill="#555">+ telemetry</text>
-  </g>
-
-  <!-- inter-stage arrows -->
-  <g stroke="#1a1a1a" stroke-width="1.2">
-    <line x1="164" y1="237" x2="178" y2="237"/>
-    <line x1="266" y1="237" x2="280" y2="237"/>
-    <line x1="368" y1="237" x2="382" y2="237"/>
-    <line x1="470" y1="237" x2="484" y2="237"/>
-    <line x1="572" y1="237" x2="586" y2="237"/>
-  </g>
-  <g fill="#1a1a1a">
-    <polygon points="168,233 178,237 168,241"/>
-    <polygon points="270,233 280,237 270,241"/>
-    <polygon points="372,233 382,237 372,241"/>
-    <polygon points="474,233 484,237 474,241"/>
-    <polygon points="576,233 586,237 576,241"/>
-  </g>
-
-  <!-- converge loop -->
-  <path d="M631,274 C600,300 152,300 121,274" fill="none" stroke="#1a1a1a" stroke-width="1.3" stroke-dasharray="5,4"/>
-  <polygon points="116,279 121,270 126,279" fill="#1a1a1a"/>
-  <rect x="343" y="289" width="66" height="15" fill="var(--diagram-bg)"/>
-  <text x="376" y="299" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#555">converge</text>
-
-  <!-- write / read to memory -->
-  <line x1="356" y1="312" x2="356" y2="356" stroke="#1a1a1a" stroke-width="1.4"/>
-  <polygon points="351,354 356,364 361,354" fill="#1a1a1a"/>
-  <line x1="404" y1="356" x2="404" y2="312" stroke="#1a1a1a" stroke-width="1.2" stroke-dasharray="5,4"/>
-  <polygon points="399,314 404,304 409,314" fill="#1a1a1a"/>
-  <text x="349" y="340" text-anchor="end" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#555">write</text>
-  <text x="411" y="340" text-anchor="start" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#555">read</text>
-
-  <!-- memory card -->
-  <rect x="210" y="364" width="340" height="82" rx="7" fill="var(--sketch-fill-gray)" stroke="#1a1a1a" stroke-width="1.3"/>
-  <text x="380" y="392" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13" font-weight="600" fill="#1a1a1a">Project Memory</text>
-  <text x="380" y="410" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#555">.prism/project-model.md</text>
-  <text x="380" y="428" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">invariants · conventions · danger zones</text>
-
-  <!-- association connectors to bottom boxes -->
-  <line x1="250" y1="446" x2="210" y2="476" stroke="#9aa1ab" stroke-width="1.3" stroke-dasharray="5,4"/>
-  <line x1="510" y1="446" x2="550" y2="476" stroke="#9aa1ab" stroke-width="1.3" stroke-dasharray="5,4"/>
-
-  <!-- enforcement hooks -->
-  <rect x="60" y="478" width="300" height="74" rx="7" fill="var(--sketch-fill-rose)" stroke="#1a1a1a" stroke-width="1.3"/>
-  <text x="210" y="504" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13" font-weight="600" fill="#1a1a1a">Enforcement hooks</text>
-  <text x="210" y="523" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">prism-guard → blocks one-way doors</text>
-  <text x="210" y="539" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">prism-gate → blocks faked-green</text>
-
-  <!-- proof -->
-  <rect x="400" y="478" width="300" height="74" rx="7" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.3"/>
-  <text x="550" y="504" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13" font-weight="600" fill="#1a1a1a">Proof · /prism-eval</text>
-  <text x="550" y="523" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">divergence threshold · grounding P/R</text>
-  <text x="550" y="539" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">fleet-vs-single · find-the-floor</text>
-</svg>
-</div>
-<p class="diagram-caption">The lifecycle feeds one shared engine; the engine reads and writes project memory; hooks and the proof harness sit alongside. Skeptics in the verify stage are 2 Opus and 1 Sonnet under majority rule.</p>
-
-<p><strong>Fan-out with differential context</strong> - This is what separates real diversity from theater: the lenses read different evidence, not the same context in different hats. The core lenses (first-principles, adversary, practitioner) stay holistic and look at the whole problem. The domain lenses are routed to the slice of code their concern owns: security reads auth, keys, and custody; regulatory reads the money-movement paths; data-integrity reads the schema and ledger; cost reads fees and infrastructure; UX reads the user flows. Each lens reports the exact <code>file:line</code> ranges it examined, and Prism caches that routing as a file concern map so it does not rediscover which files matter on every run.</p>
-
-<p><strong>Divergence score</strong> - Right after fan-out, Prism checks whether the lenses truly split or only appeared to. It scores two things: how much the lenses overlap in the code they cite (60% of the weight), and how much their conclusions differ (40%). Overlap is measured as Jaccard similarity, the shared cited lines over the combined set, and it carries the most weight because it directly tests whether the differential routing worked. If the lenses cited the same lines and reached the same conclusion, the extra agents added nothing, and Prism says so. The score prints on every run and flags when the diversity is only cosmetic. The threshold is a deliberate placeholder, set to <code>0.30</code> and marked uncalibrated until the proof harness derives a real cutoff from data.</p>
-
-<p><strong>Judge</strong> - The judge does not blend the briefs into an average. It produces a structured read: what the lenses agree on, where they contradict each other and which side is better supported, which insights only one lens caught, and which blind spots they all share. The output is a decision, not a merge.</p>
-
-<p><strong>Verify, in two checks</strong> - First, grounding. Every claim about the code has to cite a <code>file:line</code>, and a verifier re-opens that line to confirm it. Every claim about a library or API is checked against installed type definitions or official docs, never the model's memory. Second, adversarial review. Each load-bearing claim goes to a skeptic panel whose job is to refute it: two Opus instances for rigor and one Sonnet for independence, under majority rule. The lone Sonnet cannot sink a good claim on its own, but it can be the deciding vote on a flaw both Opus instances missed. Two of three votes kill a claim.</p>
-
-<p><strong>Loop and persist</strong> - Prism then re-attacks its own draft in critique mode, folds in only the fixes that survive, and repeats until a full round changes nothing material, capped at three rounds. The final result is saved to <code>docs/</code>, the project memory is updated, and telemetry records the divergence score, the model pool that ran, and how each claim survived.</p>
-
-<p>One label matters here. Surviving the skeptics is marked <code>cross-tier-survived</code>, which ranks below <code>grounded</code> (re-checked against live code or docs). The panel uses different Claude tiers, not different model families, so it lowers the chance the reviewers share an error without removing the blind spots baked into Claude itself. Grounding outranks survival, and every decision doc says which is which. A lot of AI systems blur "we checked this" with "nobody objected to this." Prism keeps the two apart. Those labels roll up into four tiers a reader can act on, verified, supported, unverified, and contradicted, and every artifact prints a one-line evidence summary.</p>
-
-<p>A newer discipline, currency and audience grounding, runs alongside that check. On anything version-sensitive, Prism confirms a source is the current canonical one, not just that it exists: the official docs plus the registry's last-published date, and which name or ID space a value actually lives in before it "corrects" one. Anything a verifier finds stale gets fixed in the same pass, not deferred. And when the output is outward-facing, an article, a README, a post, one lens reads it as a senior engineer from the target ecosystem: it scopes overclaims like "nothing to deploy" or "fully private", adds the nuance an insider expects, and flags anything that signals the author does not actually use the thing. Correctness alone does not catch those.</p>
-
-<p>Two recent additions extend that engine to bigger, messier work. The first is a repo map for large codebases. Differential context only helps if the right files reach the right lens, which gets hard at scale, so Prism caches the project's structure, not its code claims, in <code>.prism/repo-map.md</code>: the directory tree, the workspace roots, and cheap concern tags. A sizing gate then picks the approach, with flat explorers under about 150 files, concern-bucketed fan-out up to 800, and a structure-map-first pass beyond that. Staleness is checked by git blob hashes rather than file counts, and ranking only decides how deeply a file is read, never whether it is read at all.</p>
-
-<p>The second is a craft floor for code Prism writes on a blank page: intent-revealing names, one job per function, no dead code, and comments that explain why. It stays subordinate to conforming with the existing codebase, which always wins, and it is a writing standard, not a new gate. Prism deliberately kept these checks out of <code>prism-gate.sh</code>, because language-blind heuristics cry wolf, and a gate that cries wolf gets ignored.</p>
+<p>The important discipline is that claims get reopened, not trusted. A claim about the code is checked against the current repository: the verifier opens the cited line and confirms it says what the claim says it says. A claim about an API or dependency is checked against current documentation or the installed type definitions, never against the model's memory of a library that may have changed three majors ago. On anything version-sensitive, Prism also confirms the source is the current canonical one, not merely one that exists.</p>
 
 <div class="divider-thin"></div>
 
 <span class="section-number">05</span>
-<h2>Why the memory layer matters</h2>
+<h2 id="risk-based-verification">Risk-based verification</h2>
 
-<p>Prism keeps a single file, <code>.prism/project-model.md</code>. It holds an evidence-cited model of the codebase: architecture, invariants (each cited), conventions, danger zones, a decision log, accumulated lessons, and the file concern map that routes the fan-out step. <code>/prism-understand</code> builds it, plan and build read it before they start, and implement and retro write back to it. Over time it becomes a sharper map, so future runs route work instead of rediscovering the same local context.</p>
+<p>Prism does not default to a large fleet. That is probably its most important design decision, and it came directly from the evaluation result in the introduction.</p>
 
-<p>Just as important, Prism can prune. The <code>/prism-prune</code> command re-verifies cited invariants against the live code and corrects or deletes anything stale. That is what keeps the memory believable: it is re-checked against reality, not treated as permanently true.</p>
+<p>Every verification starts from the smallest useful path. A low-risk, well-grounded change, a rename, a copy fix, a small function with passing tests and clean citations, gets one verifier and a fast verdict. Specialist verification is added only when the change earns it: when it is high-risk, when its claims are uncertain or poorly grounded, or when it crosses several system boundaries at once.</p>
+
+<p>This keeps the cost of verification proportional to the risk of being wrong. Most changes are cheap to check. The expensive machinery exists for the changes where a missed defect is expensive, moving money, touching auth, altering schemas, and it stays idle the rest of the time.</p>
 
 <div class="divider-thin"></div>
 
 <span class="section-number">06</span>
-<h2>Safety that is actually enforced</h2>
+<h2 id="differential-evidence-routing">Differential evidence routing</h2>
 
-<p>Prism takes safety more seriously than most agent systems, because it does not rely on telling the model to be careful. It uses real hooks.</p>
+<p>When a change does warrant specialists, the specialists have to be genuinely different, and that difference comes from evidence, not job titles. Giving five agents the same context with five different role prompts produces five rephrasings of one opinion. Prism instead routes each verifier to the slice of the system its concern actually owns.</p>
 
-<p>The first, <code>prism-guard.sh</code>, is a PreToolUse hook that sits in front of one-way doors: force-pushes, publishes, deploys, database migrations, destructive deletes like <code>rm -rf</code>, and mainnet transactions. It blocks them unless the user explicitly approves with a <code># PRISM_OK</code> token. The second, <code>prism-gate.sh</code>, runs inside <code>/prism-implement</code> and checks for fake-green work: skipped or deleted tests, hardcoded secrets, and leftover debug code, the things that make a build look passing when it is not.</p>
+<p>Take a payment feature. Security examines authentication, permissions, keys and custody. Data integrity examines schemas, balances and state transitions. UX follows the complete user flow from intent to confirmation. Cost examines infrastructure, external services and fee surfaces. Each verifier reports the exact <code>file:line</code> ranges it examined, so the final verdict can say not just what was concluded but what was actually looked at.</p>
 
-<p>If an action is expensive or impossible to undo, a reminder in a prompt is not enough. It needs a real gate in front of it, and Prism puts one there.</p>
+<p>Prism also scores whether the routing worked. After a fan-out it measures how much the verifiers overlapped in the code they cited and how much their conclusions diverged. If they all read the same lines and said the same thing, the extra agents added nothing, and Prism says so rather than presenting the repetition as consensus.</p>
 
 <div class="divider-thin"></div>
 
 <span class="section-number">07</span>
-<h2>A full run, end to end</h2>
+<h2 id="evidence-judge-and-skeptics">Evidence judge and skeptic review</h2>
 
-<p>Here is what all of this looks like on a real question. Take the command <code>/prism-plan how should users pay from their existing balance?</code></p>
+<p>Independent verifiers will sometimes disagree, and the worst thing to do with a disagreement is average it into a vague middle. Prism does not average. A dedicated judge produces a structured resolution:</p>
 
-<p>Prism reads it as a high-stakes planning task because it moves money, so it picks a looped eight-lens fleet and reads project memory first. Security goes into the auth and custody files, regulatory into the money-movement paths, data-integrity into the ledger and schema, each on its own code. The divergence line comes back <code>0.62</code>, well past the <code>0.30</code> threshold, so the fan-out earned its cost. From there the judge rules on the conflicts, verification re-opens the cited lines and runs the skeptic panel, the loop runs to convergence, and the result is saved with its telemetry for a later <code>/prism-retro</code> to check against what actually happened.</p>
+<ul>
+  <li>It resolves contradictions between verifiers instead of blending them</li>
+  <li>It identifies which conclusion the evidence better supports</li>
+  <li>It preserves useful findings that only one verifier caught</li>
+  <li>It surfaces blind spots the whole panel shared</li>
+  <li>It records uncertainty that could not be resolved, rather than papering over it</li>
+</ul>
+
+<p>Conclusions that carry real weight then face one more round: skeptic agents whose only job is to refute them. In the current implementation the panel is two Opus instances and one Sonnet under majority rule, chosen from different Claude tiers to reduce the odds that all reviewers share the same error. Prism is careful about what surviving this means. A claim that was re-checked against live code or current docs is labeled <em>grounded</em>; a claim that merely survived the skeptics ranks below it. "We checked this" and "nobody objected to this" are different statements, and every output keeps them apart.</p>
 
 <div class="divider-thin"></div>
 
 <span class="section-number">08</span>
-<h2>The result that matters most</h2>
+<h2 id="proof-packet">The Proof Packet</h2>
 
-<p>The last command, <code>/prism-eval</code>, makes the rest accountable. It runs against fixtures with known ground truth and reports four measurements: grounding precision and recall, a blind fleet-vs-single win rate, injected-flaw detection, and a find-the-floor sweep for the smallest fleet that still beats one pass. Anything not run reports as not run, never a guess.</p>
+<p>Everything above funnels into one artifact, and it is the thing Prism actually produces: the Proof Packet. Not a chat transcript, not another agent-generated summary that itself needs verifying, but a structured record of the verification. It answers six questions:</p>
 
-<p>That settles Prism's central bet: does fan out, judge, verify, and loop beat asking a strong model once? Every number below comes from a sub-agent that really ran, around 110 of them, with the token counts each reported. The battery was a blind A/B over twelve real design questions about Prism's own internals, none with an obvious answer: the skeptic ratio, the divergence weights, memory pruning, the <code>rm -rf</code> guard, loop convergence, and the rest.</p>
-
-<div class="diagram-wrapper">
-<svg viewBox="0 0 760 360" xmlns="http://www.w3.org/2000/svg">
-  <rect x="0" y="0" width="760" height="360" fill="var(--diagram-bg)" rx="8"/>
-
-  <text x="380" y="30" text-anchor="middle" font-family="'Instrument Serif', serif" font-size="18" fill="#1a1a1a">The blind A/B</text>
-
-  <!-- tasks -->
-  <rect x="24" y="140" width="140" height="80" rx="7" fill="var(--sketch-fill-gray)" stroke="#1a1a1a" stroke-width="1.3"/>
-  <text x="94" y="172" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13" font-weight="600" fill="#1a1a1a">12 real</text>
-  <text x="94" y="189" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13" font-weight="600" fill="#1a1a1a">design tasks</text>
-  <text x="94" y="206" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">Prism internals</text>
-
-  <!-- fleet -->
-  <rect x="210" y="60" width="215" height="80" rx="7" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.3"/>
-  <text x="317" y="90" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13" font-weight="600" fill="#1a1a1a">FLEET</text>
-  <text x="317" y="108" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">6 Opus lenses (differential)</text>
-  <text x="317" y="124" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">→ synthesis</text>
-
-  <!-- single -->
-  <rect x="210" y="220" width="215" height="80" rx="7" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.3"/>
-  <text x="317" y="250" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="13" font-weight="600" fill="#1a1a1a">SINGLE</text>
-  <text x="317" y="268" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">1 careful Opus pass</text>
-  <text x="317" y="284" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">no fan-out</text>
-
-  <!-- judge diamond -->
-  <polygon points="525,120 605,180 525,240 445,180" fill="var(--sketch-fill-amber)" stroke="#1a1a1a" stroke-width="1.3"/>
-  <text x="525" y="172" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12.5" font-weight="600" fill="#1a1a1a">Blind judge</text>
-  <text x="525" y="188" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">(Sonnet)</text>
-  <text x="525" y="203" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="10" fill="#555">labels stripped</text>
-
-  <!-- result 1 -->
-  <rect x="625" y="110" width="120" height="70" rx="7" fill="var(--sketch-fill-gray)" stroke="#1a1a1a" stroke-width="1.3"/>
-  <text x="685" y="142" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" font-weight="600" fill="#1a1a1a">win / loss / tie</text>
-  <text x="685" y="159" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">+ token cost</text>
-
-  <!-- result 2 -->
-  <rect x="605" y="235" width="140" height="70" rx="7" fill="var(--sketch-fill-gray)" stroke="#1a1a1a" stroke-width="1.3"/>
-  <text x="675" y="267" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" font-weight="600" fill="#1a1a1a">win-rate · Wilson CI</text>
-  <text x="675" y="284" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="11" fill="#555">token multiple</text>
-
-  <!-- arrows -->
-  <g stroke="#1a1a1a" stroke-width="1.2" fill="none">
-    <path d="M164,160 C188,140 188,104 208,100"/>
-    <path d="M164,200 C188,220 188,256 208,260"/>
-    <path d="M425,100 C460,108 470,140 478,156"/>
-    <path d="M425,260 C460,252 470,220 478,204"/>
-    <path d="M605,172 C616,162 616,156 623,150"/>
-    <path d="M685,180 L685,233"/>
-  </g>
-  <g fill="#1a1a1a">
-    <polygon points="204,96 212,99 205,105"/>
-    <polygon points="205,255 212,261 204,264"/>
-    <polygon points="474,151 481,158 472,160"/>
-    <polygon points="472,200 481,202 474,209"/>
-    <polygon points="619,146 625,150 619,155"/>
-    <polygon points="680,231 685,241 690,231"/>
-  </g>
-</svg>
+<div class="glossary">
+  <div class="glossary-title">Proof Packet · contents</div>
+  <div class="glossary-item"><span class="glossary-term">Verified</span>: what was actually checked, and what was out of scope</div>
+  <div class="glossary-item"><span class="glossary-term">Evidence</span>: which files, lines, docs and rules were examined</div>
+  <div class="glossary-item"><span class="glossary-term">Tests</span>: which passed, which failed, which never ran</div>
+  <div class="glossary-item"><span class="glossary-term">Assumptions</span>: what remains unresolved and would change the verdict</div>
+  <div class="glossary-item"><span class="glossary-term">Risks</span>: what was found, with severity and location</div>
+  <div class="glossary-item"><span class="glossary-term">Verdict</span>: accept, send to human review, or block</div>
 </div>
-<p class="diagram-caption">The blind A/B used to test the bet. Labels were stripped and order alternated, with a "ignore length" instruction to the judge.</p>
+
+<p>The packet is what a reviewer reads instead of re-deriving the whole change from scratch, and what a team can point to later when asking why something was merged. If Prism is a proof layer, the Proof Packet is the proof.</p>
+
+<p>Verification is only useful if the system can carry its conclusions forward and enforce them. That is where Prism's memory and safety layers come in.</p>
+
+<div class="divider-thin"></div>
+
+<span class="section-number">09</span>
+<h2 id="project-memory">Revalidated project memory</h2>
+
+<p>Prism keeps structured project knowledge in a single file, <code>.prism/project-model.md</code>: the architecture, the invariants the code must hold, the conventions it follows, previous decisions and their reasoning, the danger zones where mistakes are expensive, and concerns that were raised but never resolved. Verification reads this before judging a change, so a diff that quietly violates a recorded invariant gets caught even when it looks locally fine.</p>
+
+<p>Memory like this is only useful if it stays true, and codebases drift. So Prism treats stored knowledge as claims to recheck, not facts to trust. The <code>/prism-prune</code> command re-verifies recorded invariants against the current repository and corrects or deletes anything stale. Nothing in the model is treated as permanently correct; it is believable precisely because it keeps getting re-earned.</p>
+
+<div class="divider-thin"></div>
+
+<span class="section-number">10</span>
+<h2 id="enforced-safety">Enforced safety</h2>
+
+<p>Some conclusions are too important to live as advice in a prompt, because text three hundred lines into a context window is easy to ignore. Prism enforces its hard limits with hooks that run outside the model.</p>
+
+<p>Prism Guard blocks force-pushes, deployments, destructive migrations, dangerous deletes and mainnet transactions until they are explicitly approved. It is a <code>PreToolUse</code> hook (<code>prism-guard.sh</code>) that sits in front of these one-way doors and requires an explicit <code># PRISM_OK</code> token from the user before any of them open.</p>
+
+<p>Prism Gate detects fake-green work, including skipped tests, exposed secrets, debug leftovers and incomplete implementations presented as finished. It runs inside the implementation loop (<code>prism-gate.sh</code>) and exists for the specific failure mode where a build looks passing because the tests that would have failed were quietly skipped or deleted.</p>
+
+<p>If an action is expensive or impossible to undo, a reminder is not enough. It needs a real gate in front of it, and Prism puts one there.</p>
+
+<div class="divider-thin"></div>
+
+<span class="section-number">11</span>
+<h2 id="measuring-more-agents">Measuring whether more agents helped</h2>
+
+<p>A verification system that never verifies itself would be an odd thing to trust, so Prism ships an evaluation harness, <code>/prism-eval</code>, that measures whether its own structure earns its cost. It can evaluate:</p>
+
+<ul>
+  <li><strong>Grounding quality</strong>: precision and recall on claims checked against known ground truth</li>
+  <li><strong>Injected-flaw detection</strong>: whether planted defects get caught</li>
+  <li><strong>Fleet-versus-single performance</strong>: blind A/B comparison against one careful pass</li>
+  <li><strong>Cost and token usage</strong>: what the extra structure actually spends</li>
+  <li><strong>The smallest fleet</strong>: the minimum configuration that still produces a measurable improvement</li>
+</ul>
+
+<p>The headline run so far is the one this article opened with: a blind A/B over twelve real design questions about Prism's own internals, judged with labels stripped and order alternated. Every number came from a sub-agent that really ran, with the token counts each reported.</p>
 
 <div class="diagram-wrapper">
-<svg viewBox="0 0 760 360" xmlns="http://www.w3.org/2000/svg">
+<svg viewBox="0 0 760 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Pie chart of twelve evaluation tasks: single-agent wins five, fleet wins three, ties four">
   <rect x="0" y="0" width="760" height="360" fill="var(--diagram-bg)" rx="8"/>
 
   <text x="380" y="30" text-anchor="middle" font-family="'Instrument Serif', serif" font-size="18" fill="#1a1a1a">Twelve tasks: single 5 · fleet 3 · ties 4</text>
@@ -432,54 +449,29 @@
   </g>
 
   <text x="470" y="262" font-family="'DM Sans', sans-serif" font-size="16" font-weight="600" fill="#2563eb">Fleet win-rate 0.42</text>
-  <text x="470" y="286" font-family="'DM Sans', sans-serif" font-size="14" fill="#555">~4.6× token cost</text>
+  <text x="470" y="286" font-family="'DM Sans', sans-serif" font-size="14" fill="#555">single pass: ~4.6× fewer tokens</text>
 </svg>
 </div>
-<p class="diagram-caption">Over twelve tasks, a single careful pass beat the eight-lens fleet, at roughly a fifth of the cost.</p>
+<p class="diagram-caption">A small internal evaluation, not a universal benchmark: twelve design tasks, one blind judge per task.</p>
 
-<p>The fleet lost. It won three tasks, the single careful pass won five, and four were ties, for a fleet win rate of 0.42 with a Wilson 95% interval of [0.19, 0.68], centered below even. It also cost far more: about 4.6 times the tokens, closer to 5.5 times counting one runaway agent. Paying roughly five times as much produced an answer that lost more often than it won. A four-task pilot had shown the fleet ahead three to nothing, but that lead collapsed under more data, which is exactly why the harness insists on at least twelve tasks and a confidence interval.</p>
+<p>The fleet won three tasks, the single careful pass won five, and four were ties, a fleet win rate of 0.42 with a Wilson 95% interval of [0.19, 0.68]. The fleet also cost about 4.6 times the tokens. An early four-task pilot had shown the fleet ahead three to nothing; that lead collapsed under more data, which is exactly why the harness insists on at least twelve tasks and a confidence interval before believing anything.</p>
 
-<p>The most useful part of the result is where the fleet did win. All three of its wins came from a single lens catching a specific, concrete defect the single pass missed, including real bugs in Prism's own files: an adversary lens caught a math error in Prism's own rationale, where the claim that a lone Sonnet can decide "when both Opus miss" is impossible under majority-of-three; a safety lens found that <code>prism-guard.sh:32</code> does not block a local <code>git commit</code>, leaving the branch step as the only thing keeping the agent off <code>main</code>; and the panel exposed an undefined-Jaccard hole in the divergence metric. But on open-ended design with nothing hidden to catch, one coherent deep pass matched or beat six fragmented briefs, and twice the single pass found a bug the fleet missed. The pattern is clear, and it is more useful than "multi-agent wins." Diversity pays when there is a sharp, concrete thing to catch, a contradiction or a bug or an unsupported claim, and adds little to broad design reasoning, where it is outweighed by the cost of splitting the work apart and stitching it back together.</p>
+<p>The most useful part of the result is where the fleet did win. All three of its wins came from a single verifier catching a specific, concrete defect the single pass missed, including real bugs in Prism's own files: a math error in its own rationale, a gap in <code>prism-guard.sh</code>, and an undefined-value hole in one of its metrics. On open-ended design questions with nothing hidden to catch, one coherent pass matched or beat the divided briefs, and twice found a bug the fleet missed.</p>
 
-<p>Grounding, tested on its own, held up cleanly: fed eight claims, four true and four planted false, the verifier struck all four false and passed all four true, for precision and recall of 1.00. The caveat is that the fixture was easy, with fabricated line numbers and obvious contradictions, and n was only eight. It is a ceiling, not a stress test.</p>
-
-<p>The confounds are disclosed, not buried. The fleet's answer in this run was hand-synthesised from six briefs under heavy load and carried its own defects, so some of the single pass's wins reflect bad synthesis rather than the method's true ceiling; in a real Prism run that synthesis is a fresh focused pass, which means this result understates the fleet. All twelve tasks were defect-free design questions, which under-represents the fleet's one measured strength. The single passes often ran longer and more thorough, and the instruction to ignore length only goes so far. There was one judge per task, with no position swap and no second judge, and n was twelve. The verdict the report commits to is careful: shrink-leaning, not proven.</p>
+<p>The honest conclusion: multi-agent verification appears most helpful when there is something concrete to catch, a contradiction, a bug, an unsupported claim, while one coherent pass may perform better for broad, open-ended design. Grounding, tested separately, went eight for eight on planted true and false claims, though on a small and deliberately easy fixture; that is a ceiling, not a stress test. These results shaped the risk-based defaults in section 5: start small, escalate only when the change gives a reason to.</p>
 
 <div class="divider-thin"></div>
 
-<span class="section-number">09</span>
-<h2>Honest limitations</h2>
+<span class="section-number">12</span>
+<h2 id="conclusion">Less agent theater, more proof</h2>
 
-<p>Two limits bound all of it. Prism is prompt-defined, not infrastructure: it rides Claude Code's agent loop, and the orchestration lives in prompts the model follows, with the hooks as the enforced exception. And its decorrelation is cross-tier, not cross-model, because pinning a genuinely separate model lineage is not available here, so the adversarial check still shares whatever blind spots are built into Claude. The recommendation that follows the numbers is to shrink the default fleet for open-ended design and reserve the full fleet for review and defect-finding. A firmer result would need a fixed fleet output instead of a hand-synthesis, position-swapped dual judges, and twenty-five or more tasks across more domains.</p>
+<p>The direction Prism is heading is away from celebrating orchestration and towards making verification legible. The goal is not to show how many agents were spawned. The goal is to show what was checked, which evidence supports the result, what remains uncertain and why the work is safe to accept.</p>
 
-<p>Production-grade means something specific here. Prism is markdown playbooks plus hooks plus memory, not a runtime, so dependable means trustworthy artifacts and disciplined process, not uptime. Most of that groundwork has now shipped: a tiered safety guard (<code>prism-guard.sh</code> v2, which allows <code>rm -rf node_modules</code> but blocks the dangerous deletes, 22 of 22 tests passing), a hash-based version and drift check for the copied playbooks, a write protocol so two runs do not clobber <code>project-model.md</code>, a four-tier evidence ladder with citation enforcement, and a checkpoint-and-resume convention. What is still open is the one that matters most: live validation on a genuinely large repo, which has not been run yet and is the real test of the repo-map rules.</p>
+<p class="punch"><span class="a">Less agent theater.</span> <span class="b">More proof.</span></p>
 
-<div class="divider-thin"></div>
+<p>That is the direction I am building towards with Prism.</p>
 
-<span class="section-number">10</span>
-<h2>How to use it</h2>
-
-<p>Setup takes three steps: copy the command files into <code>~/.claude/commands/</code> for global use (or a repo's <code>.claude/commands/</code> to share them with a team), wire the two hooks from the example settings, and invoke <code>/prism-*</code> from any project. Every run states its plan up front, the archetype, mode, stakes, and fleet size, and prints a divergence line before it spends agents, so you can see what it is about to do and what the fan-out bought.</p>
-
-<p>Once it is wired up, a few habits get the most out of it:</p>
-
-<ul>
-  <li><strong>Run lean on open-ended design</strong> - the core lenses plus only the domain ones that fit. A bigger fleet costs about five times more for no measured gain.</li>
-  <li><strong>Save the full fleet for defect-finding</strong> - reviewing a diff or hunting a concrete bug with <code>/prism-feedback</code>, where diversity actually pays.</li>
-  <li><strong>Open a new codebase with <code>/prism-understand</code></strong> - so memory has something to compound on before you build.</li>
-  <li><strong>Reach for <code>/prism-plan</code> on hard-to-reverse calls</strong> - the decisions worth a steelman and a verified recommendation.</li>
-  <li><strong>Use <code>/prism-ship</code> for greenfield</strong> - when you want an idea driven to a working app in one pass.</li>
-  <li><strong>Read the divergence line</strong> - if it comes back low, the fan-out did not earn its cost, and one careful pass would have done the job.</li>
-</ul>
-
-<div class="divider-thin"></div>
-
-<span class="section-number">11</span>
-<h2>The real lesson</h2>
-
-<p>Prism does not prove that multi-agent AI is the future. If anything it points the other way: more agents should not be the default, and the gain from extra structure is narrower than the usual pitch claims. The reason the project is worth taking seriously is not the fleet. It is that Prism built the fleet, built the test, ran the test on itself, and kept a result that told it to spend less. That willingness to be wrong is rare, and it is what separates engineering from a demo.</p>
-
-<div class="callout">White light enters a prism and splits into a spectrum. One question splits into a spectrum of expert perspectives, then recombines into one verified answer.</div>
+<p>If you are building serious software with coding agents and thinking about verification, I would like to hear what is breaking in your workflow. Find me on <a href="https://x.com/adityakrx" target="_blank" rel="noopener noreferrer">X @adityakrx</a>.</p>
 
 </article>
 </body>

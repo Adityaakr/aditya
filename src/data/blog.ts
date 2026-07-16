@@ -83,10 +83,10 @@ const fullPosts: BlogPost[] = [
   },
   {
     slug: "prism",
-    title: "Prism: a multi-agent harness that measures its own value",
+    title: "Prism: The Proof Layer for AI-Generated Software",
     date: "2026-06-29",
     excerpt:
-      "A complete agent workflow — from reading a codebase to shipping and reviewing it — built on grounded claims, compounding memory, and enforced safety.",
+      "Prism independently verifies coding-agent claims, grounds decisions in repository evidence, and blocks unsafe changes before they ship.",
     kind: "full",
     file: "/blog/prism.html",
   },
