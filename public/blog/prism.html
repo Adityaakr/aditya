@@ -332,9 +332,7 @@
 <span class="section-number">06</span>
 <h2 id="differential-evidence-routing">Differential evidence routing</h2>
 
-<p>When a change does warrant specialists, the specialists have to be genuinely different, and that difference comes from evidence, not job titles. Giving five agents the same context with five different role prompts produces five rephrasings of one opinion. Prism instead routes each verifier to the slice of the system its concern actually owns.</p>
-
-<p>Take a payment feature. Security examines authentication, permissions, keys and custody. Data integrity examines schemas, balances and state transitions. UX follows the complete user flow from intent to confirmation. Cost examines infrastructure, external services and fee surfaces. Each verifier reports the exact <code>file:line</code> ranges it examined, so the final verdict can say not just what was concluded but what was actually looked at.</p>
+<p>When a change warrants specialists, the difference between them has to come from evidence, not job titles. Five agents given the same context with five role prompts produce five rephrasings of one opinion. Prism instead routes each verifier to the slice of the system its concern owns: on a payment feature, security reads authentication and custody, data integrity reads schemas and balances, UX follows the flow from intent to confirmation, cost reads infrastructure and fee surfaces. Each reports the exact <code>file:line</code> ranges it examined, so the verdict records what was looked at, not just what was concluded.</p>
 
 <p>Prism also scores whether the routing worked. After a fan-out it measures how much the verifiers overlapped in the code they cited and how much their conclusions diverged. If they all read the same lines and said the same thing, the extra agents added nothing, and Prism says so rather than presenting the repetition as consensus.</p>
 
