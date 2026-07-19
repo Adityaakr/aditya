@@ -323,11 +323,9 @@
 <span class="section-number">05</span>
 <h2 id="risk-based-verification">Risk-based verification</h2>
 
-<p>Prism does not default to a large fleet. That is probably its most important design decision, and it came directly from the evaluation result in the introduction.</p>
+<p>Prism does not default to a large fleet. That is its most important design decision, and it came from the evaluation in the introduction. Every verification starts from the smallest useful path: a low-risk, well-grounded change, a rename or a small tested function, gets one verifier and a fast verdict. Specialists are added only when the change earns it, when it is high-risk, when its claims are poorly grounded, or when it crosses several system boundaries at once.</p>
 
-<p>Every verification starts from the smallest useful path. A low-risk, well-grounded change, a rename, a copy fix, a small function with passing tests and clean citations, gets one verifier and a fast verdict. Specialist verification is added only when the change earns it: when it is high-risk, when its claims are uncertain or poorly grounded, or when it crosses several system boundaries at once.</p>
-
-<p>This keeps the cost of verification proportional to the risk of being wrong. Most changes are cheap to check. The expensive machinery exists for the changes where a missed defect is expensive, moving money, touching auth, altering schemas, and it stays idle the rest of the time.</p>
+<p>Verification cost then tracks the risk of being wrong. The expensive machinery exists for changes where a missed defect is costly, moving money, touching auth, altering schemas, and stays idle otherwise.</p>
 
 <div class="divider-thin"></div>
 
