@@ -232,7 +232,7 @@ export const experience: ExperienceEntry[] = [
     company: "Vara Network · Gear Foundation",
     dateRange: "2024 - Present",
     bullets: [
-      "Lead developer relations and ecosystem growth for Vara Network and Gear Foundation end to end, owning the full builder journey from first touch to production: adoption strategy, technical education, documentation, developer tooling, and hands-on support.",
+      "Developer relations and ecosystem growth for Vara Network and Gear Foundation end to end, owning the full builder journey from first touch to production: adoption strategy, technical education, documentation, developer tooling, and hands-on support.",
       "Showcased Vara's agentic development stack to builders, using Vara Skills to ship a complete dApp live in about 40 minutes and prove how fast the build loop can be.",
       "Ran the Vara Agents hackathon (agents.vara.network), onboarding builders to ship autonomous agents that each deploy a Sails program, register, coordinate with other agents, post identity updates, and earn from real on-chain interactions.",
       "Contributed to the Vara wiki and developer education, producing hands-on Sails walkthroughs and interactive learning content that take a new builder from zero to a deployed Gear program.",
