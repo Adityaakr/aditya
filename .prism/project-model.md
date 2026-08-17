@@ -79,6 +79,7 @@ with react-router-dom. Single-page app, statically built, deployed from GitHub
     hand-maintained `fullPosts[]` array in `blog.ts`. Shown EXACTLY as authored inside an
     `<iframe>` (full-bleed, with a thin sticky back bar) at `/blog/:slug` — see the
     `kind === "full"` branch in `src/pages/BlogPost.tsx`. Current full posts (newest-first):
+    `qwen3-mlx-mac` (2026-08-17), `how-peal-is-built` (2026-07-09), `peal` (2026-07-08),
     `fiscus`, `mainnet-moment-gtm`, `kohaku-for-miden` (all 2026-06-30), `monaris-railgun`,
     `secrets-as-a-service`, `prism` (2026-06-29), `vara-eth-agentic-economy` (2026-06-28),
     `polybaskets-board` (2026-06-27). Dates are placeholders.
@@ -108,6 +109,28 @@ with react-router-dom. Single-page app, statically built, deployed from GitHub
   `viewBox="0 0 760 H"` with `fill="var(--diagram-bg)"` bg, sketch-fill boxes + `#1a1a1a`
   strokes, line+polygon arrows, Instrument Serif titles. FORBIDDEN: rough.js, `<script>`,
   feTurbulence/feDisplacementMap, Patrick Hand / Newsreader / cursive fonts, marker highlights.
+- **CANONICAL IS 8-of-10, NOT 10-of-10** (measured 2026-08-17): grep across `public/blog/*.html`
+  confirms 8 of 10 full posts carry the canonical `--bg #FAFAF8` + Instrument Serif/DM Sans/
+  JetBrains Mono + 720px triple. The ONE defector is `how-peal-is-built.html` (Josefin Sans,
+  `--bg1/2/3` blue gradient, `.page` 800px, `scroll-reveal` + a `<script>`, `prefers-reduced-
+  motion`). Do NOT use it as a design reference. **Best head to copy for a new article is
+  `prism.html`** — it is the most recently maintained canonical file, has the style block in
+  compact one-rule-per-line form, and uniquely carries `.toc`, `.punch`, and the
+  `.cta-row`/`.cta-primary`/`.cta-secondary` closing-CTA components.
+- **CANONICAL CODE BLOCKS** live in `peal.html:201-206` + `fiscus.html:707-719`, NOT in
+  `vara-eth-agentic-economy.html` (which has no `<pre>` at all): `.code-file` uppercase mono
+  label above the block, then `pre` = dark `#1f1d1a` bg / `#e9e2d4` text / 10px radius /
+  `overflow-x:auto`, `pre code` resetting bg+padding, and `.tok-c #8a8578` (comment) /
+  `.tok-k #d98a5b` (keyword) / `.tok-s #9ec78f` (string). Highlighting via `<span>` keeps blocks
+  copy-pasteable (spans add no characters) — verify with `zsh -n` on the decoded text.
+- **IMAGES IN ARTICLES** (added 2026-08-17 by `qwen3-mlx-mac.html`, the first post to use any):
+  no canonical `<img>` rule existed before. The pattern now is `.hero-shot` (full-bleed banner,
+  `margin: 0 -20px 40px`, 10px radius, no border, `loading="eager"`) and `.shot` (in-body
+  screenshot, `margin: 40px -20px`, 1px `--diagram-border`, 8px radius, `loading="lazy"`), both
+  captioned with the existing `.diagram-caption`. Raster files go in a per-post subfolder
+  `public/blog/<slug>/`. STANDING RULE: real screenshots ship as `<img>`; DIAGRAMS get redrawn
+  as canonical light inline SVG even when a raster original exists — pasted dark-theme diagram
+  PNGs clash badly with the `#FAFAF8` page.
 - **CRITICAL serving rule** (`public/serve.json`, copied to `dist/serve.json`): `cleanUrls:
   false` is REQUIRED. By default `serve` 301-redirects `/blog/x.html` → `/blog/x`, which would
   collide with the React `/blog/:slug` route and break the iframe source (infinite/empty load).
@@ -191,6 +214,44 @@ with react-router-dom. Single-page app, statically built, deployed from GitHub
   field is now `storage_commitment` (inputs→storage rename) and `next` adds metadata+attachments
   (6 fields). DECISION: MASM blocks relabeled "illustrative/simplified — not stack-exact" rather
   than chasing exact assembly on the fast-moving `next` branch.
+
+## Blog content accuracy — MLX / local-inference (grounded 2026-08-17, `prism`)
+Verified surface for `qwen3-mlx-mac.html`. Reuse these; do NOT re-derive from memory.
+- **`mlx-community/Qwen3.8-27B-4bit` is REAL**: `pipeline_tag: image-text-to-text` (genuine VLM),
+  `library_name: mlx`, arch tag `qwen3_5`, base `Qwen/Qwen3.8-27B`, apache-2.0, weights = 3 shards
+  **16.05 GB**. CAUTION: the HF model card's own prose says "5 billion parameters", contradicting
+  the 27B name and the 16GB 4-bit footprint — an upstream card error. Do not repeat it.
+- **`mlx-vlm` 0.6.13** (published 2026-08-12), `requires-python >=3.10`, classifiers stop at 3.12
+  (3.13 installs but is untested upstream — don't claim support). `pyproject.toml` `[project.scripts]`
+  ships exactly five entrypoints: `mlx_vlm.chat_ui`, `mlx_vlm.chat`, `mlx_vlm.convert`,
+  `mlx_vlm.generate`, `mlx_vlm.server`. There is no `setup.py`.
+- Flags: `generate` takes `--model/--prompt/--max-tokens` (**`--max-tokens`**, NOT
+  `--max-new-tokens`). Server JSON body field is **`max_tokens`**, not `max_completion_tokens`.
+  `chat_ui` accepts ONLY `--model` — **no `--port` flag**; it lands on Gradio's default 7860.
+- **`mlx_vlm.server` defaults to `--host 0.0.0.0`, port 8080** — i.e. omitting `--host` publishes an
+  unauthenticated endpoint to the LAN. `--api-key` exists. Endpoint is `/chat/completions` with a
+  `/v1/chat/completions` alias (registered `include_in_schema=False` but fully invocable).
+- **`mlx_vlm.server` HAS continuous batching, on by default** (`server/generation.py:1048`
+  `ResponseGenerator`, `app.py:836/364`, README:519-521). Concurrent requests join the active batch
+  mid-flight; they do NOT queue. Only `image_generation`/`image_edit`/audio hold a `generation_lock`
+  and serialize. Shipped since ~2026-03.
+- **Apple Silicon memory ceiling**: Metal `recommendedMaxWorkingSetSize` measured **17.76 GiB on a
+  24 GiB M5 / macOS 26.4 = 74.0%** (default `iogpu.wired_limit_mb: 0`). Apple documents NO fraction —
+  treat 74–75% as measured, not specified. MLX's actual allocation ceiling is higher:
+  `min(1.5 × max_rec_size, 0.95 × memsize)` (`mlx/backend/metal/allocator.cpp:58-65`), so ~22.8 GiB
+  on 24GB. So 75% is where the GPU stops being *comfortable* (swap), NOT where allocation fails.
+  `mx.set_wired_limit` default is 0 (nothing force-resident).
+- **LESSON (cost of skipping verification)**: the audience-lens agent asserted "`mlx_vlm.server` is
+  single-stream, no continuous batching, parallel callers queue" with high confidence and a plausible
+  rationale. Grounding against the actual source **refuted it outright**. It nearly shipped as an
+  authoritative clause. Reviewer agents produce hallucinated *architecture* claims, not just wrong
+  APIs — send every load-bearing technical assertion from a reviewer through source verification
+  before writing it, exactly as for a first-draft claim.
+- **Article-verification recipe that worked** (reuse for future posts): fan out (1) a currency agent
+  reading `pyproject.toml`/`[project.scripts]` + registry publish dates + the HF API for the model id,
+  (2) an audience-lens agent role-played as a practitioner in the target ecosystem, (3) a design-
+  conformance agent that decodes every `<pre>` and runs `zsh -n` on it + validates embedded JSON +
+  checks SVG elements against viewBox bounds. Then verify the audience agent's own factual claims.
 
 ## Restructure target — minimal researcher layout (mapped 2026-07-08, `prism-understand`)
 Goal: restyle the home page to a single-column, monochrome, text-first "researcher" layout
