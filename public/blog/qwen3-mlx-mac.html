@@ -431,6 +431,49 @@ http://127.0.0.1:8080/v1/chat/completions</code></pre>
 
 <div class="divider-thin"></div>
 
+<span class="section-number">11</span>
+<h2 id="shortcuts">Bonus: create your own shortcuts</h2>
+
+<p>Once everything works, you can add shell aliases or functions so your workflow becomes:</p>
+
+<ul>
+  <li><code>qwen start</code> → Terminal chat</li>
+  <li><code>qwen api</code> → Local API</li>
+  <li><code>qwen status</code> → Check status</li>
+  <li><code>qwen stop</code> → Stop Qwen and release memory</li>
+</ul>
+
+<p>One way to write it, in <code>~/.zshrc</code>:</p>
+
+<div class="code-file">~/.zshrc</div>
+<pre><code>qwen() {
+  <span class="tok-k">local</span> MODEL=mlx-community/Qwen3.8-27B-4bit
+
+  <span class="tok-k">case</span> "$1" <span class="tok-k">in</span>
+    start|ui|api) <span class="tok-k">source</span> ~/qwen-mlx/bin/activate ;;
+  <span class="tok-k">esac</span>
+
+  <span class="tok-k">case</span> "$1" <span class="tok-k">in</span>
+    start)  mlx_vlm.chat --model "$MODEL" ;;
+    ui)     mlx_vlm.chat_ui --model "$MODEL" ;;
+    api)
+      mlx_vlm.server --model "$MODEL" --host 127.0.0.1 --port 8080 ;;
+    stop)   pkill -f mlx_vlm &amp;&amp; <span class="tok-k">echo</span> <span class="tok-s">"stopped"</span> ;;
+    status)
+      ps -axo pid,command | grep mlx_vlm | grep -v grep \
+        || <span class="tok-k">echo</span> <span class="tok-s">"not running"</span> ;;
+    *)      <span class="tok-k">echo</span> <span class="tok-s">"usage: qwen {start|ui|api|status|stop}"</span> ;;
+  <span class="tok-k">esac</span>
+}</code></pre>
+
+<p>Then reload your shell:</p>
+
+<pre><code>source ~/.zshrc</code></pre>
+
+<p>These are not built-in MLX commands, they are just convenient shortcuts you can add yourself.</p>
+
+<div class="divider-thin"></div>
+
 </article>
 </body>
 </html>
