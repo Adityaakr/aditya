@@ -330,6 +330,52 @@ http://127.0.0.1:8080/v1/chat/completions</code></pre>
 
 <p>Your architecture is basically:</p>
 
+<!-- DIAGRAM 2: the local inference stack -->
+<div class="diagram-wrapper">
+<svg viewBox="0 0 760 498" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="760" height="498" fill="var(--diagram-bg)" rx="8"/>
+
+  <text x="380" y="34" text-anchor="middle" font-family="'Instrument Serif', serif" font-size="18" fill="#1a1a1a">One request, top to bottom</text>
+
+  <rect x="215" y="56" width="330" height="58" rx="6" fill="var(--sketch-fill-gray)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="380" y="80" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">Your app / agent / script</text>
+  <text x="380" y="99" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#555">sends chat requests</text>
+
+  <line x1="380" y1="116" x2="380" y2="138" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="380,145 376,136 384,136" fill="#1a1a1a"/>
+
+  <rect x="215" y="146" width="330" height="58" rx="6" fill="var(--sketch-fill-gray)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="380" y="170" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="13" font-weight="500" fill="#1a1a1a">127.0.0.1:8080/v1</text>
+  <text x="380" y="189" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#555">OpenAI-compatible endpoint</text>
+
+  <line x1="380" y1="206" x2="380" y2="228" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="380,235 376,226 384,226" fill="#1a1a1a"/>
+
+  <rect x="215" y="236" width="330" height="58" rx="6" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="380" y="260" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">MLX-VLM</text>
+  <text x="380" y="279" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#555">local inference server</text>
+
+  <line x1="380" y1="296" x2="380" y2="318" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="380,325 376,316 384,316" fill="#1a1a1a"/>
+
+  <rect x="215" y="326" width="330" height="58" rx="6" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="380" y="350" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">Qwen3.8-27B</text>
+  <text x="380" y="369" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#555">loaded model weights</text>
+
+  <line x1="380" y1="386" x2="380" y2="408" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="380,415 376,406 384,406" fill="#1a1a1a"/>
+
+  <rect x="215" y="416" width="330" height="58" rx="6" fill="var(--sketch-fill-amber)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="380" y="440" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">Apple Silicon GPU</text>
+  <text x="380" y="459" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#555">Metal, unified memory</text>
+</svg>
+</div>
+<p class="diagram-caption">Anything that supports a custom OpenAI-compatible endpoint can potentially sit in front of this.</p>
+
+<p>One flag is worth keeping: <code>mlx_vlm.server</code> defaults to <code>--host 0.0.0.0</code>, so passing <code>127.0.0.1</code> is what keeps it reachable only from your own machine.</p>
+
+<div class="divider-thin"></div>
+
 </article>
 </body>
 </html>
