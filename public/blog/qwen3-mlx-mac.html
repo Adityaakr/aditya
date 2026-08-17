@@ -183,7 +183,7 @@
   <li>use vision and multimodal capabilities</li>
   <li>expose it as a local API</li>
   <li>connect your apps and agents to it</li>
-  <li>no per-token inference API bill</li>
+  <li>no per-token cloud API bill</li>
   <li>your prompts can stay on your machine</li>
 </ul>
 
@@ -211,6 +211,8 @@ eval "$(/opt/homebrew/bin/brew shellenv zsh)"</code></pre>
 
 <span class="section-number">02</span>
 <h2 id="python">Install Python 3.12</h2>
+
+<p>MLX-VLM requires Python 3.10 or newer. I am using Python 3.12 for this setup.</p>
 
 <pre><code>brew install python@3.12</code></pre>
 
@@ -283,12 +285,16 @@ pip install -U mlx-vlm</code></pre>
 
 <p>Now your Terminal basically becomes your local AI chat. No browser required.</p>
 
-<p><strong>Option B:</strong> If you prefer a browser interface instead of Terminal, run:</p>
+<p><strong>Option B:</strong> If you prefer a browser interface instead of Terminal, the UI is an optional extra rather than part of the base install, so add it first:</p>
+
+<pre><code>pip install -U 'mlx-vlm[ui]'</code></pre>
+
+<p>Then run:</p>
 
 <pre><code>mlx_vlm.chat_ui \
   --model mlx-community/Qwen3.8-27B-4bit</code></pre>
 
-<p>Then open:</p>
+<p>And open:</p>
 
 <pre><code>http://127.0.0.1:7860</code></pre>
 
@@ -300,6 +306,8 @@ pip install -U mlx-vlm</code></pre>
 <p class="diagram-caption">Qwen3.8-27B can analyze them entirely on-device.</p>
 
 <p>You will get a simple local chat UI running entirely on your Mac. When you are done, press <code>Ctrl+C</code> in Terminal to stop it and release the model from memory.</p>
+
+<p>On my 24GB setup, Terminal and API inference were more stable than the browser UI, so use those if you hit a Metal or GPU timeout.</p>
 
 <div class="divider-thin"></div>
 
