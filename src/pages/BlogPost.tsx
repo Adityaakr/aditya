@@ -41,6 +41,9 @@ const BlogPost = () => {
           src={post.file}
           title={post.title}
           className="w-full flex-1 border-0"
+          // articles with code blocks ship a copy-to-clipboard button; without this
+          // the async Clipboard API is blocked inside the frame
+          allow="clipboard-write"
         />
       </div>
     );
