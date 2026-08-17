@@ -28,6 +28,15 @@ export interface BlogPost {
 // (title/date/excerpt for the list page). The page itself is shown exactly as authored.
 const fullPosts: BlogPost[] = [
   {
+    slug: "qwen3-mlx-mac",
+    title: "How to Run Qwen3.8-27B Locally on Your Mac with MLX",
+    date: "2026-08-17",
+    excerpt:
+      "A 27B multimodal model, running on a laptop, exposed as an OpenAI-compatible API on localhost. The whole setup from scratch on a 24GB Apple Silicon Mac: Homebrew to Terminal chat, browser UI, and a local inference server.",
+    kind: "full",
+    file: "/blog/qwen3-mlx-mac.html",
+  },
+  {
     slug: "how-peal-is-built",
     title: "How Peal v0 is built, crate by crate",
     date: "2026-07-09",
