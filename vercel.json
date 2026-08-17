@@ -2,6 +2,16 @@
   "cleanUrls": false,
   "trailingSlash": false,
   "rewrites": [
+    { "source": "/blog/qwen3-mlx-mac", "destination": "/blog/qwen3-mlx-mac/index.html" },
+    { "source": "/blog/how-peal-is-built", "destination": "/blog/how-peal-is-built/index.html" },
+    { "source": "/blog/peal", "destination": "/blog/peal/index.html" },
+    { "source": "/blog/fiscus", "destination": "/blog/fiscus/index.html" },
+    { "source": "/blog/mainnet-moment-gtm", "destination": "/blog/mainnet-moment-gtm/index.html" },
+    { "source": "/blog/monaris-railgun", "destination": "/blog/monaris-railgun/index.html" },
+    { "source": "/blog/secrets-as-a-service", "destination": "/blog/secrets-as-a-service/index.html" },
+    { "source": "/blog/prism", "destination": "/blog/prism/index.html" },
+    { "source": "/blog/vara-eth-agentic-economy", "destination": "/blog/vara-eth-agentic-economy/index.html" },
+    { "source": "/blog/polybaskets-board", "destination": "/blog/polybaskets-board/index.html" },
     { "source": "/((?!.*\\.).*)", "destination": "/index.html" }
   ]
 }
