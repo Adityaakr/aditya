@@ -397,6 +397,40 @@ http://127.0.0.1:8080/v1/chat/completions</code></pre>
 
 <div class="divider-thin"></div>
 
+<span class="section-number">09</span>
+<h2 id="check">Check whether Qwen is running</h2>
+
+<pre><code>ps -axo pid,command | grep mlx_vlm | grep -v grep</code></pre>
+
+<p>Check your current swap:</p>
+
+<pre><code>sysctl vm.swapusage</code></pre>
+
+<p>Check macOS memory pressure:</p>
+
+<pre><code>memory_pressure</code></pre>
+
+<p>Activity Monitor → Memory is also useful.</p>
+
+<div class="divider-thin"></div>
+
+<span class="section-number">10</span>
+<h2 id="stop">Stop everything completely</h2>
+
+<p>Normally just use <code>Ctrl+C</code>.</p>
+
+<p>If you have accidentally suspended processes or something is stuck:</p>
+
+<pre><code>pkill -f mlx_vlm</code></pre>
+
+<p>Check:</p>
+
+<pre><code>ps -axo pid,command | grep mlx_vlm | grep -v grep</code></pre>
+
+<p>No output means Qwen is no longer running.</p>
+
+<div class="divider-thin"></div>
+
 </article>
 </body>
 </html>
