@@ -246,6 +246,24 @@ pip install -U mlx-vlm</code></pre>
 
 <div class="divider-thin"></div>
 
+<span class="section-number">05</span>
+<h2 id="run">Run Qwen3.8-27B</h2>
+
+<p>For a 24GB Mac, I am using the 4-bit version:</p>
+
+<pre><code>mlx-community/Qwen3.8-27B-4bit</code></pre>
+
+<p>Test it:</p>
+
+<pre><code>mlx_vlm.generate \
+  --model mlx-community/Qwen3.8-27B-4bit \
+  --prompt "Explain transformers in simple terms." \
+  --max-tokens 256</code></pre>
+
+<p>The first run downloads roughly 16GB of model weights. After that, they are cached locally, so future launches do not download the model again.</p>
+
+<div class="divider-thin"></div>
+
 </article>
 </body>
 </html>
