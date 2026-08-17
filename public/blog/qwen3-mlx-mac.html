@@ -294,6 +294,42 @@ pip install -U mlx-vlm</code></pre>
 
 <div class="divider-thin"></div>
 
+<span class="section-number">07</span>
+<h2 id="api">Turn your Mac into a local AI API</h2>
+
+<p>This is where it gets more interesting.</p>
+
+<p>Run:</p>
+
+<pre><code>mlx_vlm.server \
+  --model mlx-community/Qwen3.8-27B-4bit \
+  --host 127.0.0.1 \
+  --port 8080</code></pre>
+
+<p>You now have a local AI server at:</p>
+
+<pre><code>http://127.0.0.1:8080
+http://127.0.0.1:8080/v1/chat/completions</code></pre>
+
+<p>Test it from another Terminal:</p>
+
+<pre><code>curl http://127.0.0.1:8080/v1/chat/completions \
+  -H <span class="tok-s">"Content-Type: application/json"</span> \
+  -d '{
+    "model": "mlx-community/Qwen3.8-27B-4bit",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain speculative decoding in simple terms."
+      }
+    ],
+    "max_tokens": 256
+  }'</code></pre>
+
+<p>If that returns JSON with Qwen's response, congratulations 🥳: your Mac is now literally an AI inference server.</p>
+
+<p>Your architecture is basically:</p>
+
 </article>
 </body>
 </html>
