@@ -215,6 +215,23 @@ eval "$(/opt/homebrew/bin/brew shellenv zsh)"</code></pre>
 
 <div class="divider-thin"></div>
 
+<span class="section-number">03</span>
+<h2 id="venv">Create a dedicated environment</h2>
+
+<p>I prefer keeping the local AI stack isolated from the rest of my Python setup.</p>
+
+<pre><code>python3.12 -m venv ~/qwen-mlx</code></pre>
+
+<p>Activate it:</p>
+
+<pre><code>source ~/qwen-mlx/bin/activate</code></pre>
+
+<p>Your Terminal should now show something like:</p>
+
+<pre><code>(qwen-mlx) yourname@MacBook %</code></pre>
+
+<div class="divider-thin"></div>
+
 </article>
 </body>
 </html>
