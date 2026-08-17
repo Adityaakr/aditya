@@ -376,6 +376,27 @@ http://127.0.0.1:8080/v1/chat/completions</code></pre>
 
 <div class="divider-thin"></div>
 
+<span class="section-number">08</span>
+<h2 id="performance">What performance looks like on 24GB</h2>
+
+<p>On my 24GB Apple Silicon setup, one API run showed:</p>
+
+<div class="data-table">
+<table>
+  <thead>
+    <tr><th>Measure</th><th>Observed</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Generation</td><td>~7.4 tok/s</td></tr>
+    <tr><td>Peak MLX memory</td><td>~18.5GB</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>So yes, 24GB can run the 4-bit model, but you are fairly close to the practical memory limit. While the model is loaded, I would not simultaneously run Docker, dozens of Chrome tabs, video editing and other memory-heavy workloads.</p>
+
+<div class="divider-thin"></div>
+
 </article>
 </body>
 </html>
