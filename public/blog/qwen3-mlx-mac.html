@@ -107,6 +107,62 @@
 
 <p class="lead-paragraph">Qwen3.8-27B can now run locally on Apple Silicon through MLX.</p>
 
+<!-- DIAGRAM 1: your Mac as its own AI machine -->
+<div class="diagram-wrapper">
+<svg viewBox="0 0 760 412" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="760" height="412" fill="var(--diagram-bg)" rx="8"/>
+
+  <!-- Mac container -->
+  <rect x="30" y="52" width="340" height="248" rx="10" fill="none" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="200" y="80" text-anchor="middle" font-family="'Instrument Serif', serif" font-size="18" fill="#1a1a1a">Your Mac</text>
+  <text x="200" y="98" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#555">its own AI machine</text>
+
+  <rect x="55" y="112" width="290" height="58" rx="6" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="200" y="136" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">Qwen3.8-27B via MLX</text>
+  <text x="200" y="155" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#555">vision + multimodal, 4-bit</text>
+
+  <line x1="200" y1="172" x2="200" y2="192" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="200,199 196,190 204,190" fill="#1a1a1a"/>
+
+  <rect x="55" y="202" width="290" height="58" rx="6" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="200" y="226" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">Apple Silicon GPU</text>
+  <text x="200" y="245" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#555">Metal, unified memory</text>
+
+  <!-- three surfaces -->
+  <rect x="430" y="60" width="300" height="58" rx="6" fill="var(--sketch-fill-gray)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="580" y="84" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">Terminal</text>
+  <text x="580" y="103" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#555">chat with the model</text>
+
+  <rect x="430" y="147" width="300" height="58" rx="6" fill="var(--sketch-fill-gray)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="580" y="171" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="13" font-weight="500" fill="#1a1a1a">127.0.0.1:8080/v1</text>
+  <text x="580" y="190" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#555">OpenAI-compatible API</text>
+
+  <rect x="430" y="234" width="300" height="58" rx="6" fill="var(--sketch-fill-gray)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="580" y="258" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">Your apps &amp; agents</text>
+  <text x="580" y="277" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#555">point them at :8080</text>
+
+  <!-- arrows out -->
+  <line x1="372" y1="89" x2="420" y2="89" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="427,89 418,85 418,93" fill="#1a1a1a"/>
+  <line x1="372" y1="176" x2="420" y2="176" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="427,176 418,172 418,180" fill="#1a1a1a"/>
+  <line x1="372" y1="263" x2="420" y2="263" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="427,263 418,259 418,267" fill="#1a1a1a"/>
+
+  <!-- payoff row -->
+  <rect x="30" y="330" width="340" height="58" rx="6" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="200" y="354" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">No per-token API bill</text>
+  <text x="200" y="373" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#555">you pay in memory and time instead</text>
+
+  <rect x="390" y="330" width="340" height="58" rx="6" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="560" y="354" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">Prompts stay on-device</text>
+  <text x="560" y="373" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#555">your inputs go to no vendor</text>
+</svg>
+</div>
+<p class="diagram-caption">One model loaded once, reachable three ways: Terminal, a browser UI, or an HTTP endpoint.</p>
+
+<p>That means your Mac can act as its own AI machine:</p>
+
 </article>
 </body>
 </html>
