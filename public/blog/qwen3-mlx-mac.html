@@ -68,6 +68,14 @@
   .code-file { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-secondary); margin: 28px 0 6px; padding-left: 2px; }
   pre { font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.7; background: #1f1d1a; color: #e9e2d4; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 24px 0; }
   pre code { font-family: inherit; font-size: inherit; background: none; padding: 0; color: inherit; border-radius: 0; }
+  /* copy-to-clipboard affordance; wrapper is added by the script at the end of body */
+  .code-block { position: relative; margin: 24px 0; }
+  .code-block pre { margin: 0; padding-right: 76px; }
+  .code-file + .code-block { margin-top: 0; }
+  .copy-btn { position: absolute; top: 9px; right: 9px; font-family: 'JetBrains Mono', monospace; font-size: 10.5px; font-weight: 500; letter-spacing: 0.7px; text-transform: uppercase; color: #a8a294; background: #2b2822; border: 1px solid #3d3830; border-radius: 5px; padding: 5px 10px; cursor: pointer; user-select: none; -webkit-user-select: none; transition: color .15s, border-color .15s, background .15s; }
+  .copy-btn:hover { color: #f2ece0; background: #383329; border-color: #5c5548; }
+  .copy-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .copy-btn.copied { color: #9ec78f; border-color: #6f8f63; background: #262f21; }
   .tok-c { color: #8a8578; }
   .tok-k { color: #d98a5b; }
   .tok-s { color: #9ec78f; }
@@ -499,5 +507,80 @@ http://127.0.0.1:8080/v1/chat/completions</code></pre>
 </p>
 
 </article>
+
+<!--
+  Copy-to-clipboard buttons. Progressive enhancement only: with JS off, every block is
+  still plain selectable text in its pre/code element. The button is created as a sibling
+  of the pre, not inside it, and is user-select:none, so a manual drag-select never picks
+  up its label.
+-->
+<script>
+(function () {
+  function fallbackCopy(text) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.top = '-1000px';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+    document.body.removeChild(ta);
+    return ok;
+  }
+
+  var pres = document.querySelectorAll('pre');
+
+  for (var i = 0; i < pres.length; i++) {
+    (function (pre) {
+      var wrap = document.createElement('div');
+      wrap.className = 'code-block';
+      pre.parentNode.insertBefore(wrap, pre);
+      wrap.appendChild(pre);
+
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'copy-btn';
+      btn.textContent = 'Copy';
+      btn.setAttribute('aria-label', 'Copy code to clipboard');
+      wrap.appendChild(btn);
+
+      var reset;
+
+      function flash(label, copied) {
+        btn.textContent = label;
+        btn.className = copied ? 'copy-btn copied' : 'copy-btn';
+        clearTimeout(reset);
+        reset = setTimeout(function () {
+          btn.textContent = 'Copy';
+          btn.className = 'copy-btn';
+        }, 1800);
+      }
+
+      function viaFallback() {
+        var ok = fallbackCopy(text());
+        flash(ok ? 'Copied' : 'Press ⌘C', ok);
+      }
+
+      function text() {
+        return (pre.querySelector('code') || pre).textContent;
+      }
+
+      btn.addEventListener('click', function () {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text()).then(
+            function () { flash('Copied', true); },
+            viaFallback
+          );
+        } else {
+          viaFallback();
+        }
+      });
+    })(pres[i]);
+  }
+})();
+</script>
 </body>
 </html>
