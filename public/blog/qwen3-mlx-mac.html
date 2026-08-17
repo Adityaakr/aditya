@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How to Run Qwen3.8-27B Locally on Your Mac with MLX</title>
+<meta name="description" content="A from-scratch setup for running the 4-bit Qwen3.8-27B vision model on Apple Silicon with MLX-VLM: Terminal chat, a browser UI, and an OpenAI-compatible local API on a 24GB Mac.">
+<link rel="canonical" href="https://www.adibuilds.in/blog/qwen3-mlx-mac">
+<meta property="og:title" content="How to Run Qwen3.8-27B Locally on Your Mac with MLX">
+<meta property="og:description" content="Homebrew to local inference server: the full setup for running a 27B multimodal model on a 24GB Apple Silicon Mac.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://www.adibuilds.in/blog/qwen3-mlx-mac">
+<meta property="og:image" content="https://www.adibuilds.in/blog/qwen-mlx/hero.jpg">
+<meta property="og:image:width" content="1600">
+<meta property="og:image:height" content="640">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="How to Run Qwen3.8-27B Locally on Your Mac with MLX">
+<meta name="twitter:description" content="Homebrew to local inference server: the full setup for running a 27B multimodal model on a 24GB Apple Silicon Mac.">
+<meta name="twitter:image" content="https://www.adibuilds.in/blog/qwen-mlx/hero.jpg">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FAFAF8; --text: #1a1a1a; --text-secondary: #555; --accent: #2563eb;
+    --accent-light: #dbeafe; --border: #e5e5e0; --diagram-bg: #fefefe; --diagram-border: #d4d4c8;
+    --sketch-stroke: #1a1a1a; --sketch-fill-blue: #dbeafe; --sketch-fill-green: #dcfce7;
+    --sketch-fill-amber: #fef3c7; --sketch-fill-rose: #ffe4e6; --sketch-fill-purple: #f3e8ff;
+    --sketch-fill-gray: #f3f4f6; --callout-bg: #f8f7f4;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); line-height: 1.72; font-size: 17.5px; -webkit-font-smoothing: antialiased; }
+  .article-container { max-width: 720px; margin: 0 auto; padding: 60px 24px 100px; }
+  .article-tag { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--accent); margin-bottom: 20px; font-weight: 500; }
+  h1 { font-family: 'Instrument Serif', serif; font-size: clamp(32px, 5vw, 46px); line-height: 1.15; font-weight: 400; color: var(--text); margin-bottom: 24px; letter-spacing: -0.5px; }
+  .subtitle { font-size: 19px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 40px; font-weight: 400; }
+  .divider { width: 48px; height: 2px; background: var(--text); margin: 40px 0; }
+  .divider-thin { width: 100%; height: 1px; background: var(--border); margin: 48px 0; }
+  h2 { font-family: 'Instrument Serif', serif; font-size: 28px; font-weight: 400; color: var(--text); margin-bottom: 20px; margin-top: 8px; letter-spacing: -0.3px; scroll-margin-top: 24px; }
+  h3 { font-family: 'Instrument Serif', serif; font-size: 21px; font-weight: 400; color: var(--text); margin: 32px 0 12px; letter-spacing: -0.2px; }
+  .section-number { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--accent); font-weight: 500; margin-bottom: 8px; display: block; }
+  p { margin-bottom: 18px; color: var(--text); }
+  strong { font-weight: 600; color: var(--text); }
+  em { font-style: italic; }
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(37,99,235,.32); transition: border-color .15s; }
+  a:hover { border-bottom-color: var(--accent); }
+  .lead-paragraph { font-size: 19.5px; line-height: 1.65; color: var(--text); }
+  .callout { background: var(--callout-bg); border-left: 3px solid var(--text); padding: 20px 24px; margin: 32px 0; font-family: 'Instrument Serif', serif; font-size: 20px; line-height: 1.55; font-style: italic; color: var(--text); }
+  .callout strong { font-style: normal; font-weight: 600; }
+  ul, ol { margin: 0 0 18px; padding-left: 24px; }
+  li { margin-bottom: 8px; }
+  .diagram-wrapper { margin: 40px -20px; padding: 0; }
+  .diagram-wrapper svg { width: 100%; height: auto; display: block; }
+  .diagram-caption { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--text-secondary); text-align: center; margin-top: 12px; letter-spacing: 0.3px; padding: 0 20px; }
+  .shot { margin: 40px -20px; }
+  .shot img { width: 100%; height: auto; display: block; border: 1px solid var(--diagram-border); border-radius: 8px; }
+  .hero-shot { margin: 0 -20px 40px; }
+  .hero-shot img { width: 100%; height: auto; display: block; border-radius: 10px; }
+  .toc { background: var(--callout-bg); border: 1px solid var(--border); border-radius: 6px; padding: 24px 28px 16px; margin: 36px 0 48px; }
+  .toc-title { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; font-weight: 500; }
+  .toc ol { margin: 0; padding-left: 22px; }
+  .toc li { margin-bottom: 6px; font-size: 15px; }
+  .toc a { border-bottom: none; color: var(--text); }
+  .toc a:hover { color: var(--accent); }
+  .glossary { background: var(--callout-bg); border: 1px solid var(--border); border-radius: 6px; padding: 28px 28px 12px; margin: 36px 0; }
+  .glossary-title { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); margin-bottom: 16px; font-weight: 500; }
+  .glossary-item { margin-bottom: 14px; font-size: 16px; line-height: 1.6; }
+  .glossary-term { font-weight: 600; font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--text); }
+  code, .inline-code { font-family: 'JetBrains Mono', monospace; font-size: 14.5px; background: #f0efe8; padding: 2px 6px; border-radius: 3px; color: var(--text); }
+  .code-file { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-secondary); margin: 28px 0 6px; padding-left: 2px; }
+  .data-table { margin: 32px 0; overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 480px; }
+  thead th { text-align: left; font-family: 'JetBrains Mono', monospace; font-weight: 500; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-secondary); padding: 0 14px 10px; border-bottom: 2px solid var(--diagram-border); }
+  tbody td { padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.55; }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody td:first-child { white-space: nowrap; }
+  .punch { font-family: 'Instrument Serif', serif; font-size: clamp(22px,4vw,30px); line-height: 1.3; margin: 36px 0 8px; }
+  .punch .a { color: var(--accent); }
+  .punch .b { color: #16a34a; display: block; }
+  .cta-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px 16px; margin-bottom: 18px; }
+  .cta-primary { font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 15px; color: #fff; background: var(--accent); border: 1px solid var(--accent); border-radius: 6px; padding: 10px 18px; white-space: nowrap; }
+  .cta-primary:hover { background: #1d4fd8; border-bottom-color: #1d4fd8; }
+  .cta-secondary { color: var(--text-secondary); font-size: 16px; }
+  @media (max-width: 600px) {
+    .article-container { padding: 36px 18px 72px; }
+    body { font-size: 16.5px; }
+    h2 { font-size: 24px; }
+    .glossary { padding: 20px 20px 8px; }
+    .toc { padding: 20px 20px 10px; }
+    .diagram-wrapper, .shot { margin: 32px -10px; }
+    .hero-shot { margin: 0 -10px 32px; }
+    pre { font-size: 12px; }
+    .code-block pre { padding-right: 68px; }
+  }
+</style>
+</head>
+<body>
+<article class="article-container">
+
+<div class="article-tag">Local AI · Apple Silicon · MLX</div>
+
+<h1>How to Run Qwen3.8-27B Locally on Your Mac with MLX</h1>
+
+<p class="subtitle">A 27B multimodal model, running on a laptop, exposed as an OpenAI-compatible API on localhost. The setup from scratch on a 24GB Apple Silicon Mac.</p>
+
+</article>
+</body>
+</html>
