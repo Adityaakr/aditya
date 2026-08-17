@@ -182,6 +182,24 @@
 
 <div class="divider-thin"></div>
 
+<span class="section-number">01</span>
+<h2 id="homebrew">Install Homebrew</h2>
+
+<p>If you already have <code>brew</code>, skip this.</p>
+
+<pre><code>/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"</code></pre>
+
+<p>After installation, Apple Silicon users may need:</p>
+
+<pre><code>echo 'eval "$(/opt/homebrew/bin/brew shellenv zsh)"' &gt;&gt; ~/.zprofile
+eval "$(/opt/homebrew/bin/brew shellenv zsh)"</code></pre>
+
+<p>Verify:</p>
+
+<pre><code>brew --version</code></pre>
+
+<div class="divider-thin"></div>
+
 </article>
 </body>
 </html>
