@@ -248,7 +248,7 @@ export const experience: ExperienceEntry[] = [
     ],
   },
   {
-    role: "Strategic Advisor — Technical Integration & Ecosystem Growth",
+    role: "Strategic Advisor, Technical Integration & Ecosystem Growth",
     company: "Initverse Innovations Lab · Part-time · Remote",
     bullets: [
       "Worked alongside the founder and core engineering on Initverse, INIChain (L1), and INICloud, an on-chain dApp-SaaS platform where a developer goes from build to a live deployment in under 8 minutes.",
