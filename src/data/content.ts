@@ -228,7 +228,7 @@ export interface ExperienceEntry {
 
 export const experience: ExperienceEntry[] = [
   {
-    role: "Developer Relations & Ecosystem Growth",
+    role: "Head of Developer Relations and Ecosystem",
     company: "Vara Network · Gear Foundation",
     dateRange: "2024 - Present",
     bullets: [
@@ -245,6 +245,19 @@ export const experience: ExperienceEntry[] = [
       { label: "vara skills", href: "https://vara.network/agentic-development" },
       { label: "agents.vara.network", href: "https://agents.vara.network/" },
       { label: "messari report", href: "https://messari.io/report/state-of-vara-q4-2025" },
+    ],
+  },
+  {
+    role: "Strategic Advisor — Technical Integration & Ecosystem Growth",
+    company: "Initverse Innovations Lab · Part-time · Remote",
+    bullets: [
+      "Worked alongside the founder and core engineering on Initverse, INIChain (L1), and INICloud, an on-chain dApp-SaaS platform where a developer goes from build to a live deployment in under 8 minutes.",
+      "Owned the technical integration surface end to end: reference integrations, developer onboarding flow, and the build-to-deploy path on INICloud, cutting time-to-first-deployment by roughly 40%.",
+      "Wrote and reviewed developer documentation and technical validation material, so builders could get a contract deployed on INIChain and running on INICloud without hand-holding from the core team.",
+      "Ran technical integrations with wallet and infrastructure partners including FoxWallet, AWS, and Google Cloud, and drove the technical validation behind TGE and listings readiness with CoinDesk, Coin98, XT, and MEXC.",
+      "Ran the Prometheus Accelerator as the technical counterpart for 32+ startups, taking 18 of them to mainnet pilots and 4 to grant wins through architecture review, integration support, and hands-on debugging.",
+      "Supported the points program as it scaled to 87,575,910+ users earning points, keeping the on-chain accounting and the developer-facing surface stable under that load.",
+      "Grew the builder ecosystem to 60K+ members with 22K weekly active users, 2.1M quarterly impressions, and 9%+ conversion, across a ~441K community footprint on Telegram, X, Discord, YouTube, Facebook, and LinkedIn.",
     ],
   },
   {
