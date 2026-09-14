@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Build Ethereum dApps That Feel Instant: A Practical Guide to Preconfirmations and Faster UX</title>
+<meta name="description" content="A local Vara.eth lab that measures pre-confirmation latency, one-validator throughput, Ethereum settlement lag, and what a reorg does to a signed promise.">
+<link rel="canonical" href="https://www.adibuilds.in/blog/vara-eth-preconfirmation-lab">
+<meta property="og:title" content="Build Ethereum dApps That Feel Instant: A Practical Guide to Preconfirmations and Faster UX">
+<meta property="og:description" content="Pre-confirmation latency, one-validator throughput, Ethereum settlement lag, and what a reorg does to a signed promise, measured on a real gear v2.0.0 stack.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://www.adibuilds.in/blog/vara-eth-preconfirmation-lab">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Build Ethereum dApps That Feel Instant: A Practical Guide to Preconfirmations and Faster UX">
+<meta name="twitter:description" content="Pre-confirmation latency, one-validator throughput, Ethereum settlement lag, and what a reorg does to a signed promise, measured on a real gear v2.0.0 stack.">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FAFAF8; --text: #1a1a1a; --text-secondary: #555; --accent: #2563eb;
+    --accent-light: #dbeafe; --border: #e5e5e0; --diagram-bg: #fefefe; --diagram-border: #d4d4c8;
+    --sketch-stroke: #1a1a1a; --sketch-fill-blue: #dbeafe; --sketch-fill-green: #dcfce7;
+    --sketch-fill-amber: #fef3c7; --sketch-fill-rose: #ffe4e6; --sketch-fill-purple: #f3e8ff;
+    --sketch-fill-gray: #f3f4f6; --callout-bg: #f8f7f4;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); line-height: 1.72; font-size: 17.5px; -webkit-font-smoothing: antialiased; }
+  .article-container { max-width: 720px; margin: 0 auto; padding: 60px 24px 100px; }
+  .article-tag { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--accent); margin-bottom: 20px; font-weight: 500; }
+  h1 { font-family: 'Instrument Serif', serif; font-size: clamp(32px, 5vw, 46px); line-height: 1.15; font-weight: 400; color: var(--text); margin-bottom: 24px; letter-spacing: -0.5px; }
+  .subtitle { font-size: 19px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 40px; font-weight: 400; }
+  .divider { width: 48px; height: 2px; background: var(--text); margin: 40px 0; }
+  .divider-thin { width: 100%; height: 1px; background: var(--border); margin: 48px 0; }
+  h2 { font-family: 'Instrument Serif', serif; font-size: 28px; font-weight: 400; color: var(--text); margin-bottom: 20px; margin-top: 8px; letter-spacing: -0.3px; scroll-margin-top: 24px; }
+  h3 { font-family: 'Instrument Serif', serif; font-size: 21px; font-weight: 400; color: var(--text); margin: 32px 0 12px; letter-spacing: -0.2px; }
+  .section-number { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--accent); font-weight: 500; margin-bottom: 8px; display: block; }
+  p { margin-bottom: 18px; color: var(--text); }
+  strong { font-weight: 600; color: var(--text); }
+  em { font-style: italic; }
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(37,99,235,.32); transition: border-color .15s; }
+  a:hover { border-bottom-color: var(--accent); }
+  .lead-paragraph { font-size: 19.5px; line-height: 1.65; color: var(--text); }
+  .callout { background: var(--callout-bg); border-left: 3px solid var(--text); padding: 20px 24px; margin: 32px 0; font-family: 'Instrument Serif', serif; font-size: 20px; line-height: 1.55; font-style: italic; color: var(--text); }
+  .callout strong { font-style: normal; font-weight: 600; }
+  ul, ol { margin: 0 0 18px; padding-left: 24px; }
+  li { margin-bottom: 8px; }
+  .diagram-wrapper { margin: 40px -20px; padding: 0; }
+  .diagram-wrapper svg { width: 100%; height: auto; display: block; }
+  .diagram-caption { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--text-secondary); text-align: center; margin-top: 12px; letter-spacing: 0.3px; padding: 0 20px; }
+  .toc { background: var(--callout-bg); border: 1px solid var(--border); border-radius: 6px; padding: 24px 28px 16px; margin: 36px 0 48px; }
+  .toc-title { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; font-weight: 500; }
+  .toc ol { margin: 0; padding-left: 22px; }
+  .toc li { margin-bottom: 6px; font-size: 15px; }
+  .toc a { border-bottom: none; color: var(--text); }
+  .toc a:hover { color: var(--accent); }
+  .glossary { background: var(--callout-bg); border: 1px solid var(--border); border-radius: 6px; padding: 28px 28px 12px; margin: 36px 0; }
+  .glossary-title { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); margin-bottom: 16px; font-weight: 500; }
+  .glossary-item { margin-bottom: 14px; font-size: 16px; line-height: 1.6; }
+  .glossary-term { font-weight: 600; font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--text); }
+  code, .inline-code { font-family: 'JetBrains Mono', monospace; font-size: 14.5px; background: #f0efe8; padding: 2px 6px; border-radius: 3px; color: var(--text); }
+  .code-file { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-secondary); margin: 28px 0 6px; padding-left: 2px; }
+  pre { font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.7; background: #1f1d1a; color: #e9e2d4; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 24px 0; }
+  pre code { font-family: inherit; font-size: inherit; background: none; padding: 0; color: inherit; border-radius: 0; }
+  .code-block { position: relative; margin: 24px 0; }
+  .code-block pre { margin: 0; padding-right: 76px; }
+  .code-file + .code-block { margin-top: 0; }
+  .copy-btn { position: absolute; top: 9px; right: 9px; font-family: 'JetBrains Mono', monospace; font-size: 10.5px; font-weight: 500; letter-spacing: 0.7px; text-transform: uppercase; color: #a8a294; background: #2b2822; border: 1px solid #3d3830; border-radius: 5px; padding: 5px 10px; cursor: pointer; user-select: none; -webkit-user-select: none; transition: color .15s, border-color .15s, background .15s; }
+  .copy-btn:hover { color: #f2ece0; background: #383329; border-color: #5c5548; }
+  .copy-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .copy-btn.copied { color: #9ec78f; border-color: #6f8f63; background: #262f21; }
+  .tok-c { color: #8a8578; }
+  .tok-k { color: #d98a5b; }
+  .tok-s { color: #9ec78f; }
+  .data-table { margin: 32px 0; overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 480px; }
+  thead th { text-align: left; font-family: 'JetBrains Mono', monospace; font-weight: 500; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-secondary); padding: 0 14px 10px; border-bottom: 2px solid var(--diagram-border); }
+  tbody td { padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.55; }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody td:first-child { white-space: nowrap; }
+  td.num { font-family: 'JetBrains Mono', monospace; font-size: 13.5px; white-space: nowrap; }
+  .cta-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px 16px; margin-bottom: 18px; }
+  .cta-primary { font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 15px; color: #fff; background: var(--accent); border: 1px solid var(--accent); border-radius: 6px; padding: 10px 18px; white-space: nowrap; }
+  .cta-primary:hover { background: #1d4fd8; border-bottom-color: #1d4fd8; }
+  .cta-secondary { color: var(--text-secondary); font-size: 16px; }
+  @media (max-width: 600px) {
+    .article-container { padding: 36px 18px 72px; }
+    body { font-size: 16.5px; }
+    h2 { font-size: 24px; }
+    .glossary { padding: 20px 20px 8px; }
+    .toc { padding: 20px 20px 10px; }
+    .diagram-wrapper { margin: 32px -10px; }
+    pre { font-size: 12px; }
+    .code-block pre { padding-right: 68px; }
+  }
+</style>
+</head>
+<body>
+<article class="article-container">
+
+<div class="article-tag">Vara.eth · Pre-confirmations · Measured</div>
+
+<h1>Build Ethereum dApps That Feel Instant: A Practical Guide to Preconfirmations and Faster UX</h1>
+
+<p class="subtitle">A local lab that measures how fast a validator's signed promise arrives, how many one validator executes per second, how long Ethereum takes to settle the same write, and what a reorg does to a promise that has already been handed out.</p>
+
+
+<p class="lead-paragraph">Vara.eth lets a client send a transaction straight to a validator and get back a signed receipt with the program's reply, before anything touches Ethereum. The pitch is a wallet that feels instant while Ethereum settles in the background.</p>
+
+<p>The question this lab asks is narrow: what does that receipt actually guarantee, and how fast is it on a real stack? To answer it I built a toy order book as a Sails program, a Node engine that writes through both paths and timestamps every hop on one clock, a committed view rebuilt only from Ethereum logs, and a harness that forces reorgs of chosen depth against nodes started with chosen quarantine settings. Every number below was produced by that stack. The Hoodi testnet was down during this work, so everything ran against a dev node with an embedded Anvil.</p>
+
+<nav class="toc" aria-label="Table of contents">
+  <div class="toc-title">In this article</div>
+  <ol>
+    <li><a href="#problem">The problem</a></li>
+    <li><a href="#architecture">Architecture</a></li>
+    <li><a href="#how-it-works">How it works</a></li>
+    <li><a href="#hard-decisions">Hard decisions and what they cost</a></li>
+    <li><a href="#results">Results</a></li>
+    <li><a href="#limits">What this does not show</a></li>
+    <li><a href="#reproduce">Reproducing it</a></li>
+    <li><a href="#next">What is next</a></li>
+  </ol>
+</nav>
+
+<div class="glossary">
+  <div class="glossary-title">Terms used below</div>
+  <div class="glossary-item"><span class="glossary-term">pre-confirmation</span>: a validator's signature over a program's reply to a transaction. Returned in milliseconds, before any batch reaches Ethereum.</div>
+  <div class="glossary-item"><span class="glossary-term">injected transaction</span>: a transaction sent directly to the validator's RPC rather than through an Ethereum contract. This is the fast path.</div>
+  <div class="glossary-item"><span class="glossary-term">Router / Mirror</span>: the Ethereum contracts. The validator commits batches to the Router; each program has a Mirror where its events surface as logs and where L1 writes are sent.</div>
+  <div class="glossary-item"><span class="glossary-term">canonical quarantine</span>: how many blocks behind the Ethereum head the validator anchors its work. A node flag in this lab, set per run with <code>--canonical-quarantine</code>.</div>
+  <div class="glossary-item"><span class="glossary-term">committed</span>: the write's events are visible in Mirror logs on the Ethereum side. In this lab, that side is a local Anvil chain.</div>
+</div>
+
+<div class="divider"></div>
+
+<span class="section-number">01</span>
+<h2 id="problem">The problem</h2>
+
+<p>A pre-confirmation is a validator's signature over a reply. It is not a block, and it is not finality. Three things about it are easy to assert and hard to measure without a controlled setup:</p>
+
+<ul>
+  <li><strong>Latency.</strong> On loopback the receipt arrives in single-digit milliseconds, which tells you nothing about a user on a real network. The wire needs to be put back, in a way that is measured rather than guessed.</li>
+  <li><strong>Settlement.</strong> The validator commits batches to a Router contract on Ethereum, and the program's events surface as logs on its Mirror contract. Until that happens the pre-confirmed state exists only in the validator's memory. The lag has to be measured from a view that contains nothing the validator said.</li>
+  <li><strong>Reorgs.</strong> The validator anchors its work to an Ethereum block. If that block is reorganised away, what happens to promises already issued, and does the validator keep issuing new ones?</li>
+</ul>
+
+<div class="divider-thin"></div>
+
+<span class="section-number">02</span>
+<h2 id="architecture">Architecture</h2>
+
+<p>Four processes, one machine. The dev node spawns Anvil itself, deploys the Router, and runs a single Malachite validator. The lab server owns the Anvil dev keys, drives both write paths, and streams a snapshot to a browser page over WebSocket. Nothing in the browser is on the timing path.</p>
+
+<!-- DIAGRAM 1: four processes, two write paths, two views -->
+<div class="diagram-wrapper">
+<svg viewBox="0 0 760 440" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="d1-title">
+  <title id="d1-title">Four processes on one machine: browser, lab server, ethexe validator, Anvil</title>
+  <rect x="0" y="0" width="760" height="440" fill="var(--diagram-bg)" rx="8"/>
+  <text x="380" y="34" text-anchor="middle" font-family="'Instrument Serif', serif" font-size="18" fill="#1a1a1a">Two write paths, two views, one clock</text>
+
+  <!-- browser -->
+  <rect x="24" y="62" width="176" height="88" rx="6" fill="var(--sketch-fill-gray)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="112" y="88" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">Browser · lab-ui</text>
+  <text x="112" y="108" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#555">telemetry page, Vite + React</text>
+  <text x="112" y="126" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#555">passkey signer, WebAuthn PRF</text>
+
+  <!-- lab server -->
+  <rect x="270" y="62" width="190" height="88" rx="6" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="365" y="88" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">lab-server · Node 22</text>
+  <text x="365" y="108" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#555">one monotonic clock</text>
+  <text x="365" y="126" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#555">emulator · L1 watcher · autopilot</text>
+
+  <!-- validator -->
+  <rect x="560" y="62" width="176" height="88" rx="6" fill="var(--sketch-fill-amber)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="648" y="88" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">ethexe dev node</text>
+  <text x="648" y="108" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#555">Malachite validator, RPC :9944</text>
+  <text x="648" y="126" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#555">orderbook · ledger · counter</text>
+
+  <!-- anvil -->
+  <rect x="560" y="232" width="176" height="88" rx="6" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="648" y="258" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">Anvil :8545</text>
+  <text x="648" y="278" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#555">spawned by the node</text>
+  <text x="648" y="296" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#555">Router · one Mirror per program</text>
+
+  <!-- browser -> server -->
+  <line x1="202" y1="106" x2="260" y2="106" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="268,106 259,102 259,110" fill="#1a1a1a"/>
+  <text x="235" y="96" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#555">ws :8787</text>
+
+  <!-- server -> validator: injected tx -->
+  <line x1="462" y1="92" x2="550" y2="92" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="558,92 549,88 549,96" fill="#1a1a1a"/>
+  <text x="510" y="82" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#555">injected tx</text>
+
+  <!-- validator -> server: signed promise -->
+  <line x1="558" y1="124" x2="470" y2="124" stroke="#2563eb" stroke-width="1.4"/>
+  <polygon points="462,124 471,120 471,128" fill="#2563eb"/>
+  <text x="510" y="140" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#2563eb">signed promise</text>
+
+  <!-- validator -> anvil: commit batch -->
+  <line x1="648" y1="152" x2="648" y2="222" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="648,230 644,221 652,221" fill="#1a1a1a"/>
+  <text x="638" y="192" text-anchor="end" font-family="'JetBrains Mono', monospace" font-size="10" fill="#555">commit batch → Router</text>
+
+  <!-- anvil -> server: getLogs (committed view) -->
+  <polyline points="558,262 330,262 330,160" fill="none" stroke="#1a1a1a" stroke-width="1.2"/>
+  <polygon points="330,152 326,161 334,161" fill="#1a1a1a"/>
+  <text x="444" y="253" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#555">Mirror logs, getLogs every 50 ms</text>
+
+  <!-- server -> anvil: L1 path -->
+  <polyline points="290,152 290,300 550,300" fill="none" stroke="#1a1a1a" stroke-width="1.2" stroke-dasharray="4 3"/>
+  <polygon points="558,300 549,296 549,304" fill="#1a1a1a"/>
+  <text x="424" y="318" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#555">L1 write: Mirror.sendMessage</text>
+
+  <!-- the two views -->
+  <rect x="24" y="352" width="346" height="62" rx="6" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="197" y="377" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">Pre-confirmed view</text>
+  <text x="197" y="397" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#555">a dry-run query against the validator</text>
+
+  <rect x="390" y="352" width="346" height="62" rx="6" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="563" y="377" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">Committed view</text>
+  <text x="563" y="397" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#555">a replay of Mirror logs; trusts nothing the validator says</text>
+</svg>
+</div>
+<p class="diagram-caption">The two views come from two different sources. Any divergence between them is a concrete, countable thing.</p>
+
+<p>The order book program is deliberately small: <code>place(side, price, qty)</code>, <code>cancel(id)</code>, a <code>book()</code> snapshot, and a <code>seq()</code> counter. Every state change emits exactly one Ethereum-style event stamped with a monotonically increasing sequence number, so replaying the events reproduces the book. A second program, <code>ledger</code>, backs the wallet's Send tab with a one-time faucet and a balance-checked transfer. A third, <code>counter</code>, does one increment and emits nothing; it exists to measure execution throughput without event overhead.</p>
+
+<div class="divider-thin"></div>
+
+<span class="section-number">03</span>
+<h2 id="how-it-works">How it works</h2>
+
+<h3>Two write paths, one clock</h3>
+<p>An injected write goes to the validator over its RPC and resolves when the validator-signed receipt arrives. An L1 write is an ordinary Ethereum transaction to the program's Mirror contract and resolves when Anvil mines it. Both are timed with <code>performance.now()</code> in the same process. Signing and the reference-block fetch happen before the submit stamp on both paths, so neither is charged for work the other excludes.</p>
+<p>That symmetry was not there in the first version: the L1 path signed inside its window and viem polled receipts every four seconds by default, which inflated the L1 numbers until both were fixed.</p>
+
+<h3>The committed view trusts nothing the validator says</h3>
+<p>The L1 watcher polls Anvil every 50 ms. Before ingesting a range it reads the hash of the top block, fetches the logs, then reads the hash again. If it changed, a reorg raced the fetch and the batch is thrown away. On every poll it also checks that the previously seen head is still canonical, and if not, it resets the book and re-ingests from genesis.</p>
+<p>A rebuild clears every write record's committed timestamp, because a stamp that survives a rebuild is a stamp for a block that may no longer exist. The first reorg matrix I produced was wrong for exactly that reason, and a reviewer caught it.</p>
+
+<h3>Putting the wire back</h3>
+<p>Loopback flatters the headline number. The server therefore starts a WebSocket proxy in front of the validator RPC and, at startup, measures the median round trip of a JSON-RPC call to <code>wss://rpc.vara.network</code>. The "measured" profile delays every frame in each direction by half that round trip plus Gaussian jitter and a 2% chance of a spike.</p>
+<p>Delays are order-preserving, and frames that arrived within 40 ms of each other keep their spacing, because compressing the validator's subscription acknowledgement into its first notification made the JS client drop the notification. Two to three percent of writes reported no receipt until that rule existed. From this machine the round trip calibrated between roughly 165 and 190 ms across runs.</p>
+
+<h3>Forcing reorgs</h3>
+<p>The reorg matrix restarts the node per cell with a chosen <code>--canonical-quarantine</code>, deploys a fresh program, commits three orders to Ethereum, pre-confirms two more without waiting for settlement, then calls <code>anvil_reorg</code> with a chosen depth, which drops and re-mines that many blocks empty. It sends one more write five seconds later and watches for forty seconds.</p>
+<p>The harness records whether the in-flight orders are ever re-committed, whether the seeded orders come back, whether the post-reorg write settles, and whether the node log starts saying <code>refusing to build batch</code>.</p>
+
+<h3>Finding the execution ceiling</h3>
+<p>The live path is capped by the client, not the validator: a Node process signs about 290 injected transactions per second. To see what the validator itself does, a probe pre-signs a few thousand transactions to the counter programs, fires them with <code>injected_sendTransaction</code> and no per-transaction subscription, and reads the executed count back from the programs' own <code>count()</code> query each second. The number reported is executions the program performed, not submissions the RPC accepted.</p>
+
+<h3>Passkey signing</h3>
+<p>The wallet drawer derives a secp256k1 key in the browser from a WebAuthn PRF output through HKDF. The server builds and anchors the injected transaction, hands the hash to the browser, and receives only the signature back. The validator recovers an Ethereum address from that signature like any other.</p>
+
+<div class="callout">The key never leaves the browser, and the passkey wallet is never funded with anything. Execution is paid from the program's own executable balance, which is one of the more interesting properties of the model and one of the easier ones to misread in a demo.</div>
+
+<div class="divider-thin"></div>
+
+<span class="section-number">04</span>
+<h2 id="hard-decisions">Hard decisions and what they cost</h2>
+
+<ul>
+  <li><strong>Timing lives in the server, not the browser.</strong> A browser-only dapp would have been more honest as a product but would have straddled two WebSocket clients in one event loop, pulled the Polkadot peer dependencies of sails-js into Vite, and made the headless benchmark a second implementation. The page is a viewer; the engine is where correctness lives.</li>
+  <li><strong>Three fills per order.</strong> ethexe allows four outgoing messages per execution and every Ethereum event counts. An order that crossed four resting makers panicked with <code>OutgoingMessagesAmountLimitExceeded</code>, which reads as <code>panicked with '&lt;unknown&gt;'</code> unless the program is built with the <code>gstd-panic-message</code> feature. The book now performs at most three fills per order and rests the remainder, like a per-transaction match limit on a venue.</li>
+  <li><strong>The dev node's store is never pruned.</strong> <code>ethexe run --dev --tmp</code> writes every micro-block to RocksDB and keeps it: 64 GB after 41 minutes at 25 tx/s, with micro-block cadence degrading from 10 ms to 80 ms. The server recycles node, Anvil, and deployments every 30 minutes or above 40 GB, never during a load test, and drops in-flight records at that moment because they cannot settle on the new chain. A latency-based trigger was tried first and looped at high rates because it could not tell store bloat from queueing.</li>
+  <li><strong>A vendored, unpublished SDK.</strong> The server uses <code>@vara-eth/api</code> 0.6.0-rc.0 from the vara-wallet repository as a tarball. The version on npm today is 0.5.2. Against a v2.0.0 node the release candidate picks the legacy RPC envelope correctly but signs the legacy digest, and the node answers "Address mismatch". One property override on the transaction instance points the signer at the current hashable bytes. This is illustrative of the moment, not a stable API.</li>
+  <li><strong>Initialisation is an L1 message.</strong> Creating a program only creates its Mirror. The program stays uninitialised until the first Ethereum-side <code>sendMessage</code> carries the constructor payload, and injected transactions to it are silently purged. The deploy script sends that message for every instance before anything else touches it.</li>
+</ul>
+
+<div class="divider-thin"></div>
+
+<span class="section-number">05</span>
+<h2 id="results">Results</h2>
+
+<p>All figures are from a fresh local stack on 2026-09-14 with one validator and one-second Anvil blocks. Latency percentiles use nearest-rank. Failed writes and writes still awaiting a hop are excluded and counted separately.</p>
+
+<h3>Both paths, 30 writes each, loopback</h3>
+
+<div class="data-table">
+<table>
+  <thead>
+    <tr><th>Hop</th><th>Injected</th><th>Ethereum transaction</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>submit → pre-confirmed</td><td class="num">p50 17 ms · p95 20 ms</td><td class="num">n/a</td></tr>
+    <tr><td>submit → mined on Anvil</td><td class="num">n/a</td><td class="num">p50 984 ms</td></tr>
+    <tr><td>submit → committed on Ethereum</td><td class="num">p50 1.68 s · p95 2.01 s</td><td class="num">p50 4.00 s</td></tr>
+    <tr><td>blocks from anchor to commit</td><td class="num">2 to 5</td><td class="num">3</td></tr>
+  </tbody>
+</table>
+</div>
+
+<!-- DIAGRAM 2: timeline of one injected write against one L1 write -->
+<div class="diagram-wrapper">
+<svg viewBox="0 0 760 210" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="d2-title d2-desc">
+  <title id="d2-title">Timeline of one injected write and one L1 write</title>
+  <desc id="d2-desc">Injected: pre-confirmed at 17 milliseconds, committed at 1.68 seconds. Ethereum transaction: mined at 0.98 seconds, committed at 4.0 seconds. Scale is 0 to 4.2 seconds.</desc>
+  <rect x="0" y="0" width="760" height="210" fill="var(--diagram-bg)" rx="8"/>
+  <text x="380" y="34" text-anchor="middle" font-family="'Instrument Serif', serif" font-size="18" fill="#1a1a1a">Median hops for the two paths, loopback</text>
+
+  <!-- axis: 0 to 4.2 s over x 130..718 (140 px per second) -->
+  <g font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#555">
+    <line x1="130" y1="62" x2="718" y2="62" stroke="#d4d4c8" stroke-width="1"/>
+    <g stroke="#d4d4c8" stroke-width="1">
+      <line x1="130" y1="58" x2="130" y2="66"/><line x1="270" y1="58" x2="270" y2="66"/>
+      <line x1="410" y1="58" x2="410" y2="66"/><line x1="550" y1="58" x2="550" y2="66"/>
+      <line x1="690" y1="58" x2="690" y2="66"/>
+    </g>
+    <text x="130" y="52" text-anchor="middle">0 s</text>
+    <text x="270" y="52" text-anchor="middle">1 s</text>
+    <text x="410" y="52" text-anchor="middle">2 s</text>
+    <text x="550" y="52" text-anchor="middle">3 s</text>
+    <text x="690" y="52" text-anchor="middle">4 s</text>
+  </g>
+
+  <g font-family="'DM Sans', sans-serif" font-size="13" font-weight="600" fill="#1a1a1a">
+    <text x="40" y="102">Injected</text>
+    <text x="40" y="162">L1 tx</text>
+  </g>
+
+  <!-- injected: pre-confirmed at 17 ms (x≈132), committed at 1.68 s (x=365) -->
+  <rect x="130" y="88" width="235" height="18" rx="3" fill="var(--sketch-fill-gray)" stroke="#1a1a1a" stroke-width="1"/>
+  <rect x="130" y="88" width="4" height="18" fill="#2563eb"/>
+  <text x="142" y="101" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#2563eb">pre-confirmed 17 ms</text>
+  <rect x="363" y="86" width="3" height="22" fill="#1a1a1a"/>
+  <text x="374" y="101" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#1a1a1a">committed 1.68 s</text>
+
+  <!-- L1: mined at 0.98 s (x=267), committed at 4.0 s (x=690) -->
+  <rect x="130" y="148" width="560" height="18" rx="3" fill="var(--sketch-fill-gray)" stroke="#1a1a1a" stroke-width="1"/>
+  <rect x="266" y="146" width="3" height="22" fill="#2563eb"/>
+  <text x="276" y="161" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#2563eb">mined 0.98 s</text>
+  <rect x="689" y="146" width="3" height="22" fill="#1a1a1a"/>
+  <text x="686" y="188" text-anchor="end" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#1a1a1a">committed 4.0 s</text>
+</svg>
+</div>
+<p class="diagram-caption">The injected write is usable by the client after the first tick. Both writes settle only at the second.</p>
+
+<h3>Pre-confirmation latency under load, loopback</h3>
+
+<div class="data-table">
+<table>
+  <thead>
+    <tr><th>Load</th><th>Throughput</th><th>Median</th><th>p95</th><th>Fastest</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>autopilot 20 to 25 tx/s</td><td class="num">20–25 tx/s</td><td class="num">5–25 ms</td><td class="num">23–46 ms</td><td class="num">1.9 ms</td></tr>
+    <tr><td>200 tx, 16 in flight</td><td class="num">319 tx/s</td><td class="num">39 ms</td><td class="num">56 ms</td><td class="num">3 ms</td></tr>
+    <tr><td>1000 tx, 64 in flight, one program</td><td class="num">467 tx/s</td><td class="num">91 ms</td><td class="num">159 ms</td><td class="num">2 ms</td></tr>
+    <tr><td>2000 tx, 128 in flight, four programs</td><td class="num">494 tx/s</td><td class="num">160 ms</td><td class="num">267 ms</td><td class="num">31 ms</td></tr>
+    <tr><td>2 × 1000 tx, 64 in flight, two processes</td><td class="num">498 tx/s</td><td class="num">215–220 ms</td><td class="num">321–327 ms</td><td class="num">58 ms</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>The live path tops out near 500 pre-confirmations per second whether the load hits one program or four, from one process or two. Under saturation the median grows with the number in flight, which is queueing inside the validator's micro-block pipeline, not WASM execution time.</p>
+
+<h3>With the wire emulated</h3>
+<p>With the "measured" profile active, the autopilot at 25 tx/s with surges produced a median of 208 to 219 ms and a p95 of 250 to 320 ms, with a floor of 183 ms. Pushing the emulated live path to 500 requested tx/s across five signing processes sustained about 400 tx/s with a median of 300 to 350 ms and 10 failures in 27,000 writes.</p>
+
+<h3>Execution ceiling, fire-and-forget probe</h3>
+
+<div class="data-table">
+<table>
+  <thead>
+    <tr><th>Setup</th><th>Submit rate</th><th>Executed/s, average over drain</th><th>Best 1 s window</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>1 process, 1 program, 2,000 tx</td><td class="num">30,700/s</td><td class="num">570</td><td class="num">766</td></tr>
+    <tr><td>1 process, 4 programs, 4,000 tx</td><td class="num">23,400/s</td><td class="num">517–596</td><td class="num">639–767</td></tr>
+    <tr><td>4 processes, 16 programs, 12,000 tx</td><td class="num">8,000/s each</td><td class="num">358 over 25 s, mempool saturated</td><td class="num">800</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>The RPC accepts about 30,000 submissions per second and the mempool holds about 10,000. The validator executes roughly 1.3 to 2 ms per transaction: 500 to 600 per second sustained for bursts of a few thousand, about 800 in the best second, and less when a single micro-block grows past 9,000 transactions. CPU peaked near 2.7 of 10 cores, so execution parallelism across programs is limited in this version. Each execution is paid from the program's executable balance; 1,000 WVARA covered about 6,000 increments, and load instances are deployed with 25,000.</p>
+
+<h3>Reorg matrix</h3>
+
+<div class="data-table">
+<table>
+  <thead>
+    <tr><th>Quarantine</th><th>Depth</th><th>In-flight re-committed</th><th>Post-reorg write</th><th>Seeded still committed</th><th>Validator refused commitments</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="num">0</td><td class="num">1</td><td class="num">+0.9 s</td><td>promise 5 ms, committed +7.9 s</td><td class="num">3/3</td><td>no</td></tr>
+    <tr><td class="num">0</td><td class="num">3</td><td class="num">never</td><td>promise 10 ms, never committed</td><td class="num">0/3</td><td>yes</td></tr>
+    <tr><td class="num">0</td><td class="num">6</td><td class="num">never</td><td>promise 6 ms, never committed</td><td class="num">0/3</td><td>yes</td></tr>
+    <tr><td class="num">4</td><td class="num">1</td><td class="num">+0.9 s</td><td>promise 8 ms, committed +7.9 s</td><td class="num">3/3</td><td>no</td></tr>
+    <tr><td class="num">4</td><td class="num">3</td><td class="num">+0.9 s</td><td>promise 7 ms, committed +7.9 s</td><td class="num">3/3</td><td>no</td></tr>
+    <tr><td class="num">4</td><td class="num">6</td><td class="num">never</td><td>promise 5 ms, never committed</td><td class="num">0/3</td><td>yes</td></tr>
+  </tbody>
+</table>
+</div>
+
+<!-- DIAGRAM 3: the reorg rule as a grid -->
+<div class="diagram-wrapper">
+<svg viewBox="0 0 760 330" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="d3-title">
+  <title id="d3-title">Reorg depth against canonical quarantine: which cells recover</title>
+  <rect x="0" y="0" width="760" height="330" fill="var(--diagram-bg)" rx="8"/>
+  <text x="380" y="34" text-anchor="middle" font-family="'Instrument Serif', serif" font-size="18" fill="#1a1a1a">Absorbed if and only if depth ≤ quarantine + 1</text>
+
+  <!-- column headers: reorg depth -->
+  <text x="150" y="72" text-anchor="end" font-family="'JetBrains Mono', monospace" font-size="10.5" letter-spacing="1" fill="#555">REORG DEPTH →</text>
+  <g font-family="'JetBrains Mono', monospace" font-size="13" font-weight="500" fill="#1a1a1a" text-anchor="middle">
+    <text x="255" y="73">1 block</text>
+    <text x="445" y="73">3 blocks</text>
+    <text x="635" y="73">6 blocks</text>
+  </g>
+
+  <!-- row headers: quarantine -->
+  <g font-family="'JetBrains Mono', monospace" font-size="13" font-weight="500" fill="#1a1a1a" text-anchor="end">
+    <text x="150" y="132">quarantine 0</text>
+    <text x="150" y="222">quarantine 4</text>
+  </g>
+
+  <!-- row: quarantine 0 -->
+  <rect x="170" y="92" width="170" height="70" rx="6" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="255" y="122" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">absorbed</text>
+  <text x="255" y="142" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#555">re-committed in 0.9 s</text>
+
+  <rect x="360" y="92" width="170" height="70" rx="6" fill="var(--sketch-fill-rose)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="445" y="122" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">never settles again</text>
+  <text x="445" y="142" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#555">promises still issued in ms</text>
+
+  <rect x="550" y="92" width="170" height="70" rx="6" fill="var(--sketch-fill-rose)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="635" y="122" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">never settles again</text>
+  <text x="635" y="142" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#555">promises still issued in ms</text>
+
+  <!-- row: quarantine 4 -->
+  <rect x="170" y="182" width="170" height="70" rx="6" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="255" y="212" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">absorbed</text>
+  <text x="255" y="232" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#555">re-committed in 0.9 s</text>
+
+  <rect x="360" y="182" width="170" height="70" rx="6" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="445" y="212" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">absorbed</text>
+  <text x="445" y="232" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#555">re-committed in 0.9 s</text>
+
+  <rect x="550" y="182" width="170" height="70" rx="6" fill="var(--sketch-fill-rose)" stroke="#1a1a1a" stroke-width="1.2"/>
+  <text x="635" y="212" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">never settles again</text>
+  <text x="635" y="232" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="12" fill="#555">promises still issued in ms</text>
+
+  <!-- legend -->
+  <rect x="170" y="284" width="14" height="14" rx="3" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1"/>
+  <text x="192" y="296" font-family="'DM Sans', sans-serif" font-size="12" fill="#555">seeded orders 3/3 still committed, post-reorg write settles in +7.9 s</text>
+  <rect x="170" y="306" width="14" height="14" rx="3" fill="var(--sketch-fill-rose)" stroke="#1a1a1a" stroke-width="1"/>
+  <text x="192" y="318" font-family="'DM Sans', sans-serif" font-size="12" fill="#555">seeded orders 0/3, node logs "refusing to build batch" and does not recover on its own</text>
+</svg>
+</div>
+<p class="diagram-caption">One trial per cell. The boundary sits exactly at depth = quarantine + 1.</p>
+
+<p><strong>The rule that fell out:</strong> a reorg is absorbed if and only if its depth is at most the canonical quarantine plus one. Beyond that, the coordinator logs <code>refusing to build batch</code> and never recovers on its own. Previously committed orders whose commit transactions were reorged away are never re-committed. And the validator keeps issuing signed promises in milliseconds for new writes that will never settle.</p>
+
+<div class="callout">On its own, a pre-confirmation carries no settlement guarantee. <strong>It is worth exactly as much as the depth of the validator's Ethereum anchor.</strong> That is the single most useful thing this lab produced, and it was cheap to hit.</div>
+
+<div class="divider-thin"></div>
+
+<span class="section-number">06</span>
+<h2 id="limits">What this does not show</h2>
+
+<ul>
+  <li><strong>One validator, one machine.</strong> In production the Router accepts a batch only when a threshold fraction of the validator set has signed it (see <code>validatorsThreshold</code> in <code>IRouter.sol</code>); latency, throughput, and failure behaviour with several validators will differ from one. The dev node's quarantine is a local knob, not a description of network policy.</li>
+  <li><strong>Anvil is not Ethereum.</strong> "Committed on Ethereum" here means the Router on a local Anvil chain accepted the batch. Real L1 inclusion adds block time, gas markets, and its own finality timeline. Reorgs were forced with <code>anvil_reorg</code>, which drops and re-mines empty blocks; in a real reorg the displaced transactions usually return to the mempool and are re-mined rather than vanishing.</li>
+  <li><strong>The order book keeps no balances.</strong> It is a matching engine with no money attached: anyone can sell a quantity they do not hold, and fills move nothing. Only the ledger program behind the wallet's Send tab enforces balances. This is fine for measuring latency and misleading in a wallet demo; making the book settle in ledger units is the obvious next change.</li>
+  <li><strong>The emulated wire is a model.</strong> It reproduces a measured median round trip with jitter and spikes; it does not reproduce TLS, HTTP/2 multiplexing, packet loss, or a congested last mile. Numbers labelled "emulated" are exactly that.</li>
+  <li><strong>One trial per matrix cell,</strong> and committed timestamps are observation times, which include up to one 50 ms poll interval and the getLogs round trip.</li>
+  <li><strong>Tens of thousands of transactions per second were requested and not reached.</strong> The measured ceiling on this laptop and node version is a few hundred executions per second. Reaching 50,000 would require a validator set with parallel execution across many programs and machines and a node tuned for it; nothing here indicates whether that is feasible.</li>
+  <li><strong>The SDK is a pre-release.</strong> The digest override described above works against gear v2.0.0 and will be wrong or unnecessary against a node that exposes the <code>version</code> RPC.</li>
+</ul>
+
+<div class="divider-thin"></div>
+
+<span class="section-number">07</span>
+<h2 id="reproduce">Reproducing it</h2>
+
+<p>Prerequisites: Rust with the pinned nightly, <code>protoc</code>, <code>cmake</code>, Node 22, <code>sails-cli</code> 2.0.0, and Foundry 1.7.0 exactly; the dev node refuses other builds.</p>
+
+<div class="code-file">Build the node, deploy the programs, start the lab</div>
+<pre><code>git clone --depth 1 --branch v2.0.0 https://github.com/gear-tech/gear.git gear
+(<span class="tok-k">cd</span> gear &amp;&amp; cargo build -p ethexe-cli --release)                 <span class="tok-c"># about 25 min, once</span>
+<span class="tok-k">for</span> p <span class="tok-k">in</span> orderbook ledger counter; <span class="tok-k">do</span> (<span class="tok-k">cd</span> $p &amp;&amp; cargo build --release); <span class="tok-k">done</span>
+run/start-node.sh --quarantine 0 &amp;&amp; run/deploy.sh                <span class="tok-c"># node + Anvil, 5 book instances, ledger</span>
+(<span class="tok-k">cd</span> lab-server &amp;&amp; npm install &amp;&amp; npm run serve)                  <span class="tok-c"># ws://127.0.0.1:8787, autopilot on</span>
+(<span class="tok-k">cd</span> lab-ui &amp;&amp; npm install &amp;&amp; npm run dev)                        <span class="tok-c"># http://localhost:5173</span></code></pre>
+
+<div class="code-file">Run the measurements</div>
+<pre><code><span class="tok-k">cd</span> lab-server
+npm run bench -- 30                       <span class="tok-c"># both paths, per-hop latency, report under reports/</span>
+npm run reorg-matrix                      <span class="tok-c"># quarantine × depth, restarts the node per cell</span>
+INSTANCES=16 EXEC_BALANCE=25000000000000000 ../run/deploy-counter.sh
+npx tsx src/fire-cli.ts 3000 128 1 16     <span class="tok-c"># pre-signed fire-and-forget, executed/s from the counter</span></code></pre>
+
+<div class="divider-thin"></div>
+
+<span class="section-number">08</span>
+<h2 id="next">What is next</h2>
+
+<ul>
+  <li>Make the order book settle in ledger units: lock quantity or price × quantity at placement, move units on fill, unlock on cancel. The wallet then behaves the way a viewer assumes it does.</li>
+  <li>Run the same matrix and benchmark against Hoodi once the testnet is back, so the emulated wire can be replaced with a measured one and the quarantine rule can be checked against a real validator set.</li>
+  <li>Repeat each reorg cell several times and report variance rather than one trial.</li>
+  <li>Watch the ledger's Mirror as well as the book's, so wallet transfers get settlement stamps instead of being marked untracked.</li>
+</ul>
+
+
+<p class="cta-row">
+  <a class="cta-primary" href="https://github.com/Adityaakr/vara-eth-runner" target="_blank" rel="noopener noreferrer">Explore the lab on GitHub</a>
+  <span class="cta-secondary">or tell me what you would measure next on <a href="https://x.com/adityakrx" target="_blank" rel="noopener noreferrer">X @adityakrx</a>.</span>
+</p>
+
+</article>
+
+<!--
+  Copy-to-clipboard buttons. Progressive enhancement only: with JS off, every block is
+  still plain selectable text in its pre/code element. The button is created as a sibling
+  of the pre, not inside it, and is user-select:none, so a manual drag-select never picks
+  up its label.
+-->
+<script>
+(function () {
+  function fallbackCopy(text) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.top = '-1000px';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+    document.body.removeChild(ta);
+    return ok;
+  }
+
+  var pres = document.querySelectorAll('pre');
+
+  for (var i = 0; i < pres.length; i++) {
+    (function (pre) {
+      var wrap = document.createElement('div');
+      wrap.className = 'code-block';
+      pre.parentNode.insertBefore(wrap, pre);
+      wrap.appendChild(pre);
+
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'copy-btn';
+      btn.textContent = 'Copy';
+      btn.setAttribute('aria-label', 'Copy code to clipboard');
+      wrap.appendChild(btn);
+
+      var reset;
+
+      function flash(label, copied) {
+        btn.textContent = label;
+        btn.className = copied ? 'copy-btn copied' : 'copy-btn';
+        clearTimeout(reset);
+        reset = setTimeout(function () {
+          btn.textContent = 'Copy';
+          btn.className = 'copy-btn';
+        }, 1800);
+      }
+
+      function viaFallback() {
+        var ok = fallbackCopy(text());
+        flash(ok ? 'Copied' : 'Press ⌘C', ok);
+      }
+
+      function text() {
+        return (pre.querySelector('code') || pre).textContent;
+      }
+
+      btn.addEventListener('click', function () {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text()).then(
+            function () { flash('Copied', true); },
+            viaFallback
+          );
+        } else {
+          viaFallback();
+        }
+      });
+    })(pres[i]);
+  }
+})();
+</script>
+</body>
+</html>

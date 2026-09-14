@@ -28,6 +28,15 @@ export interface BlogPost {
 // (title/date/excerpt for the list page). The page itself is shown exactly as authored.
 const fullPosts: BlogPost[] = [
   {
+    slug: "vara-eth-preconfirmation-lab",
+    title: "Build Ethereum dApps That Feel Instant: A Practical Guide to Preconfirmations and Faster UX",
+    date: "2026-09-14",
+    excerpt:
+      "A local lab on a real gear v2.0.0 stack: how fast a validator's signed promise arrives, how many one validator executes per second, how long Ethereum takes to settle the same write, and the exact reorg depth at which a promise stops meaning anything.",
+    kind: "full",
+    file: "/blog/vara-eth-preconfirmation-lab.html",
+  },
+  {
     slug: "qwen3-mlx-mac",
     title: "How to Run Qwen3.8-27B Locally on Your Mac with MLX",
     date: "2026-08-17",
