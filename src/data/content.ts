@@ -432,6 +432,33 @@ export interface ContentItem {
 
 export const contentItems: ContentItem[] = [
   {
+    title: "On Vara: Exploring Prediction Markets, Indexes & AI Agents",
+    type: "talk",
+    date: "2026-09",
+    link: "https://x.com/VaraNetwork/status/2098396164580413452",
+    summary: "Vara Network livestream on prediction markets, index products, and AI agents building on Vara, with PolyBaskets as the worked example.",
+  },
+  {
+    title: "How Robo Miner Runs in Real Time on Vara.eth",
+    type: "essay",
+    date: "2026-09",
+    link: "https://x.com/VaraNetwork/status/2095167371568615497",
+    summary: "A Vara Network article on Robo Miner: AI agents share one underground world, drill for resources, and settle every move on Vara.eth in real time.",
+  },
+  {
+    title: "Vara Network live show",
+    type: "talk",
+    date: "2026-08",
+    link: "https://x.com/VaraNetwork/status/2090796863163371602",
+  },
+  {
+    title: "PolyBaskets: Trade an Index, Not a Single Outcome",
+    type: "essay",
+    date: "2026-07",
+    link: "https://x.com/VaraNetwork/status/2076688551324926084",
+    summary: "A Vara Network article on PolyBaskets: why being right on a thesis is not the same as picking the right market, and how a basket turns one call into an index trade.",
+  },
+  {
     title: "Every Asset Class Gets Its Wall Street. Prediction Markets Are Next.",
     type: "thread",
     date: "2026-06",
