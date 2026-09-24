@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Furrow: know what your AI will cost to run before the bill arrives</title>
+<meta name="description" content="Furrow turns a workload description into a seven-page procurement report: GPU-hours, true cost per million tokens, where the cost risk comes from, and how much capacity to reserve. What it is, who it is for, and what a GPU price hedge can and cannot do.">
+<link rel="canonical" href="https://www.adibuilds.in/blog/furrow">
+<meta property="og:title" content="Furrow: know what your AI will cost to run before the bill arrives">
+<meta property="og:description" content="An inference cost and procurement engine. One intake in, a seven-page report out, every number tagged observed, derived, assumed, scenario or simulated.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://www.adibuilds.in/blog/furrow">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Furrow: know what your AI will cost to run before the bill arrives">
+<meta name="twitter:description" content="An inference cost and procurement engine. One intake in, a seven-page report out, every number tagged observed, derived, assumed, scenario or simulated.">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FAFAF8; --text: #1a1a1a; --text-secondary: #555; --accent: #2563eb;
+    --accent-light: #dbeafe; --border: #e5e5e0; --diagram-bg: #fefefe; --diagram-border: #d4d4c8;
+    --sketch-stroke: #1a1a1a; --sketch-fill-blue: #dbeafe; --sketch-fill-green: #dcfce7;
+    --sketch-fill-amber: #fef3c7; --sketch-fill-rose: #ffe4e6; --sketch-fill-purple: #f3e8ff;
+    --sketch-fill-gray: #f3f4f6; --callout-bg: #f8f7f4;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); line-height: 1.72; font-size: 17.5px; -webkit-font-smoothing: antialiased; }
+  .article-container { max-width: 720px; margin: 0 auto; padding: 60px 24px 100px; }
+  .article-tag { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--accent); margin-bottom: 20px; font-weight: 500; }
+  h1 { font-family: 'Instrument Serif', serif; font-size: clamp(32px, 5vw, 46px); line-height: 1.15; font-weight: 400; color: var(--text); margin-bottom: 24px; letter-spacing: -0.5px; }
+  .subtitle { font-size: 19px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 40px; font-weight: 400; }
+  .divider { width: 48px; height: 2px; background: var(--text); margin: 40px 0; }
+  .divider-thin { width: 100%; height: 1px; background: var(--border); margin: 48px 0; }
+  h2 { font-family: 'Instrument Serif', serif; font-size: 28px; font-weight: 400; color: var(--text); margin-bottom: 20px; margin-top: 8px; letter-spacing: -0.3px; scroll-margin-top: 24px; }
+  h3 { font-family: 'Instrument Serif', serif; font-size: 21px; font-weight: 400; color: var(--text); margin: 32px 0 12px; letter-spacing: -0.2px; }
+  .section-number { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--accent); font-weight: 500; margin-bottom: 8px; display: block; }
+  p { margin-bottom: 18px; color: var(--text); }
+  strong { font-weight: 600; color: var(--text); }
+  em { font-style: italic; }
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(37,99,235,.32); transition: border-color .15s; }
+  a:hover { border-bottom-color: var(--accent); }
+  .lead-paragraph { font-size: 19.5px; line-height: 1.65; color: var(--text); }
+  .callout { background: var(--callout-bg); border-left: 3px solid var(--text); padding: 20px 24px; margin: 32px 0; font-family: 'Instrument Serif', serif; font-size: 20px; line-height: 1.55; font-style: italic; color: var(--text); }
+  .callout strong { font-style: normal; font-weight: 600; }
+  ul, ol { margin: 0 0 18px; padding-left: 24px; }
+  li { margin-bottom: 8px; }
+  .diagram-wrapper { margin: 40px -20px; padding: 0; }
+  .diagram-wrapper svg { width: 100%; height: auto; display: block; }
+  .diagram-caption { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--text-secondary); text-align: center; margin-top: 12px; letter-spacing: 0.3px; padding: 0 20px; }
+  .toc { background: var(--callout-bg); border: 1px solid var(--border); border-radius: 6px; padding: 24px 28px 16px; margin: 36px 0 48px; }
+  .toc-title { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; font-weight: 500; }
+  .toc ol { margin: 0; padding-left: 22px; }
+  .toc li { margin-bottom: 6px; font-size: 15px; }
+  .toc a { border-bottom: none; color: var(--text); }
+  .toc a:hover { color: var(--accent); }
+  .glossary { background: var(--callout-bg); border: 1px solid var(--border); border-radius: 6px; padding: 28px 28px 12px; margin: 36px 0; }
+  .glossary-title { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); margin-bottom: 16px; font-weight: 500; }
+  .glossary-item { margin-bottom: 14px; font-size: 16px; line-height: 1.6; }
+  .glossary-term { font-weight: 600; font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--text); }
+  code, .inline-code { font-family: 'JetBrains Mono', monospace; font-size: 14.5px; background: #f0efe8; padding: 2px 6px; border-radius: 3px; color: var(--text); }
+  .code-file { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-secondary); margin: 28px 0 6px; padding-left: 2px; }
+  pre { font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.7; background: #1f1d1a; color: #e9e2d4; border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 24px 0; }
+  pre code { font-family: inherit; font-size: inherit; background: none; padding: 0; color: inherit; border-radius: 0; }
+  .code-block { position: relative; margin: 24px 0; }
+  .code-block pre { margin: 0; padding-right: 76px; }
+  .code-file + .code-block { margin-top: 0; }
+  .copy-btn { position: absolute; top: 9px; right: 9px; font-family: 'JetBrains Mono', monospace; font-size: 10.5px; font-weight: 500; letter-spacing: 0.7px; text-transform: uppercase; color: #a8a294; background: #2b2822; border: 1px solid #3d3830; border-radius: 5px; padding: 5px 10px; cursor: pointer; user-select: none; -webkit-user-select: none; transition: color .15s, border-color .15s, background .15s; }
+  .copy-btn:hover { color: #f2ece0; background: #383329; border-color: #5c5548; }
+  .copy-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .copy-btn.copied { color: #9ec78f; border-color: #6f8f63; background: #262f21; }
+  .tok-c { color: #8a8578; }
+  .tok-k { color: #d98a5b; }
+  .tok-s { color: #9ec78f; }
+  .data-table { margin: 32px 0; overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 480px; }
+  thead th { text-align: left; font-family: 'JetBrains Mono', monospace; font-weight: 500; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-secondary); padding: 0 14px 10px; border-bottom: 2px solid var(--diagram-border); }
+  tbody td { padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.55; }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody td:first-child { white-space: nowrap; }
+  td.num { font-family: 'JetBrains Mono', monospace; font-size: 13.5px; white-space: nowrap; }
+  .cta-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px 16px; margin-bottom: 18px; }
+  .cta-primary { font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 15px; color: #fff; background: var(--accent); border: 1px solid var(--accent); border-radius: 6px; padding: 10px 18px; white-space: nowrap; }
+  .cta-primary:hover { background: #1d4fd8; border-bottom-color: #1d4fd8; }
+  .cta-secondary { color: var(--text-secondary); font-size: 16px; }
+  @media (max-width: 600px) {
+    .article-container { padding: 36px 18px 72px; }
+    body { font-size: 16.5px; }
+    h2 { font-size: 24px; }
+    .glossary { padding: 20px 20px 8px; }
+    .toc { padding: 20px 20px 10px; }
+    .diagram-wrapper { margin: 32px -10px; }
+    pre { font-size: 12px; }
+    .code-block pre { padding-right: 68px; }
+  }
+  .data-table.wrap tbody td:first-child { white-space: normal; }
+  .data-table.wrap table { min-width: 0; }
+</style>
+</head>
+<body>
+<article class="article-container">
+
+<div class="article-tag">Furrow · Inference cost · Procurement</div>
+
+<h1>Furrow: know what your AI will cost to run before the bill arrives</h1>
+
+<p class="subtitle">A tool that takes your traffic, your model and your GPU contract and gives back one answer: how many GPU-hours you need, what a million tokens really costs you, where the risk in that bill comes from, and how much capacity is worth locking in.</p>
+
+<p class="lead-paragraph">Companies that serve open-weight models rent GPUs by the hour and sell tokens by the million. Between those two units sits a conversion rate that nobody controls: how many tokens each GPU-hour produces at the latency your users expect. Furrow is built around that rate. It is a command-line tool with a local screen for the operator, it runs on a laptop from public data, and it writes a seven-page report where every number says whether it was observed, derived, assumed, a scenario or simulated.</p>
+
+<div class="diagram-wrapper"><svg viewBox="0 0 760 192" xmlns="http://www.w3.org/2000/svg" role="img"><rect x="0" y="0" width="760" height="192" rx="6" fill="var(--diagram-bg)" stroke="var(--diagram-border)"/><rect x="221" y="16" width="250" height="64" rx="6" fill="#fff" stroke="#1a1a1a" stroke-width="1"/><text x="237" y="45" font-family="DM Sans, sans-serif" font-size="18" font-weight="600" fill="#1a1a1a">1,000,000,000,000</text><text x="237" y="66" font-family="DM Sans, sans-serif" font-size="12" fill="#555">tokens your users ask for in a month</text><rect x="255" y="64" width="250" height="64" rx="6" fill="#fff" stroke="#1a1a1a" stroke-width="1"/><text x="271" y="93" font-family="DM Sans, sans-serif" font-size="18" font-weight="600" fill="#1a1a1a">69,100</text><text x="271" y="114" font-family="DM Sans, sans-serif" font-size="12" fill="#555">GPU-hours it takes to serve them</text><rect x="289" y="112" width="250" height="64" rx="6" fill="var(--sketch-fill-blue)" stroke="#2563eb" stroke-width="1.5"/><text x="305" y="141" font-family="DM Sans, sans-serif" font-size="18" font-weight="600" fill="#1a1a1a">$212,000</text><text x="305" y="162" font-family="DM Sans, sans-serif" font-size="12" fill="#2563eb">what that costs at your rate</text></svg><div class="diagram-caption">the three quantities Furrow connects, from its own chat example on H100</div></div>
+
+<nav class="toc" aria-label="Table of contents">
+  <div class="toc-title">In this article</div>
+  <ol>
+    <li><a href="#problem">The problem</a></li>
+    <li><a href="#does">What Furrow does</a></li>
+    <li><a href="#hedge">What a price hedge can and cannot do</a></li>
+    <li><a href="#get">What you get</a></li>
+    <li><a href="#input">What goes in</a></li>
+    <li><a href="#who">Who it is for</a></li>
+    <li><a href="#how">How it works</a></li>
+    <li><a href="#not">What it is not</a></li>
+    <li><a href="#research">The research behind it</a></li>
+  </ol>
+</nav>
+
+<div class="glossary">
+  <div class="glossary-title">Terms used below</div>
+  <div class="glossary-item"><span class="glossary-term">prefill and decode</span>: reading the prompt and writing the answer. They use the GPU differently and cost different amounts of its time.</div>
+  <div class="glossary-item"><span class="glossary-term">yield</span>: tokens per second one GPU produces while holding the latency floor. Furrow fits one yield for prefill and one for decode from public benchmarks.</div>
+  <div class="glossary-item"><span class="glossary-term">expected progress and shock</span>: the average monthly change in a yield, which a planner can build in, and the surprises around it, which are risk.</div>
+  <div class="glossary-item"><span class="glossary-term">basis</span>: the gap between what your provider charges and the market index. Known today, uncertain tomorrow, and not covered by a contract on the index.</div>
+  <div class="glossary-item"><span class="glossary-term">hedge effectiveness</span>: the share of cost variance a policy removes compared with buying everything on demand.</div>
+</div>
+
+<div class="divider"></div>
+
+<span class="section-number">01</span>
+<h2 id="problem">The problem</h2>
+
+<p>A GPU serves a certain number of tokens per second. That number is not fixed. It changes when the serving software updates, when prompts get longer, when users arrive at the same hour. So the same traffic costs a different number of GPU-hours from one month to the next, and most capacity plans are sized on today's number.</p>
+
+<div class="diagram-wrapper"><svg viewBox="0 0 760 240" xmlns="http://www.w3.org/2000/svg" role="img"><rect x="0" y="0" width="760" height="240" rx="6" fill="var(--diagram-bg)" stroke="var(--diagram-border)"/><rect x="204" y="16" width="250" height="64" rx="6" fill="#fff" stroke="#1a1a1a" stroke-width="1"/><text x="220" y="45" font-family="DM Sans, sans-serif" font-size="18" font-weight="600" fill="#1a1a1a">72,800</text><text x="220" y="66" font-family="DM Sans, sans-serif" font-size="12" fill="#555">GPU-hours, October 2025</text><rect x="238" y="64" width="250" height="64" rx="6" fill="#fff" stroke="#1a1a1a" stroke-width="1"/><text x="254" y="93" font-family="DM Sans, sans-serif" font-size="18" font-weight="600" fill="#1a1a1a">66,200</text><text x="254" y="114" font-family="DM Sans, sans-serif" font-size="12" fill="#555">GPU-hours, November 2025</text><rect x="272" y="112" width="250" height="64" rx="6" fill="#fff" stroke="#1a1a1a" stroke-width="1"/><text x="288" y="141" font-family="DM Sans, sans-serif" font-size="18" font-weight="600" fill="#1a1a1a">70,000</text><text x="288" y="162" font-family="DM Sans, sans-serif" font-size="12" fill="#555">GPU-hours, January 2026</text><rect x="306" y="160" width="250" height="64" rx="6" fill="var(--sketch-fill-blue)" stroke="#2563eb" stroke-width="1.5"/><text x="322" y="189" font-family="DM Sans, sans-serif" font-size="18" font-weight="600" fill="#1a1a1a">69,100</text><text x="322" y="210" font-family="DM Sans, sans-serif" font-size="12" fill="#2563eb">GPU-hours, June 2026, same trillion tokens</text></svg><div class="diagram-caption">gpt-oss-120b on H100, from public InferenceX snapshots: a nine percent swing in three months with no change in demand</div></div>
+
+<h3>The two halves of the work moved in opposite directions</h3>
+
+<p>Serving a request has two parts. Prefill reads the prompt and is limited by raw compute. Decode writes the answer and is limited by memory bandwidth. Over nine monthly benchmark snapshots the decode yield of gpt-oss-120b on H100 rose <strong>84 percent</strong> while the prefill yield fell <strong>12 percent</strong>. A workload that is mostly prompt got no cheaper; one that is mostly answers nearly halved in cost.</p>
+
+<div class="diagram-wrapper"><svg viewBox="0 0 760 300" xmlns="http://www.w3.org/2000/svg" role="img"><rect x="0" y="0" width="760" height="300" rx="6" fill="var(--diagram-bg)" stroke="var(--diagram-border)"/><text x="70" y="26" font-family="Instrument Serif, serif" font-size="18" fill="#1a1a1a">Prefill and decode yield, rebased to October 2025</text><line x1="70" x2="730" y1="250.0" y2="250.0" stroke="#d4d4c8"/><text x="60" y="254.0" font-family="JetBrains Mono, monospace" font-size="11" fill="#555" text-anchor="end">0.8</text><line x1="70" x2="730" y1="215.7" y2="215.7" stroke="#d4d4c8"/><text x="60" y="219.7" font-family="JetBrains Mono, monospace" font-size="11" fill="#555" text-anchor="end">1.0</text><line x1="70" x2="730" y1="181.3" y2="181.3" stroke="#d4d4c8"/><text x="60" y="185.3" font-family="JetBrains Mono, monospace" font-size="11" fill="#555" text-anchor="end">1.2</text><line x1="70" x2="730" y1="147.0" y2="147.0" stroke="#d4d4c8"/><text x="60" y="151.0" font-family="JetBrains Mono, monospace" font-size="11" fill="#555" text-anchor="end">1.4</text><line x1="70" x2="730" y1="112.7" y2="112.7" stroke="#d4d4c8"/><text x="60" y="116.7" font-family="JetBrains Mono, monospace" font-size="11" fill="#555" text-anchor="end">1.6</text><line x1="70" x2="730" y1="78.3" y2="78.3" stroke="#d4d4c8"/><text x="60" y="82.3" font-family="JetBrains Mono, monospace" font-size="11" fill="#555" text-anchor="end">1.8</text><line x1="70" x2="730" y1="44.0" y2="44.0" stroke="#d4d4c8"/><text x="60" y="48.0" font-family="JetBrains Mono, monospace" font-size="11" fill="#555" text-anchor="end">2.0</text><text x="70.0" y="278" font-family="JetBrains Mono, monospace" font-size="11" fill="#555" text-anchor="middle">2025-10</text><text x="235.0" y="278" font-family="JetBrains Mono, monospace" font-size="11" fill="#555" text-anchor="middle">2025-12</text><text x="400.0" y="278" font-family="JetBrains Mono, monospace" font-size="11" fill="#555" text-anchor="middle">2026-02</text><text x="565.0" y="278" font-family="JetBrains Mono, monospace" font-size="11" fill="#555" text-anchor="middle">2026-04</text><text x="730.0" y="278" font-family="JetBrains Mono, monospace" font-size="11" fill="#555" text-anchor="middle">2026-06</text><path d="M70.0,215.7 L152.5,201.2 L235.0,235.8 L317.5,237.7 L400.0,237.7 L482.5,232.9 L565.0,231.8 L647.5,235.0 L730.0,236.2" fill="none" stroke="#0072B2" stroke-width="2.2"/><circle cx="70.0" cy="215.7" r="3.5" fill="#fff" stroke="#0072B2" stroke-width="2"/><circle cx="152.5" cy="201.2" r="3.5" fill="#fff" stroke="#0072B2" stroke-width="2"/><circle cx="235.0" cy="235.8" r="3.5" fill="#fff" stroke="#0072B2" stroke-width="2"/><circle cx="317.5" cy="237.7" r="3.5" fill="#fff" stroke="#0072B2" stroke-width="2"/><circle cx="400.0" cy="237.7" r="3.5" fill="#fff" stroke="#0072B2" stroke-width="2"/><circle cx="482.5" cy="232.9" r="3.5" fill="#fff" stroke="#0072B2" stroke-width="2"/><circle cx="565.0" cy="231.8" r="3.5" fill="#fff" stroke="#0072B2" stroke-width="2"/><circle cx="647.5" cy="235.0" r="3.5" fill="#fff" stroke="#0072B2" stroke-width="2"/><circle cx="730.0" cy="236.2" r="3.5" fill="#fff" stroke="#0072B2" stroke-width="2"/><text x="730" y="226.2" font-family="DM Sans, sans-serif" font-size="12" font-weight="600" fill="#0072B2" text-anchor="end">prefill 0.88</text><path d="M70.0,215.7 L152.5,192.5 L235.0,79.2 L317.5,79.7 L400.0,79.7 L482.5,74.3 L565.0,72.2 L647.5,72.0 L730.0,71.9" fill="none" stroke="#E69F00" stroke-width="2.2"/><circle cx="70.0" cy="215.7" r="3.5" fill="#fff" stroke="#E69F00" stroke-width="2"/><circle cx="152.5" cy="192.5" r="3.5" fill="#fff" stroke="#E69F00" stroke-width="2"/><circle cx="235.0" cy="79.2" r="3.5" fill="#fff" stroke="#E69F00" stroke-width="2"/><circle cx="317.5" cy="79.7" r="3.5" fill="#fff" stroke="#E69F00" stroke-width="2"/><circle cx="400.0" cy="79.7" r="3.5" fill="#fff" stroke="#E69F00" stroke-width="2"/><circle cx="482.5" cy="74.3" r="3.5" fill="#fff" stroke="#E69F00" stroke-width="2"/><circle cx="565.0" cy="72.2" r="3.5" fill="#fff" stroke="#E69F00" stroke-width="2"/><circle cx="647.5" cy="72.0" r="3.5" fill="#fff" stroke="#E69F00" stroke-width="2"/><circle cx="730.0" cy="71.9" r="3.5" fill="#fff" stroke="#E69F00" stroke-width="2"/><text x="730" y="61.9" font-family="DM Sans, sans-serif" font-size="12" font-weight="600" fill="#E69F00" text-anchor="end">decode 1.84</text></svg><div class="diagram-caption">tokens per second per GPU at a floor of 100 tokens per second per user. Expected progress per month: prefill -1.6 percent, decode +7.6 percent; the shocks around those trends have standard deviations of 7.8 and 15.0 percent</div></div>
+
+<div class="callout">The usual answer is to watch the GPU price. The price is one of four things that move the bill, and for most workloads it is not the biggest.</div>
+
+<div class="divider-thin"></div>
+
+<span class="section-number">02</span>
+<h2 id="does">What Furrow does</h2>
+
+<p>Furrow plays out twenty thousand possible futures for your workload. Prices, demand, serving efficiency and your provider's rate all move at once, calibrated to public benchmarks, index history and traffic traces. It then asks, path by path, which input carried the variance of the bill. The method is a Shapley decomposition, the same idea used to split a shared bill fairly among the people who caused it.</p>
+
+<div class="diagram-wrapper"><svg viewBox="0 0 760 96" xmlns="http://www.w3.org/2000/svg" role="img"><rect x="0" y="0" width="760" height="96" rx="6" fill="var(--diagram-bg)" stroke="var(--diagram-border)"/><rect x="30.0" y="24" width="257.0" height="30" fill="#0072B2"/><text x="159.5" y="74" font-family="DM Sans, sans-serif" font-size="12" fill="#555" text-anchor="middle">price 37</text><rect x="289.0" y="24" width="306.0" height="30" fill="#D55E00"/><text x="443.0" y="74" font-family="DM Sans, sans-serif" font-size="12" fill="#555" text-anchor="middle">demand 44</text><rect x="597.0" y="24" width="103.0" height="30" fill="#E69F00"/><text x="649.5" y="74" font-family="DM Sans, sans-serif" font-size="12" fill="#555" text-anchor="middle">yield 15</text><rect x="702.0" y="24" width="40.0" height="30" fill="#56B4E9"/><text x="723.0" y="74" font-family="DM Sans, sans-serif" font-size="12" fill="#555" text-anchor="middle">basis 6</text></svg><div class="diagram-caption">share of six-month cost variance for the chat example, base scenario; utilization noise rounds to zero</div></div>
+
+<ul>
+  <li><strong>GPU price, 37 percent.</strong> What the market charges per GPU-hour. Reservations or futures can address it.</li>
+  <li><strong>Your demand, 44 percent.</strong> How many tokens your users actually ask for. Reservations cover part of it; forecasting is the lever.</li>
+  <li><strong>Serving yield, 15 percent.</strong> How many tokens each GPU-hour produces. Nothing on the market addresses it.</li>
+  <li><strong>Provider basis, 6 percent.</strong> The gap between your provider's rate and the index. Only a contract on your own provider's price would.</li>
+</ul>
+
+<h3>The answer depends on the workload</h3>
+
+<p>Run the same engine on the five example workloads that ship with Furrow and the picture changes completely. A coding assistant with short answers is almost all demand risk. A batch pipeline with no latency floor is mostly price. A reasoning model on new hardware is dominated by its own serving yield, because its benchmarks are still moving fast.</p>
+
+<div class="diagram-wrapper"><svg viewBox="0 0 760 274" xmlns="http://www.w3.org/2000/svg" role="img"><rect x="0" y="0" width="760" height="274" rx="6" fill="var(--diagram-bg)" stroke="var(--diagram-border)"/><text x="30" y="28" font-family="Instrument Serif, serif" font-size="18" fill="#1a1a1a">Share of six-month cost variance, five example workloads</text><text x="218" y="65" font-family="DM Sans, sans-serif" font-size="13" fill="#555" text-anchor="end">chat on H100</text><rect x="230.0" y="48" width="183.5" height="24" fill="#0072B2"/><text x="322.5" y="64" font-family="JetBrains Mono, monospace" font-size="11" fill="#fff" text-anchor="middle">37</text><rect x="415.0" y="48" width="218.5" height="24" fill="#D55E00"/><text x="525.0" y="64" font-family="JetBrains Mono, monospace" font-size="11" fill="#fff" text-anchor="middle">44</text><rect x="635.0" y="48" width="73.5" height="24" fill="#E69F00"/><text x="672.5" y="64" font-family="JetBrains Mono, monospace" font-size="11" fill="#fff" text-anchor="middle">15</text><rect x="710.0" y="48" width="28.5" height="24" fill="#56B4E9"/><text x="218" y="103" font-family="DM Sans, sans-serif" font-size="13" fill="#555" text-anchor="end">coding assistant on H100</text><rect x="230.0" y="86" width="133.5" height="24" fill="#0072B2"/><text x="297.5" y="102" font-family="JetBrains Mono, monospace" font-size="11" fill="#fff" text-anchor="middle">27</text><rect x="365.0" y="86" width="353.5" height="24" fill="#D55E00"/><text x="542.5" y="102" font-family="JetBrains Mono, monospace" font-size="11" fill="#fff" text-anchor="middle">71</text><rect x="720.0" y="86" width="3.5" height="24" fill="#E69F00"/><rect x="725.0" y="86" width="23.5" height="24" fill="#56B4E9"/><text x="218" y="141" font-family="DM Sans, sans-serif" font-size="13" fill="#555" text-anchor="end">reasoning on H100</text><rect x="230.0" y="124" width="173.5" height="24" fill="#0072B2"/><text x="317.5" y="140" font-family="JetBrains Mono, monospace" font-size="11" fill="#fff" text-anchor="middle">35</text><rect x="405.0" y="124" width="298.5" height="24" fill="#D55E00"/><text x="555.0" y="140" font-family="JetBrains Mono, monospace" font-size="11" fill="#fff" text-anchor="middle">60</text><rect x="705.0" y="124" width="13.5" height="24" fill="#E69F00"/><rect x="720.0" y="124" width="28.5" height="24" fill="#56B4E9"/><text x="218" y="179" font-family="DM Sans, sans-serif" font-size="13" fill="#555" text-anchor="end">batch on H100</text><rect x="230.0" y="162" width="303.5" height="24" fill="#0072B2"/><text x="382.5" y="178" font-family="JetBrains Mono, monospace" font-size="11" fill="#fff" text-anchor="middle">61</text><rect x="535.0" y="162" width="133.5" height="24" fill="#D55E00"/><text x="602.5" y="178" font-family="JetBrains Mono, monospace" font-size="11" fill="#fff" text-anchor="middle">27</text><rect x="670.0" y="162" width="13.5" height="24" fill="#E69F00"/><rect x="685.0" y="162" width="48.5" height="24" fill="#56B4E9"/><text x="710.0" y="178" font-family="JetBrains Mono, monospace" font-size="11" fill="#fff" text-anchor="middle">10</text><text x="218" y="217" font-family="DM Sans, sans-serif" font-size="13" fill="#555" text-anchor="end">DeepSeek-R1 chat on B200</text><rect x="230.0" y="200" width="58.5" height="24" fill="#0072B2"/><text x="260.0" y="216" font-family="JetBrains Mono, monospace" font-size="11" fill="#fff" text-anchor="middle">12</text><rect x="290.0" y="200" width="73.5" height="24" fill="#D55E00"/><text x="327.5" y="216" font-family="JetBrains Mono, monospace" font-size="11" fill="#fff" text-anchor="middle">15</text><rect x="365.0" y="200" width="358.5" height="24" fill="#E69F00"/><text x="545.0" y="216" font-family="JetBrains Mono, monospace" font-size="11" fill="#fff" text-anchor="middle">72</text><rect x="725.0" y="200" width="8.5" height="24" fill="#56B4E9"/><rect x="230" y="248" width="11" height="11" fill="#0072B2"/><text x="247" y="258" font-family="DM Sans, sans-serif" font-size="12" fill="#555">price</text><rect x="320" y="248" width="11" height="11" fill="#D55E00"/><text x="337" y="258" font-family="DM Sans, sans-serif" font-size="12" fill="#555">demand</text><rect x="410" y="248" width="11" height="11" fill="#E69F00"/><text x="427" y="258" font-family="DM Sans, sans-serif" font-size="12" fill="#555">yield</text><rect x="500" y="248" width="11" height="11" fill="#56B4E9"/><text x="517" y="258" font-family="DM Sans, sans-serif" font-size="12" fill="#555">basis</text></svg><div class="diagram-caption">five example intakes, base scenario, six-month horizon</div></div>
+
+<div class="divider-thin"></div>
+
+<span class="section-number">03</span>
+<h2 id="hedge">What a price hedge can and cannot do</h2>
+
+<p>CME plans to list futures on H100 and B200 rental indices, one contract per GPU-month. Furrow sizes a hypothetical strip three ways and measures how much of the variance of six-month cost each would remove. For the chat example the best rule reaches about <strong>40 percent</strong>, close to the price share above. That is the ceiling, and it holds only if the index the contract settles on tracks the one you pay.</p>
+
+<div class="data-table wrap"><table>
+  <thead><tr><th>Sizing rule</th><th>3 months</th><th>6 months</th><th>12 months</th></tr></thead>
+  <tbody>
+    <tr><td>Fixed conversion: today's yield, planned tokens</td><td class="num">37</td><td class="num">39</td><td class="num">38</td></tr>
+    <tr><td>Progress-aware: expected efficiency gains built in</td><td class="num">37</td><td class="num">39</td><td class="num">38</td></tr>
+    <tr><td>Minimum variance: fitted on half the paths, tested on the other half</td><td class="num">38</td><td class="num">40</td><td class="num">39</td></tr>
+    <tr><td>The same fixed rule for DeepSeek-R1 on B200, where yield moves fast</td><td class="num">10</td><td class="num">6</td><td class="num">-12</td></tr>
+  </tbody>
+</table></div>
+<div class="diagram-caption">hedge effectiveness in percent of cumulative cost variance removed, simulated; a negative number means the strip added variance</div>
+
+<h3>The honest number is a range</h3>
+
+<p>Every input the simulation cannot observe is a scenario. Move one at a time and the six-month hedge effectiveness for the chat example runs from <strong>18 to 64 percent</strong>. Furrow prints that range on the same page as the point estimate.</p>
+
+<div class="diagram-wrapper"><svg viewBox="0 0 760 300" xmlns="http://www.w3.org/2000/svg" role="img"><rect x="0" y="0" width="760" height="300" rx="6" fill="var(--diagram-bg)" stroke="var(--diagram-border)"/><text x="30" y="28" font-family="Instrument Serif, serif" font-size="18" fill="#1a1a1a">Hedge effectiveness when one input moves at a time</text><line x1="386.7" x2="386.7" y1="48" y2="266" stroke="#d4d4c8"/><text x="386.7" y="284" font-family="JetBrains Mono, monospace" font-size="11" fill="#555" text-anchor="middle">20%</text><line x1="520.0" x2="520.0" y1="48" y2="266" stroke="#d4d4c8"/><text x="520.0" y="284" font-family="JetBrains Mono, monospace" font-size="11" fill="#555" text-anchor="middle">40%</text><line x1="653.3" x2="653.3" y1="48" y2="266" stroke="#d4d4c8"/><text x="653.3" y="284" font-family="JetBrains Mono, monospace" font-size="11" fill="#555" text-anchor="middle">60%</text><line x1="506.7" x2="506.7" y1="48" y2="266" stroke="#1a1a1a" stroke-dasharray="4 3"/><text x="512.7" y="58" font-family="JetBrains Mono, monospace" font-size="11" fill="#1a1a1a">base 38%</text><text x="306" y="78" font-family="DM Sans, sans-serif" font-size="13" fill="#555" text-anchor="end">index volatility 25 to 60 percent</text><line x1="413.3" x2="680.0" y1="74" y2="74" stroke="#2563eb" stroke-width="5" stroke-linecap="round"/><text x="405.3" y="78" font-family="JetBrains Mono, monospace" font-size="11" fill="#2563eb" text-anchor="end">24</text><text x="688.0" y="78" font-family="JetBrains Mono, monospace" font-size="11" fill="#2563eb">64</text><text x="306" y="112" font-family="DM Sans, sans-serif" font-size="13" fill="#555" text-anchor="end">demand forecast error, half to 1.5 times</text><line x1="420.0" x2="626.7" y1="108" y2="108" stroke="#2563eb" stroke-width="5" stroke-linecap="round"/><text x="412.0" y="112" font-family="JetBrains Mono, monospace" font-size="11" fill="#2563eb" text-anchor="end">25</text><text x="634.7" y="112" font-family="JetBrains Mono, monospace" font-size="11" fill="#2563eb">56</text><text x="306" y="146" font-family="DM Sans, sans-serif" font-size="13" fill="#555" text-anchor="end">settlement correlation 1.0 to 0.7</text><line x1="373.3" x2="506.7" y1="142" y2="142" stroke="#2563eb" stroke-width="5" stroke-linecap="round"/><text x="365.3" y="146" font-family="JetBrains Mono, monospace" font-size="11" fill="#2563eb" text-anchor="end">18</text><text x="514.7" y="146" font-family="JetBrains Mono, monospace" font-size="11" fill="#2563eb">38</text><text x="306" y="180" font-family="DM Sans, sans-serif" font-size="13" fill="#555" text-anchor="end">basis volatility 0 to 20 percent</text><line x1="460.0" x2="526.7" y1="176" y2="176" stroke="#2563eb" stroke-width="5" stroke-linecap="round"/><text x="452.0" y="180" font-family="JetBrains Mono, monospace" font-size="11" fill="#2563eb" text-anchor="end">31</text><text x="534.7" y="180" font-family="JetBrains Mono, monospace" font-size="11" fill="#2563eb">41</text><text x="306" y="214" font-family="DM Sans, sans-serif" font-size="13" fill="#555" text-anchor="end">efficiency shock scale 0.5 to 1.5</text><line x1="466.7" x2="540.0" y1="210" y2="210" stroke="#2563eb" stroke-width="5" stroke-linecap="round"/><text x="458.7" y="214" font-family="JetBrains Mono, monospace" font-size="11" fill="#2563eb" text-anchor="end">32</text><text x="548.0" y="214" font-family="JetBrains Mono, monospace" font-size="11" fill="#2563eb">43</text><text x="306" y="248" font-family="DM Sans, sans-serif" font-size="13" fill="#555" text-anchor="end">adoption lag 0 to 3 months</text><line x1="506.7" x2="546.7" y1="244" y2="244" stroke="#2563eb" stroke-width="5" stroke-linecap="round"/><text x="498.7" y="248" font-family="JetBrains Mono, monospace" font-size="11" fill="#2563eb" text-anchor="end">38</text><text x="554.7" y="248" font-family="JetBrains Mono, monospace" font-size="11" fill="#2563eb">44</text></svg><div class="diagram-caption">minimum-variance hedge effectiveness of six-month cost, one input moved at a time with the others at the base scenario</div></div>
+
+<p>Two things move it most: how volatile the GPU price turns out to be, and how far the settlement index drifts from the price you actually pay. Neither is known yet. Until the contracts trade, every one of these numbers is labelled a proxy-index simulation.</p>
+
+<div class="divider-thin"></div>
+
+<span class="section-number">04</span>
+<h2 id="get">What you get</h2>
+
+<p>You describe the workload once, in about ten questions your infrastructure lead already knows the answers to. Furrow runs in a few seconds and writes a seven-page report you can print and hand over. Page one carries four numbers.</p>
+
+<div class="diagram-wrapper"><svg viewBox="0 0 760 246" xmlns="http://www.w3.org/2000/svg" role="img"><rect x="0" y="0" width="760" height="246" rx="6" fill="var(--diagram-bg)" stroke="var(--diagram-border)"/><rect x="200" y="16" width="270" height="64" rx="6" fill="#fff" stroke="#1a1a1a" stroke-width="1"/><text x="216" y="45" font-family="DM Sans, sans-serif" font-size="18" font-weight="600" fill="#1a1a1a">0.212 USD</text><text x="216" y="66" font-family="DM Sans, sans-serif" font-size="12" fill="#555">per million tokens at your rate</text><rect x="230" y="66" width="270" height="64" rx="6" fill="#fff" stroke="#1a1a1a" stroke-width="1"/><text x="246" y="95" font-family="DM Sans, sans-serif" font-size="18" font-weight="600" fill="#1a1a1a">220,600</text><text x="246" y="116" font-family="DM Sans, sans-serif" font-size="12" fill="#555">GPU-hours needed next quarter</text><rect x="260" y="116" width="270" height="64" rx="6" fill="#fff" stroke="#1a1a1a" stroke-width="1"/><text x="276" y="145" font-family="DM Sans, sans-serif" font-size="18" font-weight="600" fill="#1a1a1a">37 percent</text><text x="276" y="166" font-family="DM Sans, sans-serif" font-size="12" fill="#555">of six-month cost variance is the GPU price</text><rect x="290" y="166" width="270" height="64" rx="6" fill="var(--sketch-fill-blue)" stroke="#2563eb" stroke-width="1.5"/><text x="306" y="195" font-family="DM Sans, sans-serif" font-size="18" font-weight="600" fill="#1a1a1a">48 GPUs</text><text x="306" y="216" font-family="DM Sans, sans-serif" font-size="12" fill="#2563eb">the reserved fleet with the lowest downside</text></svg><div class="diagram-caption">page one of the chat example; every number carries a tag: observed, derived, assumed, scenario or simulated</div></div>
+
+<h3>Why the cost per million tokens is different</h3>
+
+<p>Most people convert tokens to dollars with one benchmark figure, usually the 1k-in, 1k-out configuration. A chat workload is <strong>94 percent</strong> prompt tokens, and prompt tokens are the cheap half. Pricing the mix with the single benchmark overstates cost by <strong>59 percent</strong>. Furrow prices prefill and decode separately, then applies your rate and the utilization your demand shape allows.</p>
+
+<div class="diagram-wrapper"><svg viewBox="0 0 760 184" xmlns="http://www.w3.org/2000/svg" role="img"><rect x="0" y="0" width="760" height="184" rx="6" fill="var(--diagram-bg)" stroke="var(--diagram-border)"/><text x="30" y="28" font-family="Instrument Serif, serif" font-size="18" fill="#1a1a1a">Cost per million tokens, chat mix on H100</text><text x="318" y="65" font-family="DM Sans, sans-serif" font-size="13" fill="#555" text-anchor="end">single 1k/1k benchmark, at the index</text><rect x="330" y="48" width="288.0" height="26" fill="#9a9994"/><text x="628.0" y="65" font-family="JetBrains Mono, monospace" font-size="13" fill="#1a1a1a">0.270 USD</text><text x="318" y="105" font-family="DM Sans, sans-serif" font-size="13" fill="#555" text-anchor="end">two-phase, at the index, full utilization</text><rect x="330" y="88" width="181.3" height="26" fill="#0072B2"/><text x="521.3" y="105" font-family="JetBrains Mono, monospace" font-size="13" fill="#1a1a1a">0.170 USD</text><text x="318" y="145" font-family="DM Sans, sans-serif" font-size="13" fill="#555" text-anchor="end">two-phase, at your rate and real utilization</text><rect x="330" y="128" width="226.1" height="26" fill="#2563eb"/><text x="566.1" y="145" font-family="JetBrains Mono, monospace" font-size="13" fill="#1a1a1a">0.212 USD</text></svg><div class="diagram-caption">at an H100 index of 3.07 USD per GPU-hour</div></div>
+
+<h3>Reserve, buy on demand, or hedge</h3>
+
+<p>Page five compares procurement policies on the same simulated paths. Cost is expected six-month spend as a share of buying everything on demand. Downside is the mean overrun of plan in the worst five percent of paths. No policy wins on every column, which is the point of showing all of them.</p>
+
+<div class="data-table wrap"><table>
+  <thead><tr><th>Policy</th><th>Cost</th><th>Variance removed</th><th>P(overrun)</th><th>Downside</th><th>GPUs</th></tr></thead>
+  <tbody>
+    <tr><td>On demand, unhedged</td><td class="num">100</td><td class="num">0</td><td class="num">20</td><td class="num">+75</td><td class="num">0</td></tr>
+    <tr><td>Reserve for peak (p95 sizing)</td><td class="num">107</td><td class="num">80</td><td class="num">12</td><td class="num">+51</td><td class="num">132</td></tr>
+    <tr><td>Reserve for the shape-implied peak</td><td class="num">120</td><td class="num">80</td><td class="num">30</td><td class="num">+65</td><td class="num">149</td></tr>
+    <tr><td>Reserve the always-on baseline</td><td class="num">85</td><td class="num">35</td><td class="num">6</td><td class="num">+47</td><td class="num">48</td></tr>
+    <tr><td>Baseline plus a progress-aware futures strip</td><td class="num">85</td><td class="num">44</td><td class="num">5</td><td class="num">+41</td><td class="num">48</td></tr>
+    <tr><td>On demand plus a minimum-variance strip</td><td class="num">100</td><td class="num">40</td><td class="num">15</td><td class="num">+59</td><td class="num">0</td></tr>
+  </tbody>
+</table></div>
+<div class="diagram-caption">chat example, six months, all figures in percent except GPUs; reserved rows assume a 15 percent discount because no quote was given, and the report says so beside each</div>
+
+<h3>The seven pages</h3>
+<ol>
+  <li>The answer: four numbers and one paragraph on where your risk comes from.</li>
+  <li>Your workload as the model sees it, every input with its status.</li>
+  <li>Your serving yield and how it has moved in public benchmarks.</li>
+  <li>Where your cost risk comes from, and what addresses each part.</li>
+  <li>Procurement policies compared: on demand, reserve for peak, reserve the baseline.</li>
+  <li>The hedge module: what GPU rental futures could and could not remove, labelled a proxy-index simulation.</li>
+  <li>Sensitivity, data provenance and the scope of what the report claims.</li>
+</ol>
+
+<div class="divider-thin"></div>
+
+<span class="section-number">05</span>
+<h2 id="input">What goes in</h2>
+
+<p>The intake is one short file. Nothing in it is a forecast you have to defend; growth and forecast error have defaults by workload shape, and every default is labelled assumed in the report until you replace it.</p>
+
+<div class="data-table wrap"><table>
+  <thead><tr><th>Field</th><th>What you give</th></tr></thead>
+  <tbody>
+    <tr><td>Traffic</td><td>Mean prompt and generated tokens per request, requests per month, monthly growth.</td></tr>
+    <tr><td>Service level</td><td>The latency floor per user: none, 50 or 100 tokens per second.</td></tr>
+    <tr><td>Model and hardware</td><td>An InferenceX model name or your own benchmark run; H100, H200 or B200.</td></tr>
+    <tr><td>Demand shape</td><td>Conversation, code, flat, or your own peak, p95 and trough ratios.</td></tr>
+    <tr><td>Contract</td><td>On demand, reserved or mixed; your rate, fleet and months remaining; a reservation quote if you have one.</td></tr>
+    <tr><td>Scenarios</td><td>Index volatility, drift, basis volatility, risk premium and settlement correlation, each from a fixed grid so reports stay comparable.</td></tr>
+  </tbody>
+</table></div>
+
+<div class="divider-thin"></div>
+
+<span class="section-number">06</span>
+<h2 id="who">Who it is for</h2>
+
+<p>Companies renting roughly fifty to five thousand GPUs to serve open-weight models, and the people who plan and pay for that capacity.</p>
+
+<p><strong>Inference providers.</strong> <em>"How many GPUs will we need next quarter, and what should we commit to?"</em> The GPU-hour forecast, the reserve-versus-on-demand comparison and the true cost per million tokens for your mix, so pricing and procurement use the same number.</p>
+<p><strong>AI product companies.</strong> <em>"We signed a reserved contract last year. Is it the right size?"</em> Enter your fleet, rate and months remaining, and your current contract appears in the policy table beside the alternatives, with idle capacity and overflow made explicit.</p>
+<p><strong>Finance and procurement.</strong> <em>"Someone proposed hedging our GPU spend with the new futures. Should we care?"</em> How much of your variance is price at all, and what a hypothetical position could not remove. Furrow sizes; it does not recommend.</p>
+<p><strong>Researchers.</strong> <em>"Is serving-yield risk real, and how big?"</em> A public package reproduces the paper, publishes the yield time series as a dataset, and pre-registers the first months of futures trading.</p>
+
+<h3>Four moments when it matters</h3>
+<ul>
+  <li><strong>Contract renewal.</strong> What fleet the always-on part of your demand justifies, what idle capacity a peak-sized fleet carries, and how the ranking moves with the discount you are actually quoted.</li>
+  <li><strong>Capacity planning.</strong> A quarterly plan that carries expected efficiency progress and a forecast error you chose, instead of a spreadsheet conversion at today's throughput.</li>
+  <li><strong>Per-token pricing.</strong> The cost of a million tokens of your specific mix, prefill and decode priced separately, with the single-benchmark figure shown beside it.</li>
+  <li><strong>"Should we hedge?"</strong> The share of variance a price hedge can reach, the sizing rule that avoids compounding your own yield changes, and the range across scenarios.</li>
+</ul>
+
+<div class="divider-thin"></div>
+
+<span class="section-number">07</span>
+<h2 id="how">How it works</h2>
+
+<p>Furrow runs offline from seeded public data. Customer files live in one folder on your machine, and the only network calls fetch public benchmark and price data, only when you ask.</p>
+
+<ol>
+  <li>Write a short intake file, or fill the Workload screen on the local front end. Five examples ship with it.</li>
+  <li>Run <code>furrow run customer.json</code>. It prints the four numbers and writes the report beside a results file.</li>
+  <li>Read it, print it to seven A4 pages, hand it over. On a call, the scenario panel answers what-if questions live at 12,000 paths and swaps the numbers and charts in place.</li>
+</ol>
+
+<h3>How every number is tagged</h3>
+
+<div class="data-table wrap"><table>
+  <thead><tr><th>Tag</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td><code>observed</code></td><td>Measured inputs: today's index price, your rate, your token counts, a reservation quote.</td></tr>
+    <tr><td><code>derived</code></td><td>Computed from observed inputs by a stated rule: yields, GPU-hours, cost per million tokens.</td></tr>
+    <tr><td><code>assumed</code></td><td>A default standing in for a number you did not give: the reserved discount, the forecast error, borrowed yield dynamics.</td></tr>
+    <tr><td><code>scenario</code></td><td>A chosen grid value: index volatility, drift, basis volatility, risk premium, settlement correlation.</td></tr>
+    <tr><td><code>simulated</code></td><td>A Monte Carlo output under the named scenario: hedge effectiveness, policy costs, variance shares.</td></tr>
+  </tbody>
+</table></div>
+
+<div class="divider-thin"></div>
+
+<span class="section-number">08</span>
+<h2 id="not">What it is not</h2>
+
+<ul>
+  <li><strong>Not advice.</strong> It sizes a hypothetical futures position and says what it cannot remove. It never recommends taking one.</li>
+  <li><strong>Not a trading tool.</strong> No execution, no custody, no live market feed. The futures settle on an index Furrow has no history for yet, and every page that mentions them says so.</li>
+  <li><strong>Not a service.</strong> No login and no server anyone else can reach. One operator, one customer, one report.</li>
+  <li><strong>Not your stack.</strong> Yield dynamics come from public benchmarks for two models today. For anything else you bring a benchmark run, and the borrowed dynamics are labelled assumed.</li>
+</ul>
+
+<div class="divider-thin"></div>
+
+<span class="section-number">09</span>
+<h2 id="research">The research behind it</h2>
+
+<p>Furrow wraps the engine of TokenYield Working Paper 1, <em>Tokens to Exposure: How Serving-Yield Risk Limits GPU-Futures Hedges</em>, without changing a formula. The paper introduces token yield risk: the uncertainty in turning tokens delivered at a latency target into billable GPU-hours. Three things come with it.</p>
+
+<ul>
+  <li><strong>Engine.</strong> One command regenerates every figure, table and number of the paper from archived data and fixed seeds, and checks fourteen anchor results.</li>
+  <li><strong>Dataset.</strong> Prefill and decode yields fitted to monthly benchmark snapshots for each model, hardware and latency floor, with each monthly change split into expected progress and shock. Released under CC BY 4.0.</li>
+  <li><strong>Pre-registration.</strong> Five hypotheses written before any settlement print exists, tested by a locked script against a locked document. Negative results get published too.</li>
+</ul>
+
+<div class="data-table wrap"><table>
+  <thead><tr><th>Source</th><th>What it provides</th><th>Coverage</th></tr></thead>
+  <tbody>
+    <tr><td>InferenceX</td><td>Public inference benchmarks: throughput per GPU at each latency floor for three sequence shapes.</td><td>12 monthly snapshots, October 2025 to September 2026, two models.</td></tr>
+    <tr><td>Ornn Compute Price Index</td><td>Volume-weighted mean of executed on-demand GPU rental transactions from verified providers.</td><td>92 daily values to 6 September 2026, H100, H200, B200, A100.</td></tr>
+    <tr><td>Azure LLM inference traces</td><td>Hourly demand shape and prompt-to-answer ratios for conversation and code workloads.</td><td>44 million requests, one week each, 2024 release.</td></tr>
+  </tbody>
+</table></div>
+<div class="diagram-caption">every file is archived with its SHA-256 hash and retrieval time, and each report lists the files it used</div>
+
+<div class="callout"><strong>Scope.</strong> A Furrow report is a simulation under stated scenarios, calibrated to public benchmark, index and trace data as of stated retrieval dates and to the inputs you provide. It is not a forecast and not financial advice. The settlement index for CME compute futures is published by Silicon Data; prices here are from Ornn's transaction-based index. Serving-yield dynamics are estimated from public benchmarks for the stated model and hardware over the stated period and may not transfer to your stack.</div>
+
+</article>
+<script>
+(function () {
+  function fallbackCopy(text) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.top = '-1000px';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+    document.body.removeChild(ta);
+    return ok;
+  }
+
+  var pres = document.querySelectorAll('pre');
+
+  for (var i = 0; i < pres.length; i++) {
+    (function (pre) {
+      var wrap = document.createElement('div');
+      wrap.className = 'code-block';
+      pre.parentNode.insertBefore(wrap, pre);
+      wrap.appendChild(pre);
+
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'copy-btn';
+      btn.textContent = 'Copy';
+      btn.setAttribute('aria-label', 'Copy code to clipboard');
+      wrap.appendChild(btn);
+
+      var reset;
+
+      function flash(label, copied) {
+        btn.textContent = label;
+        btn.className = copied ? 'copy-btn copied' : 'copy-btn';
+        clearTimeout(reset);
+        reset = setTimeout(function () {
+          btn.textContent = 'Copy';
+          btn.className = 'copy-btn';
+        }, 1800);
+      }
+
+      function viaFallback() {
+        var ok = fallbackCopy(text());
+        flash(ok ? 'Copied' : 'Press ⌘C', ok);
+      }
+
+      function text() {
+        return (pre.querySelector('code') || pre).textContent;
+      }
+
+      btn.addEventListener('click', function () {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text()).then(
+            function () { flash('Copied', true); },
+            viaFallback
+          );
+        } else {
+          viaFallback();
+        }
+      });
+    })(pres[i]);
+  }
+})();
+</script>
+</body>
+</html>

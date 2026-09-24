@@ -28,6 +28,15 @@ export interface BlogPost {
 // (title/date/excerpt for the list page). The page itself is shown exactly as authored.
 const fullPosts: BlogPost[] = [
   {
+    slug: "furrow",
+    title: "Furrow: know what your AI will cost to run before the bill arrives",
+    date: "2026-09-25",
+    excerpt:
+      "An inference cost and procurement engine. One intake in, a seven-page report out: GPU-hours, the true cost per million tokens, where the cost risk comes from, how much to reserve, and what a GPU price hedge can and cannot remove. Every number tagged observed, derived, assumed, scenario or simulated.",
+    kind: "full",
+    file: "/blog/furrow.html",
+  },
+  {
     slug: "vara-eth-preconfirmation-lab",
     title: "Build Ethereum dApps That Feel Instant: A Practical Guide to Preconfirmations and Faster UX",
     date: "2026-09-14",
