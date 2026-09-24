@@ -120,6 +120,7 @@
     <li><a href="#how">How it works</a></li>
     <li><a href="#not">What it is not</a></li>
     <li><a href="#research">The research behind it</a></li>
+    <li><a href="#explore">Explore</a></li>
   </ol>
 </nav>
 
@@ -339,6 +340,21 @@
   </tbody>
 </table></div>
 <div class="diagram-caption">every file is archived with its SHA-256 hash and retrieval time, and each report lists the files it used</div>
+
+
+<div class="divider-thin"></div>
+
+<span class="section-number">10</span>
+<h2 id="explore">Explore</h2>
+
+<p>The fastest way to understand Furrow is to read the seven pages it wrote for its chat example: gpt-oss-120b on H100, a trillion tokens a month, every number tagged. Then put your own workload through it.</p>
+
+<div class="cta-row">
+  <a class="cta-primary" href="/furrow/sample-report.html">Read the sample report</a>
+  <a class="cta-secondary" href="/furrow/index.html">See the product page</a>
+</div>
+
+<p>Furrow itself runs on your machine, never on a server anyone else can reach. Install it, run <code>furrow serve</code>, and the Workload, Results and Customers screens open at <code>http://127.0.0.1:8765/</code>. Reports are delivered one customer at a time by the person who built the engine; bring your traffic numbers and your on-demand rate, and a reservation quote if you have one.</p>
 
 <div class="callout"><strong>Scope.</strong> A Furrow report is a simulation under stated scenarios, calibrated to public benchmark, index and trace data as of stated retrieval dates and to the inputs you provide. It is not a forecast and not financial advice. The settlement index for CME compute futures is published by Silicon Data; prices here are from Ornn's transaction-based index. Serving-yield dynamics are estimated from public benchmarks for the stated model and hardware over the stated period and may not transfer to your stack.</div>
 
