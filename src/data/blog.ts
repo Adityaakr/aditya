@@ -28,6 +28,15 @@ export interface BlogPost {
 // (title/date/excerpt for the list page). The page itself is shown exactly as authored.
 const fullPosts: BlogPost[] = [
   {
+    slug: "laya-snag-finetune",
+    title: "Can a 421M-parameter model replace a frontier model as a code reviewer?",
+    date: "2026-09-28",
+    excerpt:
+      "We fine-tuned Laya, a small local model, as the judgement engine inside Snag, a reviewer that checks whether a pull request does what its issue asked. The architecture, six attempts, a 43% label error rate, a measured comparison with Claude and GPT-class models, and where we need help.",
+    kind: "full",
+    file: "/blog/laya-snag-finetune.html",
+  },
+  {
     slug: "furrow",
     title: "Furrow: know what your AI will cost to run before the bill arrives",
     date: "2026-09-25",

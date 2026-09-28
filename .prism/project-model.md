@@ -79,7 +79,7 @@ with react-router-dom. Single-page app, statically built, deployed from GitHub
     hand-maintained `fullPosts[]` array in `blog.ts`. Shown EXACTLY as authored inside an
     `<iframe>` (full-bleed, with a thin sticky back bar) at `/blog/:slug` — see the
     `kind === "full"` branch in `src/pages/BlogPost.tsx`. Current full posts (newest-first):
-    `furrow` (2026-09-25), `vara-eth-preconfirmation-lab` (2026-09-14),
+    `laya-snag-finetune` (2026-09-28), `furrow` (2026-09-25), `vara-eth-preconfirmation-lab` (2026-09-14),
     `qwen3-mlx-mac` (2026-08-17), `how-peal-is-built` (2026-07-09), `peal` (2026-07-08),
     `fiscus`, `mainnet-moment-gtm`, `kohaku-for-miden` (all 2026-06-30), `monaris-railgun`,
     `secrets-as-a-service`, `prism` (2026-06-29), `vara-eth-agentic-economy` (2026-06-28),

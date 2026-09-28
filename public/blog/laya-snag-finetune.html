@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Can a 421M-parameter model replace a frontier model as a code reviewer?</title>
+<meta name="description" content="We fine-tuned Laya, a small local model, to be the judgement engine inside Snag, a reviewer that checks whether a pull request does what its issue asked. The architecture, every attempt, the label bug that shaped all of it, and a measured comparison with frontier models like Claude and GPT.">
+<link rel="canonical" href="https://www.adibuilds.in/blog/laya-snag-finetune">
+<meta property="og:title" content="Can a 421M-parameter model replace a frontier model as a code reviewer?">
+<meta property="og:description" content="Fine-tuning a small local model to judge pull requests against their issues: the architecture, six attempts, a 43% label error rate, and what the evidence says about small models versus frontier ones.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://www.adibuilds.in/blog/laya-snag-finetune">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Can a 421M-parameter model replace a frontier model as a code reviewer?">
+<meta name="twitter:description" content="Fine-tuning a small local model to judge pull requests against their issues: the architecture, six attempts, a 43% label error rate, and what the evidence says.">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FAFAF8; --text: #1a1a1a; --text-secondary: #555; --accent: #2563eb;
+    --accent-light: #dbeafe; --border: #e5e5e0; --diagram-bg: #fefefe; --diagram-border: #d4d4c8;
+    --sketch-stroke: #1a1a1a; --sketch-fill-blue: #dbeafe; --sketch-fill-green: #dcfce7;
+    --sketch-fill-amber: #fef3c7; --sketch-fill-rose: #ffe4e6; --sketch-fill-purple: #f3e8ff;
+    --sketch-fill-gray: #f3f4f6; --callout-bg: #f8f7f4;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); line-height: 1.72; font-size: 17.5px; -webkit-font-smoothing: antialiased; }
+  .article-container { max-width: 720px; margin: 0 auto; padding: 60px 24px 100px; }
+  .article-tag { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--accent); margin-bottom: 20px; font-weight: 500; }
+  h1 { font-family: 'Instrument Serif', serif; font-size: clamp(32px, 5vw, 46px); line-height: 1.15; font-weight: 400; color: var(--text); margin-bottom: 24px; letter-spacing: -0.5px; }
+  .subtitle { font-size: 19px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 40px; font-weight: 400; }
+  .divider { width: 48px; height: 2px; background: var(--text); margin: 40px 0; }
+  .divider-thin { width: 100%; height: 1px; background: var(--border); margin: 48px 0; }
+  h2 { font-family: 'Instrument Serif', serif; font-size: 28px; font-weight: 400; color: var(--text); margin-bottom: 20px; margin-top: 8px; letter-spacing: -0.3px; scroll-margin-top: 24px; }
+  .section-number { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--accent); font-weight: 500; margin-bottom: 8px; display: block; }
+  p { margin-bottom: 18px; color: var(--text); }
+  strong { font-weight: 600; color: var(--text); }
+  em { font-style: italic; }
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(37,99,235,.32); transition: border-color .15s; }
+  a:hover { border-bottom-color: var(--accent); }
+  .lead-paragraph { font-size: 19.5px; line-height: 1.65; color: var(--text); }
+  .callout { background: var(--callout-bg); border-left: 3px solid var(--text); padding: 20px 24px; margin: 32px 0; font-family: 'Instrument Serif', serif; font-size: 20px; line-height: 1.55; font-style: italic; color: var(--text); }
+  .callout strong { font-style: normal; font-weight: 600; }
+  ul, ol { margin: 0 0 18px; padding-left: 24px; }
+  li { margin-bottom: 8px; }
+  .pipeline { font-family: 'JetBrains Mono', monospace; font-size: 13.5px; background: var(--callout-bg); border: 1px solid var(--border); border-radius: 6px; padding: 16px 20px; margin: 28px 0; overflow-x: auto; white-space: nowrap; color: var(--text); }
+  .diagram-wrapper { margin: 40px -20px; padding: 0; }
+  .diagram-wrapper svg { width: 100%; height: auto; display: block; }
+  .diagram-caption { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--text-secondary); text-align: center; margin-top: 12px; letter-spacing: 0.3px; padding: 0 20px; }
+  .diagram-note { font-size: 13.5px; color: var(--text-secondary); text-align: center; margin-top: 8px; padding: 0 20px; font-style: italic; }
+  .toc { background: var(--callout-bg); border: 1px solid var(--border); border-radius: 6px; padding: 24px 28px 16px; margin: 36px 0 48px; }
+  .toc-title { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; font-weight: 500; }
+  .toc ol { margin: 0; padding-left: 22px; }
+  .toc li { margin-bottom: 6px; font-size: 15px; }
+  .toc a { border-bottom: none; color: var(--text); }
+  .toc a:hover { color: var(--accent); }
+  .glossary { background: var(--callout-bg); border: 1px solid var(--border); border-radius: 6px; padding: 28px 28px 12px; margin: 36px 0; }
+  .glossary-title { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); margin-bottom: 16px; font-weight: 500; }
+  .glossary-item { margin-bottom: 14px; font-size: 16px; line-height: 1.6; }
+  .glossary-term { font-weight: 600; font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--text); }
+  code, .inline-code { font-family: 'JetBrains Mono', monospace; font-size: 14.5px; background: #f0efe8; padding: 2px 6px; border-radius: 3px; color: var(--text); }
+  .data-table { margin: 32px 0; overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 540px; }
+  thead th { text-align: left; font-family: 'JetBrains Mono', monospace; font-weight: 500; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-secondary); padding: 0 14px 10px; border-bottom: 2px solid var(--diagram-border); }
+  tbody td { padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.55; }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody td:first-child { white-space: nowrap; }
+  .punch { font-family: 'Instrument Serif', serif; font-size: clamp(22px,4vw,30px); line-height: 1.3; margin: 36px 0 8px; }
+  .punch .a { color: var(--accent); }
+  .punch .b { color: #16a34a; display: block; }
+  .cta-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px 16px; margin-bottom: 18px; }
+  .cta-primary { font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 15px; color: #fff; background: var(--accent); border: 1px solid var(--accent); border-radius: 6px; padding: 10px 18px; white-space: nowrap; }
+  .cta-primary:hover { background: #1d4fd8; border-bottom-color: #1d4fd8; }
+  .cta-secondary { color: var(--text-secondary); font-size: 16px; }
+  @media (max-width: 600px) {
+    .article-container { padding: 36px 18px 72px; }
+    body { font-size: 16.5px; }
+    h2 { font-size: 24px; }
+    .glossary { padding: 20px 20px 8px; }
+    .toc { padding: 20px 20px 10px; }
+    .diagram-wrapper { margin: 32px -10px; }
+  }
+</style>
+</head>
+<body>
+<article class="article-container">
+<div class="article-tag">Snag · Laya · Fine-tuning notes</div>
+<h1>Can a 421M-parameter model replace a frontier model as a code reviewer?</h1>
+<p class="subtitle">We fine-tuned a small local model to be the judgement engine inside Snag. After several training runs, a mechanics diagnostic and a controlled experiment, it still could not tell implemented code from missing code in repositories it had never seen. This is the full account, and what it says about small models versus Claude and GPT.</p>
+
+<p class="lead-paragraph">Snag reviews a pull request against the issue it claims to fix and says, requirement by requirement, what was done, what is missing and what contradicts the request. We wanted its judgement engine to run locally, cheaply and privately, so we fine-tuned Laya, an open typed-decision model built on ModernBERT-large. Below: the architecture, every attempt, the bug in our labels that shaped all of it, a measured comparison with simply calling a frontier model, and where we need help to get further.</p>
+
+<nav class="toc" aria-label="Table of contents">
+  <div class="toc-title">In this article</div>
+  <ol>
+    <li><a href="#problem">The problem</a></li>
+    <li><a href="#architecture">The architecture</a></li>
+    <li><a href="#why-small">Why try a small local model at all</a></li>
+    <li><a href="#setup">The training setup</a></li>
+    <li><a href="#attempts">Six attempts, in order</a></li>
+    <li><a href="#labels">The labels were wrong</a></li>
+    <li><a href="#comparison">Against frontier models</a></li>
+    <li><a href="#verdict">Build or buy: the verdict</a></li>
+    <li><a href="#lessons">What we would tell ourselves</a></li>
+    <li><a href="#help">Help us improve it</a></li>
+  </ol>
+</nav>
+
+<span class="section-number">01</span>
+<h2 id="problem">The problem</h2>
+<p>Coding agents now open pull requests from issues. A human reviewer then has to answer a question that ordinary review tools skip: <strong>did this change do what the issue asked, and nothing it did not?</strong> Style bots and bug finders read the diff. Snag reads the diff against the request.</p>
+<p>The answer has to be specific to be useful. "Requirement 3, the export filename should include the report date, is missing" helps a reviewer. "The PR looks incomplete" does not. So Snag works at the level of individual requirements, each tied to an exact quote from the issue, and every verdict points at lines of code.</p>
+
+<div class="divider-thin"></div>
+
+<span class="section-number">02</span>
+<h2 id="architecture">The architecture</h2>
+<p>Snag splits the work so that a model answers only small, well-defined questions, and plain code makes the decisions.</p>
+<ol>
+  <li><strong>Blind extraction.</strong> A language model reads only the issue, never the PR, and lists atomic requirements. Each must quote the issue verbatim, which code checks.</li>
+  <li><strong>Change units.</strong> Tree-sitter splits the diff into units, one per function or test, with comments stripped so code comments cannot argue with the reviewer.</li>
+  <li><strong>Typed questions.</strong> For each requirement, an engine answers narrow questions with a probability per option: how much of the requirement the candidate units implement (None, Touched, Most, Full), whether any change conflicts with it, which unit is the evidence, whether the tests assert the stated behaviour.</li>
+  <li><strong>Verdict rules.</strong> Deterministic code turns probabilities into statuses (done, partial, missing, contradicted) with thresholds, then into findings with a priority and a route.</li>
+</ol>
+<div class="diagram-wrapper">
+<svg viewBox="0 0 760 470" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Snag pipeline: the issue becomes requirements and the diff becomes change units; typed questions go to an engine (Jev, Laya or an LLM); answer probabilities pass through deterministic verdict rules to findings"><rect x="0" y="0" width="760" height="470" fill="var(--diagram-bg)" rx="8"/><text x="40" y="42" font-family="'Instrument Serif', serif" font-size="22" fill="#1a1a1a">How Snag asks an engine about a pull request</text><rect x="40" y="70" width="120" height="54" rx="8" fill="var(--sketch-fill-amber)" stroke="#1a1a1a" stroke-width="1.5"/><text x="100.0" y="94.0" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="15" font-weight="600" fill="#1a1a1a">Issue</text><text x="100.0" y="112.0" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11.5" fill="#555">what was asked</text><rect x="200" y="70" width="170" height="54" rx="8" fill="var(--sketch-fill-gray)" stroke="#1a1a1a" stroke-width="1.5"/><text x="285.0" y="94.0" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">Requirement extraction</text><text x="285.0" y="112.0" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#555">issue only, never the PR</text><rect x="410" y="70" width="150" height="54" rx="8" fill="var(--sketch-fill-amber)" stroke="#1a1a1a" stroke-width="1.5"/><text x="485.0" y="94.0" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="15" font-weight="600" fill="#1a1a1a">Requirements</text><text x="485.0" y="112.0" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11.5" fill="#555">each with a quote</text><rect x="40" y="160" width="120" height="54" rx="8" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.5"/><text x="100.0" y="184.0" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="15" font-weight="600" fill="#1a1a1a">Diff</text><text x="100.0" y="202.0" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11.5" fill="#555">what changed</text><rect x="200" y="160" width="170" height="54" rx="8" fill="var(--sketch-fill-gray)" stroke="#1a1a1a" stroke-width="1.5"/><text x="285.0" y="184.0" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="15" font-weight="600" fill="#1a1a1a">Change units</text><text x="285.0" y="202.0" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#555">tree-sitter, per function</text><rect x="410" y="150" width="310" height="110" rx="8" fill="var(--sketch-fill-purple)" stroke="#1a1a1a" stroke-width="1.5"/><text x="565" y="176" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="15" font-weight="600" fill="#1a1a1a">Typed questions per requirement</text><rect x="425" y="192" width="66" height="26" rx="13" fill="#fff" stroke="#1a1a1a" stroke-width="1.2"/><text x="458" y="209" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#1a1a1a">coverage</text><rect x="499" y="192" width="66" height="26" rx="13" fill="#fff" stroke="#1a1a1a" stroke-width="1.2"/><text x="532" y="209" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#1a1a1a">conflict</text><rect x="573" y="192" width="66" height="26" rx="13" fill="#fff" stroke="#1a1a1a" stroke-width="1.2"/><text x="606" y="209" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#1a1a1a">evidence</text><rect x="647" y="192" width="66" height="26" rx="13" fill="#fff" stroke="#1a1a1a" stroke-width="1.2"/><text x="680" y="209" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#1a1a1a">tests</text><text x="565" y="244" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#555">a probability for every option</text><rect x="410" y="295" width="310" height="60" rx="8" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.5"/><text x="565.0" y="322.0" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="15" font-weight="600" fill="#1a1a1a">Engine</text><text x="565.0" y="340.0" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11.5" fill="#555">Jev · Laya (local) · an LLM</text><rect x="604" y="283" width="112" height="24" rx="12" fill="var(--sketch-fill-rose)" stroke="#1a1a1a" stroke-width="1.2"/><text x="660" y="299" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#1a1a1a">fine-tuned here</text><rect x="520" y="390" width="200" height="54" rx="8" fill="var(--sketch-fill-gray)" stroke="#1a1a1a" stroke-width="1.5"/><text x="620.0" y="422.0" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="15" font-weight="600" fill="#1a1a1a">Answer probabilities</text><rect x="316" y="390" width="166" height="54" rx="8" fill="var(--sketch-fill-gray)" stroke="#1a1a1a" stroke-width="1.5"/><text x="399.0" y="414.0" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="15" font-weight="600" fill="#1a1a1a">Verdict rules</text><text x="399.0" y="432.0" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#555">fixed thresholds</text><rect x="30" y="390" width="266" height="54" rx="8" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.5"/><text x="163.0" y="414.0" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="15" font-weight="600" fill="#1a1a1a">Findings</text><text x="163.0" y="432.0" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9.5" fill="#555">done · partial · missing · contradicted</text><line x1="160" y1="97" x2="198" y2="97" stroke="#1a1a1a" stroke-width="1.5"/><polygon points="198,97 189,92 189,102" fill="#1a1a1a"/><line x1="370" y1="97" x2="408" y2="97" stroke="#1a1a1a" stroke-width="1.5"/><polygon points="408,97 399,92 399,102" fill="#1a1a1a"/><line x1="160" y1="187" x2="198" y2="187" stroke="#1a1a1a" stroke-width="1.5"/><polygon points="198,187 189,182 189,192" fill="#1a1a1a"/><line x1="370" y1="187" x2="408" y2="187" stroke="#1a1a1a" stroke-width="1.5"/><polygon points="408,187 399,182 399,192" fill="#1a1a1a"/><line x1="485" y1="124" x2="485" y2="148" stroke="#1a1a1a" stroke-width="1.5"/><polygon points="485,148 480,139 490,139" fill="#1a1a1a"/><line x1="520" y1="260" x2="520" y2="293" stroke="#1a1a1a" stroke-width="1.5"/><polygon points="520,293 515,284 525,284" fill="#1a1a1a"/><line x1="620" y1="355" x2="620" y2="388" stroke="#1a1a1a" stroke-width="1.5"/><polygon points="620,388 615,379 625,379" fill="#1a1a1a"/><line x1="520" y1="417" x2="484" y2="417" stroke="#1a1a1a" stroke-width="1.5"/><polygon points="484,417 493,412 493,422" fill="#1a1a1a"/><line x1="316" y1="417" x2="298" y2="417" stroke="#1a1a1a" stroke-width="1.5"/><polygon points="298,417 307,412 307,422" fill="#1a1a1a"/></svg>
+</div>
+<p class="diagram-caption">The review pipeline. The engine is the part this work tried to make local.</p>
+<p>This design matters for the rest of the story. Because the engine only answers typed questions, any engine that speaks the protocol can plug in: TypeSafe's Jev, which Snag was designed around; a generative LLM prompted to return per-option probabilities; or a small classifier like Laya. We built all three behind one interface (<code>JevProvider</code>), plus a local server that speaks Jev's <code>/v1/systemone</code> protocol, so Snag cannot tell the difference.</p>
+
+<div class="divider-thin"></div>
+
+<span class="section-number">03</span>
+<h2 id="why-small">Why try a small local model at all</h2>
+<p>The obvious alternative is to send each question, or the whole review, to a frontier model such as Claude or GPT. We did build that path, and it works far better today. We still spent the effort on a local model because a reviewer that runs on every push has constraints a chat assistant does not.</p>
+<div class="data-table">
+<table>
+  <thead><tr><th>Concern</th><th>Frontier model per review</th><th>Small local model</th></tr></thead>
+  <tbody>
+    <tr><td>Cost at scale</td><td>Measured <code>$0.017</code> to <code>$0.043</code> per review for a single-call reviewer, <code>$0.158</code> for the structured pipeline, on every push</td><td>No per-call API cost; the price moves to hardware and engineering time</td></tr>
+    <tr><td>Latency</td><td>Measured p50 <code>17.2 s</code>, p95 <code>47.5 s</code> for the single-call reviewer, plus retries</td><td>Laya's authors report tens of milliseconds per decision on a GPU; we did not measure end-to-end review latency</td></tr>
+    <tr><td>Privacy</td><td>Source code goes to a third-party API</td><td>The diff never leaves the machine for judgement; extraction still sends the issue text to an LLM unless that step is local too</td></tr>
+    <tr><td>Confidence</td><td>Probabilities are self-reported by a generative model</td><td>A probability per option from one forward pass; still needs calibrating, but a stable input for a merge gate</td></tr>
+    <tr><td>Control</td><td>Model versions change underneath you; providers pause signups, change prices, rate-limit</td><td>A pinned checkpoint you own, versioned with the code</td></tr>
+    <tr><td>Code reasoning</td><td>Strong, with no training data needed</td><td>Unknown until measured; needs task-specific data</td></tr>
+  </tbody>
+</table>
+</div>
+<p>One row stopped being theoretical during the project. The engine Snag was designed around, TypeSafe's Jev, paused new signups, so we could not get a key. Vendor risk is not an abstraction when your core component depends on it.</p>
+<p>So the bet was reasonable: if a 421M-parameter encoder could answer Snag's narrow questions well, the product would be cheaper, faster, more private and more controllable. The rest of this piece is about testing that bet properly.</p>
+
+<div class="divider-thin"></div>
+
+<span class="section-number">04</span>
+<h2 id="setup">The training setup</h2>
+<p><strong>The base model.</strong> Laya (<code>convaiinnovations/laya</code>, Apache-2.0) is a ModernBERT-large encoder with a two-layer head that scores answer options at marker positions. It answers exactly the three question types Snag uses. We started from its <code>typed-decisions</code> checkpoint: <code>421,293,830</code> parameters, <code>843 MB</code> in fp16.</p>
+<p><strong>The data.</strong> Snag has a mutation corpus: 12 small seed repositories in TypeScript, Python and Rust, each a correct PR for an issue, from which operators derive defective variants (drop a requirement, flip a condition, remove one case, unwire a call, weaken a test). We split by repository before any augmentation: 7 seeds for training, 2 for validation, 3 frozen for a final test that no experiment touched.</p>
+<p><strong>OracleJev.</strong> The key trick for training data that matches production exactly: run Snag's real pipeline on every training item, but answer its questions from the item's labels. The oracle records each state, question and answer, but only when the labels decide the answer. The recorded inputs are byte-for-byte what Snag sends the model in production.</p>
+<div class="diagram-wrapper">
+<svg viewBox="0 0 760 345" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Training loop: the mutation corpus runs through Snag with OracleJev to produce records; records go through a rubric audit to checked pairs; Laya is fine-tuned; base and fine-tuned models are compared on unseen codebases"><rect x="0" y="0" width="760" height="345" fill="var(--diagram-bg)" rx="8"/><rect x="30" y="30" width="200" height="64" rx="8" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.5"/><text x="130.0" y="59.0" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="15" font-weight="600" fill="#1a1a1a">Mutation corpus</text><text x="130.0" y="77.0" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11.5" fill="#555">12 seeds, split by repo</text><rect x="280" y="30" width="200" height="64" rx="8" fill="var(--sketch-fill-gray)" stroke="#1a1a1a" stroke-width="1.5"/><text x="380.0" y="59.0" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="15" font-weight="600" fill="#1a1a1a">Snag + OracleJev</text><text x="380.0" y="77.0" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11.5" fill="#555">real states, label answers</text><rect x="530" y="30" width="200" height="64" rx="8" fill="var(--sketch-fill-gray)" stroke="#1a1a1a" stroke-width="1.5"/><text x="630.0" y="59.0" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="15" font-weight="600" fill="#1a1a1a">Records</text><text x="630.0" y="77.0" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11.5" fill="#555">4,317 (3,325 unique)</text><rect x="530" y="150" width="200" height="64" rx="8" fill="var(--sketch-fill-rose)" stroke="#1a1a1a" stroke-width="1.5"/><text x="630.0" y="179.0" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="15" font-weight="600" fill="#1a1a1a">Rubric audit</text><text x="630.0" y="197.0" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11.5" fill="#555">36 of 83 labels wrong</text><rect x="280" y="150" width="200" height="64" rx="8" fill="var(--sketch-fill-amber)" stroke="#1a1a1a" stroke-width="1.5"/><text x="380.0" y="179.0" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="15" font-weight="600" fill="#1a1a1a">Checked pairs</text><text x="380.0" y="197.0" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11.5" fill="#555">one requirement, two states</text><rect x="30" y="150" width="200" height="64" rx="8" fill="var(--sketch-fill-purple)" stroke="#1a1a1a" stroke-width="1.5"/><text x="130.0" y="179.0" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="15" font-weight="600" fill="#1a1a1a">Fine-tune Laya</text><text x="130.0" y="197.0" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11.5" fill="#555">top 6 layers + head, MPS</text><rect x="155" y="260" width="450" height="60" rx="8" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.5"/><text x="380.0" y="287.0" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="15" font-weight="600" fill="#1a1a1a">Evaluate on unseen codebases</text><text x="380.0" y="305.0" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11.5" fill="#555">base vs fine-tuned, same pairs, grouped folds</text><line x1="230" y1="62" x2="278" y2="62" stroke="#1a1a1a" stroke-width="1.5"/><polygon points="278,62 269,57 269,67" fill="#1a1a1a"/><line x1="480" y1="62" x2="528" y2="62" stroke="#1a1a1a" stroke-width="1.5"/><polygon points="528,62 519,57 519,67" fill="#1a1a1a"/><line x1="630" y1="94" x2="630" y2="148" stroke="#1a1a1a" stroke-width="1.5"/><polygon points="630,148 625,139 635,139" fill="#1a1a1a"/><line x1="530" y1="182" x2="482" y2="182" stroke="#1a1a1a" stroke-width="1.5"/><polygon points="482,182 491,177 491,187" fill="#1a1a1a"/><line x1="280" y1="182" x2="232" y2="182" stroke="#1a1a1a" stroke-width="1.5"/><polygon points="232,182 241,177 241,187" fill="#1a1a1a"/><line x1="130" y1="214" x2="130" y2="290" stroke="#1a1a1a" stroke-width="1.5"/><line x1="130" y1="290" x2="153" y2="290" stroke="#1a1a1a" stroke-width="1.5"/><polygon points="153,290 144,285 144,295" fill="#1a1a1a"/></svg>
+</div>
+<p class="diagram-caption">The training and evaluation loop. The audit step came late, once it was clear the labels could not be trusted.</p>
+<p><strong>The recipe.</strong> We trained the top 6 of 28 encoder layers plus the head with AdamW (encoder <code>2e-5</code>, head <code>1e-4</code>), gradient checkpointing and bf16 on an Apple M5 GPU with 24 GB of unified memory. Three unglamorous fixes came first: bucketing tensor shapes so the MPS graph cache stopped exhausting memory, checkpointing only the trainable layers, and a strict server that rejects over-long inputs instead of truncating them, so Snag never judges code the model did not see.</p>
+
+<div class="divider-thin"></div>
+
+<span class="section-number">05</span>
+<h2 id="attempts">Six attempts, in order</h2>
+
+<h3>1. v1: high accuracy, useless reviews</h3>
+<p>The first fine-tune looked like a success. On held-out seeds, accuracy across all typed questions rose from <code>43.6%</code> to <code>82.1%</code>. Then we ran it end to end inside Snag. On the held-out mutation PRs it caught <strong>1 of 21</strong> planted defects. It turned a missing requirement into "done" 31 times and a contradicted one into "done" 19 times. Most training examples were "Full coverage" and "no conflict", so predicting those scored well per question and failed at the only thing that mattered.</p>
+
+<h3>2. v2: fixing the imbalance, and finding shortcuts</h3>
+<p>We added counterfactual "missing" twins (the same requirement with its implementing code removed) and balanced the classes. An audit before the run finished found two shortcuts in our own augmentation: distractor units carried IDs like <code>D1</code> while real ones were <code>U1</code>, and twins had exactly one fewer candidate than their originals. Either reveals the answer without reading code. With the loss flat as well, we stopped at step 90 of 394 and fixed both. A later probe showed twins still leaked through language mixing, so we rebuilt them. A shallow-feature probe that once beat the majority baseline by up to <code>+0.30</code> fell to about <code>+0.08</code>.</p>
+
+<h3>3. The mechanics diagnostic: the trainer works</h3>
+<p>When a memorisation check failed, it was tempting to blame the trainer. We tested that directly with 27 hand-written, unambiguous examples, and instrumented gradient flow, optimiser membership, marker positions and option order. The model fit all 27 by step 40 (26 with checkpointing or bucketing on). The 5 matched contradiction pairs flipped the right way: for a 404-versus-400 status-code bug, P(conflict) was <code>0.017</code> on the correct code and <code>0.641</code> on the wrong one. Decisions were identical after save and reload. The machinery was sound; the problem was elsewhere.</p>
+
+<h3>4. Stage A: still nothing on held-out cases</h3>
+<p>On cleaned data, training only the four core questions, the model still found 0 of 43 missing requirements on held-out seeds and said "conflict" on 92% of cases that had none. Loss fell. Discrimination did not appear.</p>
+
+<h3>5. The label audit: the actual root cause</h3>
+<p>This one gets <a href="#labels">its own section</a>.</p>
+
+<h3>6. E7: a controlled experiment on clean pairs</h3>
+<p>With corrected labels we built the cleanest test we could: 27 matched pairs, each the same requirement shown once with its implementing code and once without it, taken straight from the corpus with no synthetic augmentation. Three-fold cross-validation grouped by repository meant every pair was judged by a model that had never seen its codebase, with a fixed budget and no checkpoint picked on validation results.</p>
+<div class="data-table">
+<table>
+  <thead><tr><th>Unseen codebases, 27 pairs</th><th>Original Laya</th><th>Fine-tuned Laya</th></tr></thead>
+  <tbody>
+    <tr><td>Implemented recognised</td><td><code>25/27</code></td><td><code>14/27</code></td></tr>
+    <tr><td>Missing recognised</td><td><code>0/27</code></td><td><code>13/27</code></td></tr>
+    <tr><td>Both halves of a pair right</td><td><code>0/27</code></td><td><code>4/27</code></td></tr>
+    <tr><td>Ranks the missing version as more likely missing</td><td><code>15/27</code></td><td><code>12/27</code></td></tr>
+    <tr><td>Fit on its own training pairs</td><td>n/a</td><td><code>38/42</code></td></tr>
+  </tbody>
+</table>
+</div>
+<p>The model memorised its training codebases and learned nothing that transferred. Fine-tuning moved it from "always implemented" to guessing; pair ranking stayed at a coin flip. With 32 to 44 training examples per fold more data could change this, but there was no improvement signal to justify scaling, so fine-tuning is paused.</p>
+
+<div class="divider-thin"></div>
+
+<span class="section-number">06</span>
+<h2 id="labels">The labels were wrong</h2>
+<p>Every mutation item came with a label derived from its operator's name. Drop a requirement's code and the label says "missing". Remove one case and it says "partial". That seemed safe. It was not.</p>
+<p>We wrote a status rubric that judges from the code alone: a requirement is <strong>missing</strong> only if nothing handles the situation it names, and <strong>contradicted</strong> if code handles that situation with an outcome the requirement rules out. Then we re-judged every targeted label across the 9 development seeds.</p>
+<div class="data-table">
+<table>
+  <thead><tr><th>Operator</th><th>Items</th><th>Agree</th><th>Wrong</th><th>Ambiguous</th></tr></thead>
+  <tbody>
+    <tr><td>drop_requirement</td><td><code>36</code></td><td><code>20</code></td><td><code>15</code></td><td><code>1</code></td></tr>
+    <tr><td>claim_all_done</td><td><code>9</code></td><td><code>2</code></td><td><code>6</code></td><td><code>1</code></td></tr>
+    <tr><td>partial_requirement</td><td><code>9</code></td><td><code>1</code></td><td><code>7</code></td><td><code>1</code></td></tr>
+    <tr><td>unwire</td><td><code>9</code></td><td><code>0</code></td><td><code>8</code></td><td><code>1</code></td></tr>
+    <tr><td>flip_condition</td><td><code>20</code></td><td><code>18</code></td><td><code>0</code></td><td><code>2</code></td></tr>
+  </tbody>
+</table>
+</div>
+<p><strong>36 of 83 targeted labels, 43%, were wrong.</strong> The pattern is consistent. Remove exponential backoff from a retry loop and the code falls back to a fixed delay: that is not a missing requirement, it contradicts "delays double each time". Remove the case that parses <code>"2"</code> as a version and it now returns an error: contradicted, not partial. A helper that is never called is never "partial"; it is missing, or the call site now does something else.</p>
+<p>Every earlier training run learned from these labels. That alone plausibly explains the failures, independent of model capacity. It also changed how we evaluate: our first engine comparisons scored against the same wrong labels, which made one engine look better than another when, under the rubric, it was not.</p>
+
+<div class="divider-thin"></div>
+
+<span class="section-number">07</span>
+<h2 id="comparison">Against frontier models</h2>
+<p>We measured three systems on the same held-out items with a strict scorer: a defect counts only when a finding that reaches the user names the right requirement with the right type, duplicates count against precision, and failed reviews stay in the denominator.</p>
+<ul>
+  <li><strong>A:</strong> one Claude Sonnet 5 call per PR reviews the issue and the diff, plus deterministic checks for weakened and skipped tests.</li>
+  <li><strong>B:</strong> Snag's structured pipeline with Sonnet 5 answering the typed questions.</li>
+  <li><strong>C:</strong> Snag's structured pipeline with fine-tuned Laya.</li>
+</ul>
+<div class="data-table">
+<table>
+  <thead><tr><th>Held-out mutation PRs</th><th>A: frontier, one call</th><th>C: fine-tuned Laya</th></tr></thead>
+  <tbody>
+    <tr><td>Target defect, correct type</td><td><code>20/25</code></td><td><code>4/25</code></td></tr>
+    <tr><td>Finding precision</td><td><code>22/29</code></td><td><code>4/14</code></td></tr>
+    <tr><td>Requirement-status accuracy</td><td><code>111/116</code></td><td><code>76/116</code></td></tr>
+    <tr><td>Entire review correct</td><td><code>20/29</code></td><td><code>3/29</code></td></tr>
+    <tr><td>Cost per review, with retries</td><td><code>$0.043</code></td><td>local GPU time</td></tr>
+  </tbody>
+</table>
+</div>
+<p>On the 7 items where we could afford to run B, B surfaced 5 of 6 target defects with the right type and A 4 of 6; both got 5 of 7 reviews entirely right. With the original labels the order was reversed. On 7 items that is a tie, not a ranking.</p>
+<p><strong>The frontier model is far ahead of the small one, and still not good enough.</strong> On 30 real merged patches from SWE-bench Verified, where there is no planted defect, we adjudicated every finding the best frontier configuration raised. Only 2 of 9 decidable findings held up. The largest source of false findings was code on the fix path flagged as unexplained (5 of the 7 that remained after our last two fixes); before those fixes, requirements invented from things the issue never asked for were the other big one. A frontier model removes the capacity problem. It does not remove the need for clean task definitions, correct labels and careful scoping.</p>
+
+<div class="divider-thin"></div>
+
+<span class="section-number">08</span>
+<h2 id="verdict">Build or buy: the verdict</h2>
+<p>For this product, today, the evidence points one way.</p>
+<ol>
+  <li><strong>Use a frontier model as the engine now.</strong> It is the only option that reasons about code well enough to be worth improving, it needs no training data, and on mutation PRs a single call cost <code>$0.043</code> against <code>$0.158</code> for our structured pipeline, with no measurable loss on the 7 items we could compare.</li>
+  <li><strong>Keep the typed-question interface.</strong> It let us swap engines, run a strict evaluator and hold every engine to the same rubric. It is also the path back to a local model.</li>
+  <li><strong>Do not expect a small model to learn this task from a few synthetic repositories.</strong> Nine development seeds written in one style are far from the diversity code review needs.</li>
+  <li><strong>Revisit local only with a specific reason:</strong> many more independent codebases, human-checked labels, or verified frontier answers to distil from. A small model makes sense later as a pre-filter that routes obvious cases away from the paid model, if its routing errors are measured and acceptable.</li>
+</ol>
+<p>The arguments for a local model were never wrong. Cost, latency, privacy and control still matter, and matter more as usage grows. They are reasons to keep the door open, not reasons to ship a model that cannot yet do the job.</p>
+
+<div class="divider-thin"></div>
+
+<span class="section-number">09</span>
+<h2 id="lessons">What we would tell ourselves</h2>
+<ul>
+  <li><strong>Audit labels before training anything.</strong> Nearly half our "missing" and "partial" labels were wrong, and no recipe fixes that.</li>
+  <li><strong>Question-level accuracy can hide total failure.</strong> 82% per question coexisted with catching 1 of 21 real defects.</li>
+  <li><strong>Memorising is not learning.</strong> The mechanics set fit 27 of 27, training pairs fit 38 of 42, and unseen pairs sat at chance. Only held-out, repository-grouped evaluation told the truth.</li>
+  <li><strong>Augmentation leaks in ways you do not predict.</strong> IDs, candidate counts and cross-language filler all gave away the answer until we probed for them.</li>
+  <li><strong>Build the strict evaluator first.</strong> Our lenient first scorer credited defects by status even when no finding reached the user, and a report bug silently dropped a system's best items. Both inflated numbers we then had to take back.</li>
+  <li><strong>Report negative results with their denominators.</strong> They are the most useful thing this project produced.</li>
+</ul>
+
+<div class="divider-thin"></div>
+
+<span class="section-number">10</span>
+<h2 id="help">Help us improve it</h2>
+<p>Snag is held to a hard bar: within a declared scope, the lower bound of the 95% interval must be at least 99% on every correctness metric, with the reviewer saying "needs human review" instead of guessing when the evidence is not decisive. No engine meets that yet. Here is how far each one is.</p>
+<div class="diagram-wrapper">
+<svg viewBox="0 0 760 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Bars showing the frontier reviewer at 20 of 25 and 20 of 29 on mutations, Laya at 4 of 25, and the frontier reviewer at 2 of 9 on real patches, against a 99% target line"><rect x="0" y="0" width="760" height="300" fill="var(--diagram-bg)" rx="8"/><text x="40" y="40" font-family="'Instrument Serif', serif" font-size="22" fill="#1a1a1a">Distance to the target</text><text x="40" y="62" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#555">share correct; target is a 95% lower bound of at least 99% within a declared scope</text><text x="40" y="104" font-family="'DM Sans', sans-serif" font-size="13.5" font-weight="600" fill="#1a1a1a">Frontier, mutations</text><text x="40" y="121" font-family="'JetBrains Mono', monospace" font-size="10" fill="#555">target defect, correct type</text><rect x="250" y="92" width="440" height="18" rx="4" fill="var(--sketch-fill-gray)" stroke="#d4d4c8"/><rect x="250" y="92" width="352.0" height="18" rx="4" fill="#2563eb" opacity=".85"/><text x="610.0" y="106" font-family="'JetBrains Mono', monospace" font-size="11" fill="#1a1a1a">20/25</text><text x="40" y="156" font-family="'DM Sans', sans-serif" font-size="13.5" font-weight="600" fill="#1a1a1a">Frontier, mutations</text><text x="40" y="173" font-family="'JetBrains Mono', monospace" font-size="10" fill="#555">entire review correct</text><rect x="250" y="144" width="440" height="18" rx="4" fill="var(--sketch-fill-gray)" stroke="#d4d4c8"/><rect x="250" y="144" width="303.4" height="18" rx="4" fill="#2563eb" opacity=".85"/><text x="561.4" y="158" font-family="'JetBrains Mono', monospace" font-size="11" fill="#1a1a1a">20/29</text><text x="40" y="208" font-family="'DM Sans', sans-serif" font-size="13.5" font-weight="600" fill="#1a1a1a">Laya, mutations</text><text x="40" y="225" font-family="'JetBrains Mono', monospace" font-size="10" fill="#555">target defect, correct type</text><rect x="250" y="196" width="440" height="18" rx="4" fill="var(--sketch-fill-gray)" stroke="#d4d4c8"/><rect x="250" y="196" width="70.4" height="18" rx="4" fill="#e11d48" opacity=".85"/><text x="328.4" y="210" font-family="'JetBrains Mono', monospace" font-size="11" fill="#1a1a1a">4/25</text><text x="40" y="260" font-family="'DM Sans', sans-serif" font-size="13.5" font-weight="600" fill="#1a1a1a">Frontier, real patches</text><text x="40" y="277" font-family="'JetBrains Mono', monospace" font-size="10" fill="#555">findings that held up</text><rect x="250" y="248" width="440" height="18" rx="4" fill="var(--sketch-fill-gray)" stroke="#d4d4c8"/><rect x="250" y="248" width="97.8" height="18" rx="4" fill="#d97706" opacity=".85"/><text x="355.8" y="262" font-family="'JetBrains Mono', monospace" font-size="11" fill="#1a1a1a">2/9</text><line x1="685.6" y1="80" x2="685.6" y2="274" stroke="#16a34a" stroke-width="1.6" stroke-dasharray="4 4"/><text x="685.6" y="290" text-anchor="end" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#16a34a">99%</text></svg>
+</div>
+<p class="diagram-caption">Strict scorer, rubric labels. Mutation numbers are from 2 held-out codebases; real patches are 30 SWE-bench Verified PRs.</p>
+<p>The gap is mostly data, not models. A 99% claim needs roughly 380 error-free independent cases per metric, realistically 600 or more, and we have 2 held-out codebases and 30 real patches. These are the contributions that would move the numbers most, in order of impact.</p>
+<div class="data-table">
+<table>
+  <thead><tr><th>Contribution</th><th>Why it matters</th><th>What it takes</th></tr></thead>
+  <tbody>
+    <tr><td>Real PR and issue pairs</td><td>Independent codebases are the single biggest gap, for evaluation and for any second attempt at a local model</td><td>Links to merged PRs in public repositories whose issue lists concrete, checkable behaviour; TypeScript and Python first</td></tr>
+    <tr><td>Label review</td><td>Model-made labels were 43% wrong on one slice; a 99% claim needs human-checked labels</td><td>Judge a sample of requirement statuses against the <a href="https://github.com/Adityaakr/laya-snag-finetune/blob/main/docs/status-rubric.md" target="_blank" rel="noopener noreferrer">status rubric</a>; about 10 to 20 hours in total, shared across reviewers</td></tr>
+    <tr><td>Pilot repositories</td><td>Real reviews on live PRs are the only evidence that matters in the end</td><td>2 or 3 repositories where Snag can post comment-only reviews in shadow mode, with you marking each finding right or wrong</td></tr>
+    <tr><td>Experiments</td><td>The next justified steps are specific and cheap to test</td><td>A fix-path check for "unexplained" code, distilling Laya from verified frontier answers, or a relabelled corpus; open an issue with a hypothesis and a pass or fail gate</td></tr>
+    <tr><td>Compute and API credits</td><td>The reference engine needs predictions on about 600 cases with repeat runs; Laya needs a GPU to scale</td><td>About <code>$60</code> to <code>$100</code> of API budget, or cloud GPU hours if the local track resumes</td></tr>
+  </tbody>
+</table>
+</div>
+<p>Everything is open. The fine-tuning code, data, logs, label audit and every experiment are in <a href="https://github.com/Adityaakr/laya-snag-finetune" target="_blank" rel="noopener noreferrer">laya-snag-finetune</a>; the reviewer itself is <a href="https://github.com/Adityaakr/snag" target="_blank" rel="noopener noreferrer">Snag</a>. The one rule for contributions is the one we hold ourselves to: every claim comes with its denominator, and a result counts only on data the change was not tuned on.</p>
+
+<p class="punch"><span class="a">A small model is not the goal.</span> <span class="b">A reviewer you can trust is.</span></p>
+
+<p class="cta-row">
+  <a class="cta-primary" href="https://github.com/Adityaakr/laya-snag-finetune" target="_blank" rel="noopener noreferrer">Contribute on GitHub</a>
+  <span class="cta-secondary">or send PRs worth testing, and results that prove us wrong, on <a href="https://x.com/adityakrx" target="_blank" rel="noopener noreferrer">X @adityakrx</a>.</span>
+</p>
+
+
+</article>
+</body>
+</html>
