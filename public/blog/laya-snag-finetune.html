@@ -3,16 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Can a 421M-parameter model replace a frontier model as a code reviewer?</title>
-<meta name="description" content="We fine-tuned Laya, a small local model, to be the judgement engine inside Snag, a reviewer that checks whether a pull request does what its issue asked. The architecture, every attempt, the label bug that shaped all of it, and a measured comparison with frontier models like Claude and GPT.">
+<title>What we learned fine-tuning a small decision model to review pull requests</title>
+<meta name="description" content="Our notes from fine-tuning Laya, a 421M-parameter decision model, as the judgement engine inside Snag: why a reviewer needs a decision model rather than a full LLM, the architecture, six attempts, the label bug that shaped all of it, and how it compares with frontier models today.">
 <link rel="canonical" href="https://www.adibuilds.in/blog/laya-snag-finetune">
-<meta property="og:title" content="Can a 421M-parameter model replace a frontier model as a code reviewer?">
-<meta property="og:description" content="Fine-tuning a small local model to judge pull requests against their issues: the architecture, six attempts, a 43% label error rate, and what the evidence says about small models versus frontier ones.">
+<meta property="og:title" content="What we learned fine-tuning a small decision model to review pull requests">
+<meta property="og:description" content="Our notes from fine-tuning a 421M-parameter decision model to judge pull requests against their issues: why a decision model and not a full LLM, six attempts, a 43% label error rate, and where it stands.">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://www.adibuilds.in/blog/laya-snag-finetune">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Can a 421M-parameter model replace a frontier model as a code reviewer?">
-<meta name="twitter:description" content="Fine-tuning a small local model to judge pull requests against their issues: the architecture, six attempts, a 43% label error rate, and what the evidence says.">
+<meta name="twitter:title" content="What we learned fine-tuning a small decision model to review pull requests">
+<meta name="twitter:description" content="Our notes from fine-tuning a 421M-parameter decision model to judge pull requests against their issues.">
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -83,24 +83,23 @@
 </head>
 <body>
 <article class="article-container">
-<div class="article-tag">Snag · Laya · Fine-tuning notes</div>
-<h1>Can a 421M-parameter model replace a frontier model as a code reviewer?</h1>
-<p class="subtitle">We fine-tuned a small local model to be the judgement engine inside Snag. After several training runs, a mechanics diagnostic and a controlled experiment, it still could not tell implemented code from missing code in repositories it had never seen. This is the full account, and what it says about small models versus Claude and GPT.</p>
+<div class="article-tag">Snag · Laya · What we learned</div>
+<h1>What we learned fine-tuning a small decision model to review pull requests</h1>
+<p class="subtitle">Snag needs a model that makes decisions, not one that writes text. So instead of wrapping Claude or GPT, we fine-tuned Laya, a 421M-parameter decision model that answers in a third of a second on a laptop. These are our notes: the architecture, why we chose this path, what worked, what did not, and what we would do differently.</p>
 
-<p class="lead-paragraph">Snag reviews a pull request against the issue it claims to fix and says, requirement by requirement, what was done, what is missing and what contradicts the request. We wanted its judgement engine to run locally, cheaply and privately, so we fine-tuned Laya, an open typed-decision model built on ModernBERT-large. Below: the architecture, every attempt, the bug in our labels that shaped all of it, a measured comparison with simply calling a frontier model, and where we need help to get further.</p>
+<p class="lead-paragraph">Snag reviews a pull request against the issue it claims to fix and says, requirement by requirement, what was done, what is missing and what contradicts the request. Its core is a judgement engine that answers narrow, typed questions about code. We are sharing everything we learned trying to make that engine a small fine-tuned model: the reasons, the six attempts, the label bug that shaped all of it, the honest numbers against a frontier model, and where we would like help. The results are not where we want them yet. The lessons are the useful part.</p>
 
 <nav class="toc" aria-label="Table of contents">
   <div class="toc-title">In this article</div>
   <ol>
     <li><a href="#problem">The problem</a></li>
     <li><a href="#architecture">The architecture</a></li>
-    <li><a href="#why-small">Why try a small local model at all</a></li>
+    <li><a href="#why-decision">Why a decision model, not a full LLM</a></li>
     <li><a href="#setup">The training setup</a></li>
     <li><a href="#attempts">Six attempts, in order</a></li>
-    <li><a href="#labels">The labels were wrong</a></li>
-    <li><a href="#comparison">Against frontier models</a></li>
-    <li><a href="#verdict">Build or buy: the verdict</a></li>
-    <li><a href="#lessons">What we would tell ourselves</a></li>
+    <li><a href="#labels">What the labels taught us</a></li>
+    <li><a href="#comparison">Where it stands against a frontier model</a></li>
+    <li><a href="#lessons">Our learnings</a></li>
     <li><a href="#help">Help us improve it</a></li>
   </ol>
 </nav>
@@ -130,23 +129,36 @@
 <div class="divider-thin"></div>
 
 <span class="section-number">03</span>
-<h2 id="why-small">Why try a small local model at all</h2>
-<p>The obvious alternative is to send each question, or the whole review, to a frontier model such as Claude or GPT. We did build that path, and it works far better today. We still spent the effort on a local model because a reviewer that runs on every push has constraints a chat assistant does not.</p>
+<h2 id="why-decision">Why a decision model, not a full LLM</h2>
+<p>The obvious way to build this is to send the issue and the diff to Claude or GPT and ask for a review. We built that too, and we use it as our reference. But look at what Snag's engine actually has to do: answer "how much of this requirement do these changes implement: None, Touched, Most or Full?" and "does any change conflict with it: yes or no?", a few times per requirement, on every push. That is a decision over a fixed set of options. It is not a writing task, and a general-purpose generator is a heavy, slow and loosely fitting tool for it.</p>
+<p>Laya is built for exactly this shape. It is an encoder that reads the question and the code once and scores every option at marked positions. It never generates a token. That one design difference is where most of its advantages come from.</p>
+<ol>
+  <li><strong>It is fast.</strong> On an Apple M5 laptop GPU, our fine-tuned checkpoint answered real Snag questions (about 1,100 tokens of code and context each) in <code>340 ms</code> at the median and <code>550 ms</code> at p95. A whole frontier review took <code>17.2 s</code> at the median and <code>47.5 s</code> at p95. A typical PR in our set has about 4 requirements with a few questions each, so even answered one at a time on a laptop the decisions take a few seconds, with no network round trip, queue or rate limit. On datacenter GPUs, Laya's authors report tens of milliseconds per decision.</li>
+  <li><strong>The answer is always valid.</strong> The output is a probability over the allowed options, so there is nothing to parse and nothing to truncate. Our frontier reviewer returned a truncated, unusable answer on 10 of 29 first attempts and needed retries. The decision model completed 29 of 29 reviews on the first try.</li>
+  <li><strong>Every option gets a probability in one pass.</strong> "Most: 0.62, Full: 0.31" is exactly what a verdict rule needs to set thresholds, and to abstain with "needs human review" when no option is decisive. A generative model can be asked to report probabilities, but they are text it wrote, not scores it computed.</li>
+  <li><strong>It is deterministic and pinned.</strong> The same input gives the same answer, and we verified identical decisions after saving and reloading a checkpoint. A pinned checkpoint does not change underneath you the way a hosted model version can, so calibration and evaluation stay valid.</li>
+  <li><strong>It learns your definition of done.</strong> A frontier model follows your prompt; a fine-tuned decision model can be trained on your own rubric, your own labels and your own codebases. That is the only way to push one narrow judgement towards 99%.</li>
+  <li><strong>Cost does not grow with every push.</strong> A frontier review cost us <code>$0.017</code> to <code>$0.043</code> for a single call and <code>$0.158</code> through the structured pipeline. A reviewer that runs on every push of every PR multiplies that indefinitely. A local model costs hardware time, which is fixed and already on the desk.</li>
+  <li><strong>It is small enough to run anywhere.</strong> <code>843 MB</code> in fp16. It runs on a laptop or inside a customer's own cluster, so the diff never goes to a third party for judgement. (Requirement extraction from the issue still uses an LLM today, unless that step also runs locally.)</li>
+  <li><strong>It sees exactly what it judges.</strong> Our server enforces a strict 4,096-token window and rejects anything longer instead of silently truncating, so Snag never passes judgement on code the model did not read.</li>
+  <li><strong>No vendor can take it away.</strong> The engine Snag was designed around, TypeSafe's Jev, paused new signups during this project, so we could not get a key. A model you own cannot be withdrawn, repriced or rate-limited.</li>
+</ol>
 <div class="data-table">
 <table>
-  <thead><tr><th>Concern</th><th>Frontier model per review</th><th>Small local model</th></tr></thead>
+  <thead><tr><th>For Snag's engine</th><th>Frontier LLM</th><th>Fine-tuned decision model</th></tr></thead>
   <tbody>
-    <tr><td>Cost at scale</td><td>Measured <code>$0.017</code> to <code>$0.043</code> per review for a single-call reviewer, <code>$0.158</code> for the structured pipeline, on every push</td><td>No per-call API cost; the price moves to hardware and engineering time</td></tr>
-    <tr><td>Latency</td><td>Measured p50 <code>17.2 s</code>, p95 <code>47.5 s</code> for the single-call reviewer, plus retries</td><td>Laya's authors report tens of milliseconds per decision on a GPU; we did not measure end-to-end review latency</td></tr>
-    <tr><td>Privacy</td><td>Source code goes to a third-party API</td><td>The diff never leaves the machine for judgement; extraction still sends the issue text to an LLM unless that step is local too</td></tr>
-    <tr><td>Confidence</td><td>Probabilities are self-reported by a generative model</td><td>A probability per option from one forward pass; still needs calibrating, but a stable input for a merge gate</td></tr>
-    <tr><td>Control</td><td>Model versions change underneath you; providers pause signups, change prices, rate-limit</td><td>A pinned checkpoint you own, versioned with the code</td></tr>
-    <tr><td>Code reasoning</td><td>Strong, with no training data needed</td><td>Unknown until measured; needs task-specific data</td></tr>
+    <tr><td>Output</td><td>Generated text, parsed into a choice</td><td>A score for every allowed option</td></tr>
+    <tr><td>Latency</td><td><code>17.2 s</code> p50 per review, over the network</td><td><code>340 ms</code> p50 per decision, local laptop GPU</td></tr>
+    <tr><td>First-attempt completion</td><td><code>19/29</code> reviews</td><td><code>29/29</code> reviews</td></tr>
+    <tr><td>Cost</td><td><code>$0.017</code> to <code>$0.158</code> per review, every push</td><td>Fixed hardware time</td></tr>
+    <tr><td>Reproducibility</td><td>Hosted versions change</td><td>Pinned checkpoint, identical after reload</td></tr>
+    <tr><td>Privacy</td><td>Code goes to a third-party API</td><td>Runs on your machine or cluster</td></tr>
+    <tr><td>Adaptable to your rubric</td><td>Through prompting</td><td>Through training</td></tr>
+    <tr><td>Reasoning about unfamiliar code</td><td>Strong, with no training data</td><td>Depends entirely on training data</td></tr>
   </tbody>
 </table>
 </div>
-<p>One row stopped being theoretical during the project. The engine Snag was designed around, TypeSafe's Jev, paused new signups, so we could not get a key. Vendor risk is not an abstraction when your core component depends on it.</p>
-<p>So the bet was reasonable: if a 421M-parameter encoder could answer Snag's narrow questions well, the product would be cheaper, faster, more private and more controllable. The rest of this piece is about testing that bet properly.</p>
+<p>The last row is the one that matters most, and it is the one this project is really about. A decision model is the right shape for the job. Whether a 421M-parameter one can learn to read code it has never seen as well as a frontier model does is an empirical question. Here is how we tested it.</p>
 
 <div class="divider-thin"></div>
 
@@ -200,7 +212,7 @@
 <div class="divider-thin"></div>
 
 <span class="section-number">06</span>
-<h2 id="labels">The labels were wrong</h2>
+<h2 id="labels">What the labels taught us</h2>
 <p>Every mutation item came with a label derived from its operator's name. Drop a requirement's code and the label says "missing". Remove one case and it says "partial". That seemed safe. It was not.</p>
 <p>We wrote a status rubric that judges from the code alone: a requirement is <strong>missing</strong> only if nothing handles the situation it names, and <strong>contradicted</strong> if code handles that situation with an outcome the requirement rules out. Then we re-judged every targeted label across the 9 development seeds.</p>
 <div class="data-table">
@@ -221,7 +233,7 @@
 <div class="divider-thin"></div>
 
 <span class="section-number">07</span>
-<h2 id="comparison">Against frontier models</h2>
+<h2 id="comparison">Where it stands against a frontier model</h2>
 <p>We measured three systems on the same held-out items with a strict scorer: a defect counts only when a finding that reaches the user names the right requirement with the right type, duplicates count against precision, and failed reviews stay in the denominator.</p>
 <ul>
   <li><strong>A:</strong> one Claude Sonnet 5 call per PR reviews the issue and the diff, plus deterministic checks for weakened and skipped tests.</li>
@@ -242,36 +254,27 @@
 </div>
 <p>On the 7 items where we could afford to run B, B surfaced 5 of 6 target defects with the right type and A 4 of 6; both got 5 of 7 reviews entirely right. With the original labels the order was reversed. On 7 items that is a tie, not a ranking.</p>
 <p><strong>The frontier model is far ahead of the small one, and still not good enough.</strong> On 30 real merged patches from SWE-bench Verified, where there is no planted defect, we adjudicated every finding the best frontier configuration raised. Only 2 of 9 decidable findings held up. The largest source of false findings was code on the fix path flagged as unexplained (5 of the 7 that remained after our last two fixes); before those fixes, requirements invented from things the issue never asked for were the other big one. A frontier model removes the capacity problem. It does not remove the need for clean task definitions, correct labels and careful scoping.</p>
+<p>So today the frontier model reads unfamiliar code far better, and the decision model has every structural advantage that a reviewer running on every push needs. We do not see them as rivals. The frontier model is our reference and our teacher: its verified answers are exactly the kind of training data the decision model was missing. The decision model is the engine we want to ship, once it earns it on data it has never seen.</p>
 
 <div class="divider-thin"></div>
 
 <span class="section-number">08</span>
-<h2 id="verdict">Build or buy: the verdict</h2>
-<p>For this product, today, the evidence points one way.</p>
-<ol>
-  <li><strong>Use a frontier model as the engine now.</strong> It is the only option that reasons about code well enough to be worth improving, it needs no training data, and on mutation PRs a single call cost <code>$0.043</code> against <code>$0.158</code> for our structured pipeline, with no measurable loss on the 7 items we could compare.</li>
-  <li><strong>Keep the typed-question interface.</strong> It let us swap engines, run a strict evaluator and hold every engine to the same rubric. It is also the path back to a local model.</li>
-  <li><strong>Do not expect a small model to learn this task from a few synthetic repositories.</strong> Nine development seeds written in one style are far from the diversity code review needs.</li>
-  <li><strong>Revisit local only with a specific reason:</strong> many more independent codebases, human-checked labels, or verified frontier answers to distil from. A small model makes sense later as a pre-filter that routes obvious cases away from the paid model, if its routing errors are measured and acceptable.</li>
-</ol>
-<p>The arguments for a local model were never wrong. Cost, latency, privacy and control still matter, and matter more as usage grows. They are reasons to keep the door open, not reasons to ship a model that cannot yet do the job.</p>
-
-<div class="divider-thin"></div>
-
-<span class="section-number">09</span>
-<h2 id="lessons">What we would tell ourselves</h2>
+<h2 id="lessons">Our learnings</h2>
+<p>If you are about to fine-tune a small model for a judgement task, these are the things we wish we had known on day one.</p>
 <ul>
   <li><strong>Audit labels before training anything.</strong> Nearly half our "missing" and "partial" labels were wrong, and no recipe fixes that.</li>
   <li><strong>Question-level accuracy can hide total failure.</strong> 82% per question coexisted with catching 1 of 21 real defects.</li>
   <li><strong>Memorising is not learning.</strong> The mechanics set fit 27 of 27, training pairs fit 38 of 42, and unseen pairs sat at chance. Only held-out, repository-grouped evaluation told the truth.</li>
   <li><strong>Augmentation leaks in ways you do not predict.</strong> IDs, candidate counts and cross-language filler all gave away the answer until we probed for them.</li>
   <li><strong>Build the strict evaluator first.</strong> Our lenient first scorer credited defects by status even when no finding reached the user, and a report bug silently dropped a system's best items. Both inflated numbers we then had to take back.</li>
-  <li><strong>Report negative results with their denominators.</strong> They are the most useful thing this project produced.</li>
+  <li><strong>Pick the model by the shape of the output.</strong> A choice between fixed options wants a decision model. That part of our bet held up: fast, valid, deterministic answers. What failed was the data, not the shape.</li>
+  <li><strong>Use the frontier model as a teacher, not only as a competitor.</strong> Its verified answers on many real codebases are the most direct way to give a small model the variety it lacked.</li>
+  <li><strong>Report negative results with their denominators.</strong> They are the most useful thing this project produced, which is why we are sharing them.</li>
 </ul>
 
 <div class="divider-thin"></div>
 
-<span class="section-number">10</span>
+<span class="section-number">09</span>
 <h2 id="help">Help us improve it</h2>
 <p>Snag is held to a hard bar: within a declared scope, the lower bound of the 95% interval must be at least 99% on every correctness metric, with the reviewer saying "needs human review" instead of guessing when the evidence is not decisive. No engine meets that yet. Here is how far each one is.</p>
 <div class="diagram-wrapper">

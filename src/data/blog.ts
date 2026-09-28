@@ -29,10 +29,10 @@ export interface BlogPost {
 const fullPosts: BlogPost[] = [
   {
     slug: "laya-snag-finetune",
-    title: "Can a 421M-parameter model replace a frontier model as a code reviewer?",
+    title: "What we learned fine-tuning a small decision model to review pull requests",
     date: "2026-09-28",
     excerpt:
-      "We fine-tuned Laya, a small local model, as the judgement engine inside Snag, a reviewer that checks whether a pull request does what its issue asked. The architecture, six attempts, a 43% label error rate, a measured comparison with Claude and GPT-class models, and where we need help.",
+      "Snag needs a model that makes decisions, not one that writes text. Our notes from fine-tuning Laya, a 421M-parameter decision model that answers in a third of a second on a laptop: why a decision model and not a full LLM, six attempts, a 43% label error rate, how it compares with frontier models today, and where we need help.",
     kind: "full",
     file: "/blog/laya-snag-finetune.html",
   },
