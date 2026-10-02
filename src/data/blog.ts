@@ -28,6 +28,15 @@ export interface BlogPost {
 // (title/date/excerpt for the list page). The page itself is shown exactly as authored.
 const fullPosts: BlogPost[] = [
   {
+    slug: "peal-bte-and-bonsai",
+    title: "Sealed until a moment, private between two people: how Peal uses BTE and Bonsai",
+    date: "2026-10-02",
+    excerpt:
+      "Peal runs on two constructions from Commonware's research. Batched threshold encryption keeps submissions unreadable until a deadline, then opens a whole batch with one share per operator. Bonsai, with ZK-Pari circuits, moves value privately on a ledger with 128-byte proofs. How each is wired in, what we added, the measured numbers, and exactly what is trusted today.",
+    kind: "full",
+    file: "/blog/peal-bte-and-bonsai.html",
+  },
+  {
     slug: "laya-snag-finetune",
     title: "What we learned fine-tuning a small decision model to review pull requests",
     date: "2026-09-28",

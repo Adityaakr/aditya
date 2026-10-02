@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How Peal Uses Commonware BTE and Bonsai (ZK-Pari) | Aditya</title>
+<meta name="description" content="How Peal uses Commonware's batched threshold encryption to seal data until a deadline, and Bonsai with ZK-Pari proofs for private payments: circuits, benchmarks, trust.">
+<meta name="author" content="Aditya Kumar">
+<meta name="keywords" content="Peal, batched threshold encryption, BTE, Commonware, simple-bte, Bonsai, ZK-Pari, Pari SNARK, private payments, sealed-bid auction, threshold decryption, BLS12-381, zero-knowledge">
+<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+<link rel="canonical" href="https://www.adibuilds.in/blog/peal-bte-and-bonsai">
+<meta property="og:site_name" content="Aditya">
+<meta property="og:title" content="How Peal uses Commonware BTE and Bonsai">
+<meta property="og:description" content="Batched threshold encryption opens a whole batch with one share per operator. Bonsai moves value privately with 128-byte ZK-Pari proofs. How Peal wires both in, the numbers, and what is trusted today.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://www.adibuilds.in/blog/peal-bte-and-bonsai">
+<meta property="og:image" content="https://www.adibuilds.in/blog/peal-bte-and-bonsai-og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="How Peal uses Commonware BTE and Bonsai">
+<meta property="article:published_time" content="2026-10-02">
+<meta property="article:author" content="Aditya Kumar">
+<meta property="article:section" content="Cryptography">
+<meta property="article:tag" content="Batched threshold encryption">
+<meta property="article:tag" content="Bonsai">
+<meta property="article:tag" content="ZK-Pari">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@adityakrx">
+<meta name="twitter:creator" content="@adityakrx">
+<meta name="twitter:title" content="How Peal uses Commonware BTE and Bonsai">
+<meta name="twitter:description" content="Batched threshold encryption opens a whole batch with one share per operator. Bonsai moves value privately with 128-byte ZK-Pari proofs. How Peal wires both in.">
+<meta name="twitter:image" content="https://www.adibuilds.in/blog/peal-bte-and-bonsai-og.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://www.adibuilds.in/blog/peal-bte-and-bonsai#article",
+      "headline": "Sealed until a moment, private between two people: how Peal uses BTE and Bonsai",
+      "alternativeHeadline": "How Peal uses Commonware batched threshold encryption and Bonsai with ZK-Pari",
+      "description": "How Peal uses Commonware's batched threshold encryption to seal submissions until a deadline, and the Bonsai construction with ZK-Pari proofs for private payments, with circuits, benchmarks and the trust assumptions in place today.",
+      "url": "https://www.adibuilds.in/blog/peal-bte-and-bonsai",
+      "mainEntityOfPage": "https://www.adibuilds.in/blog/peal-bte-and-bonsai",
+      "image": "https://www.adibuilds.in/blog/peal-bte-and-bonsai-og.png",
+      "datePublished": "2026-10-02",
+      "dateModified": "2026-10-02",
+      "inLanguage": "en",
+      "proficiencyLevel": "Expert",
+      "articleSection": "Cryptography",
+      "keywords": ["batched threshold encryption", "BTE", "Commonware", "Bonsai", "ZK-Pari", "Pari", "private payments", "sealed-bid auction", "threshold decryption", "BLS12-381"],
+      "author": {
+        "@type": "Person",
+        "@id": "https://www.adibuilds.in/#aditya",
+        "name": "Aditya Kumar",
+        "url": "https://www.adibuilds.in",
+        "sameAs": ["https://x.com/adityakrx", "https://github.com/Adityaakr", "https://linkedin.com/in/adityaa-kr"]
+      },
+      "publisher": { "@id": "https://www.adibuilds.in/#aditya" },
+      "about": [
+        { "@type": "SoftwareApplication", "name": "Peal", "url": "https://peal.network", "applicationCategory": "DeveloperApplication", "sameAs": ["https://x.com/pealnetwork_"] },
+        { "@type": "Thing", "name": "Batched threshold encryption" },
+        { "@type": "Thing", "name": "Zero-knowledge proof" }
+      ],
+      "citation": [
+        { "@type": "ScholarlyArticle", "name": "Simple BTE (IACR ePrint 2026/760)", "url": "https://eprint.iacr.org/2026/760" },
+        { "@type": "ScholarlyArticle", "name": "Bonsai: Scalable Private Payments", "url": "https://eprint.iacr.org/2026/1987" },
+        { "@type": "ScholarlyArticle", "name": "Pari (IACR ePrint 2024/1245)", "url": "https://eprint.iacr.org/2024/1245" },
+        { "@type": "SoftwareSourceCode", "name": "commonwarexyz/simple-bte", "codeRepository": "https://github.com/commonwarexyz/simple-bte" },
+        { "@type": "SoftwareSourceCode", "name": "zk-pari", "codeRepository": "https://github.com/guruvamsi-policharla/zk-pari" }
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Aditya", "item": "https://www.adibuilds.in" },
+        { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://www.adibuilds.in/blog" },
+        { "@type": "ListItem", "position": 3, "name": "How Peal uses BTE and Bonsai", "item": "https://www.adibuilds.in/blog/peal-bte-and-bonsai" }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        { "@type": "Question", "name": "What is batched threshold encryption (BTE)?", "acceptedAnswer": { "@type": "Answer", "text": "Batched threshold encryption groups ciphertexts into a batch and lets each committee member publish one constant-size decryption share for the whole batch. Any threshold of those shares opens every ciphertext at once, so decrypting 64 sealed bids costs about what decrypting one costs. Peal uses Commonware's simple-bte library in its Fujisaki-Okamoto mode." } },
+        { "@type": "Question", "name": "How does Peal use BTE?", "acceptedAnswer": { "@type": "Answer", "text": "Peal Commit seals a payload in the browser with WebAssembly, so only ciphertext reaches the server. At the deadline the coordinator orders seals by hash into batches of 64, five operators each post one 48-byte share per batch, and once three shares pass a public pairing check the whole batch opens, in about 37 ms after precomputation." } },
+        { "@type": "Question", "name": "What is Bonsai in private payments?", "acceptedAnswer": { "@type": "Answer", "text": "Bonsai is a private payment construction (eprint 2026/1987) where each account is a single commitment on the ledger and every send or receive is one zero-knowledge proof of the same shape. There are no public nullifiers. An observer learns which account acted and when, but not the amount, the counterparty, or whether it was a send or a receive." } },
+        { "@type": "Question", "name": "What is ZK-Pari and how big are its proofs?", "acceptedAnswer": { "@type": "Answer", "text": "ZK-Pari is a zero-knowledge variant of the Pari SNARK (eprint 2024/1245) for square R1CS. A proof is two G1 points and a field element, 128 bytes on BLS12-381, verified with one three-pairing equation. Peal's operation circuit has 51,791 constraints, proves in about 521 ms natively and verifies in about 937 microseconds." } },
+        { "@type": "Question", "name": "Is Peal trustless today?", "acceptedAnswer": { "@type": "Answer", "text": "No. Both engines run real cryptography on testnets, unaudited. The BTE committee keys came from a trusted dealer and the hosted operators share one container; Bonsai keys come from a local setup rather than a ceremony; withdrawals are released by two of three settlement signers; and the ledger is a single node." } }
+      ]
+    }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FAFAF8; --text: #1a1a1a; --text-secondary: #555; --accent: #2563eb;
+    --accent-light: #dbeafe; --border: #e5e5e0; --diagram-bg: #fefefe; --diagram-border: #d4d4c8;
+    --sketch-stroke: #1a1a1a; --sketch-fill-blue: #dbeafe; --sketch-fill-green: #dcfce7;
+    --sketch-fill-amber: #fef3c7; --sketch-fill-rose: #ffe4e6; --sketch-fill-purple: #f3e8ff;
+    --sketch-fill-gray: #f3f4f6; --callout-bg: #f8f7f4;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); line-height: 1.72; font-size: 17.5px; -webkit-font-smoothing: antialiased; }
+  .article-container { max-width: 720px; margin: 0 auto; padding: 60px 24px 100px; }
+  .article-tag { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--accent); margin-bottom: 20px; font-weight: 500; }
+  h1 { font-family: 'Instrument Serif', serif; font-size: clamp(32px, 5vw, 46px); line-height: 1.15; font-weight: 400; color: var(--text); margin-bottom: 24px; letter-spacing: -0.5px; }
+  .byline { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: var(--text-secondary); margin: -8px 0 24px; letter-spacing: 0.2px; }
+  .byline a { color: var(--text-secondary); }
+  .faq h3 { margin-top: 24px; }
+  .subtitle { font-size: 19px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 40px; font-weight: 400; }
+  .divider-thin { width: 100%; height: 1px; background: var(--border); margin: 48px 0; }
+  h2 { font-family: 'Instrument Serif', serif; font-size: 28px; font-weight: 400; color: var(--text); margin-bottom: 20px; margin-top: 8px; letter-spacing: -0.3px; scroll-margin-top: 24px; }
+  h3 { font-family: 'Instrument Serif', serif; font-size: 21px; font-weight: 400; color: var(--text); margin: 32px 0 12px; letter-spacing: -0.2px; }
+  .section-number { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--accent); font-weight: 500; margin-bottom: 8px; display: block; }
+  p { margin-bottom: 18px; color: var(--text); }
+  strong { font-weight: 600; color: var(--text); }
+  em { font-style: italic; }
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(37,99,235,.32); transition: border-color .15s; }
+  a:hover { border-bottom-color: var(--accent); }
+  .lead-paragraph { font-size: 19.5px; line-height: 1.65; color: var(--text); }
+  ul, ol { margin: 0 0 18px; padding-left: 24px; }
+  li { margin-bottom: 8px; }
+  .diagram-wrapper { margin: 40px -20px; padding: 0; }
+  .diagram-wrapper svg { width: 100%; height: auto; display: block; }
+  .diagram-caption { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--text-secondary); text-align: center; margin-top: 12px; letter-spacing: 0.3px; }
+  .toc { background: var(--callout-bg); border: 1px solid var(--border); border-radius: 6px; padding: 24px 28px 16px; margin: 36px 0 48px; }
+  .toc-title { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; font-weight: 500; }
+  .toc ol { margin: 0; padding-left: 22px; }
+  .toc li { margin-bottom: 6px; font-size: 15px; }
+  .toc a { border-bottom: none; color: var(--text); }
+  .toc a:hover { color: var(--accent); }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 14.5px; background: #f0efe8; padding: 2px 6px; border-radius: 3px; color: var(--text); overflow-wrap: anywhere; }
+  .data-table { margin: 32px 0; overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 480px; }
+  thead th { text-align: left; font-family: 'JetBrains Mono', monospace; font-weight: 500; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-secondary); padding: 10px 14px; border-bottom: 2px solid var(--text); }
+  tbody td { padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.55; }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody td:first-child { white-space: nowrap; }
+  .punch { font-family: 'Instrument Serif', serif; font-size: clamp(22px,4vw,30px); line-height: 1.3; margin: 36px 0 8px; }
+  .punch .a { color: var(--accent); }
+  .punch .b { color: #16a34a; display: block; }
+  .cta-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px 16px; margin-bottom: 18px; }
+  .cta-primary { font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 15px; color: #fff; background: var(--accent); border: 1px solid var(--accent); border-radius: 8px; padding: 10px 18px; }
+  .cta-primary:hover { background: #1d4fd8; border-bottom-color: #1d4fd8; }
+  .cta-secondary { color: var(--text-secondary); font-size: 16px; }
+  .sources { font-size: 14.5px; color: var(--text-secondary); }
+  .sources li { margin-bottom: 6px; }
+  @media (max-width: 600px) {
+    .article-container { padding: 36px 18px 72px; }
+    body { font-size: 16.5px; }
+    .diagram-wrapper { margin: 32px -8px; }
+    tbody td:first-child { white-space: normal; }
+  }
+</style>
+</head>
+<body>
+<article class="article-container">
+<div class="article-tag">Peal · BTE · Bonsai</div>
+<h1>Sealed until a moment, private between two people: how Peal uses BTE and Bonsai</h1>
+<p class="byline">By <a href="https://x.com/adityakrx" target="_blank" rel="noopener noreferrer author">Aditya Kumar</a> · <time datetime="2026-10-02">2 October 2026</time> · 14 min read</p>
+<p class="subtitle">Peal runs on two constructions that come out of Commonware's research. Batched threshold encryption keeps submissions unreadable until a deadline, then opens a whole batch at once. Bonsai, with its ZK-Pari circuits, moves value privately on a ledger. How each one is wired in, what we added, what it costs, and exactly what you are trusting today.</p>
+
+<p class="lead-paragraph">Peal does two jobs that sound alike and are not. One is timing: a bid, a vote or an agent's order must stay unreadable until a deadline, then everything opens together and nobody can refuse. The other is privacy of value: a payment should not publish its amount or its counterparties to everyone watching a chain. They need different cryptography, so <a href="https://peal.network" target="_blank" rel="noopener noreferrer">Peal</a> has two engines. Both run on testnets today and neither is audited; every number below comes from a benchmark or a test in the repository.</p>
+
+<nav class="toc" aria-label="Table of contents">
+  <div class="toc-title">In this article</div>
+  <ol>
+    <li><a href="#engines">Two problems, two engines</a></li>
+    <li><a href="#bte">Batched threshold encryption</a></li>
+    <li><a href="#seal">One seal, from a tab to a reveal</a></li>
+    <li><a href="#bonsai">Bonsai: a ledger that verifies payments it cannot read</a></li>
+    <li><a href="#additions">What Peal added to Bonsai</a></li>
+    <li><a href="#decisions">The decisions worth defending</a></li>
+    <li><a href="#trust">What you are trusting today</a></li>
+    <li><a href="#next">What comes next</a></li>
+    <li><a href="#faq">Questions people ask</a></li>
+  </ol>
+</nav>
+
+<span class="section-number">01</span>
+<h2 id="engines">Two problems, two engines</h2>
+<p>Timing is a key-custody problem. Somebody has to hold the decryption key until the moment arrives, and whoever holds it can peek, leak it, or decline to open when the answer does not suit them. The fix is to split that somebody into a committee. Private value is a state problem. A ledger must know balances are conserved without learning them, and the fix is a zero-knowledge proof per operation.</p>
+<p>So <a href="https://peal.network/developers" target="_blank" rel="noopener noreferrer">Peal Commit</a>, the sealed-submission API, is built on Commonware's batched threshold encryption, <a href="https://github.com/commonwarexyz/simple-bte" target="_blank" rel="noopener noreferrer"><code>simple-bte</code></a>. <a href="https://peal.network/bonsai" target="_blank" rel="noopener noreferrer">Peal Links</a>, the private-payments product, is built on the <a href="https://eprint.iacr.org/2026/1987" target="_blank" rel="noopener noreferrer">Bonsai</a> construction and the ZK-Pari proof system. They share a repository, a website and a curve, BLS12-381, and nothing else.</p>
+
+<div class="divider-thin"></div>
+
+<span class="section-number">02</span>
+<h2 id="bte">Batched threshold encryption</h2>
+<p>Threshold encryption alone is old: encrypt to a committee, and any <em>t</em> of <em>n</em> members can decrypt together while fewer learn nothing. The catch is cost. With naive threshold decryption every operator touches every message, so a <a href="https://peal.network/auction" target="_blank" rel="noopener noreferrer">sealed-bid auction</a> with sixty bids would need sixty rounds of decryption shares.</p>
+<p>Batched threshold encryption, from the Simple BTE paper (<a href="https://eprint.iacr.org/2026/760" target="_blank" rel="noopener noreferrer">eprint 2026/760</a>), removes that. Ciphertexts are grouped into a batch of <em>B</em> slots, and each operator publishes <strong>one</strong> constant-size share for the whole batch. A threshold of those shares opens every slot at once. Sixty bids cost what one bid costs.</p>
+
+<h3>What the upstream library provides</h3>
+<p>We pin <code>simple-bte</code> at commit <a href="https://github.com/commonwarexyz/simple-bte/tree/147a08788f6c9b25b52dc58f03518ac30e94d5b8" target="_blank" rel="noopener noreferrer"><code>147a0878</code></a> and do not modify it. Its setup samples a secret <em>τ</em>, publishes powers of <em>τ</em> in both source groups with slot <em>B+1</em> punctured out, derives the encryption key as a target-group element, and Shamir-shares each power of <em>τ</em> to the committee. Each operator therefore holds <em>B</em> scalar shares, and the public parameters carry a per-operator, per-slot verification key.</p>
+<p>For payloads we use the library's Fujisaki-Okamoto mode, not its base mode with Schnorr proofs. FO is a hybrid design. A random 16-byte key <em>K</em> is what the committee protects; the payload is XORed with a SHA-256 keystream derived from <em>K</em>, and the encryption randomness is derived from <em>K</em> and the message, so a tampered ciphertext fails a re-encryption check after opening. Three domain-separated SHA-256 functions do that work. SHA-256 is part of the encryption, not only the fingerprints.</p>
+
+<h3>What Peal wraps around it</h3>
+<p>All curve arithmetic lives in one crate, <code>bte-crypto</code>, and nothing else touches a group element. It adds a strict wire format (every object starts with the magic <code>BTE0</code> and a type byte, every point is subgroup-checked, trailing bytes are rejected), pinned by golden files.</p>
+<ul>
+  <li><strong>Ciphertext:</strong> a 48-byte header, 16 bytes of wrapped key and the payload, so 73 bytes of overhead. A seal's id is the SHA-256 of those bytes, so anyone holding the ciphertext can recompute it.</li>
+  <li><strong>Share:</strong> one G1 point, 48 bytes (55 framed), whatever the batch size.</li>
+  <li><strong>Payload cap:</strong> 5 MiB, a policy number rather than a cryptographic limit.</li>
+  <li><strong>Batch binding:</strong> precomputed decryption material is stored with a hash of the exact batch, and finalisation refuses material computed for another.</li>
+  <li><strong>Per-slot validity:</strong> after opening, each slot is checked on its own, so one malformed ciphertext never spoils the batch.</li>
+</ul>
+
+<div class="divider-thin"></div>
+
+<span class="section-number">03</span>
+<h2 id="seal">One seal, from a tab to a reveal</h2>
+<div class="diagram-wrapper">
+<svg viewBox="0 0 760 410" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Peal Commit: the browser seals with WebAssembly and sends ciphertext to the coordinator; at the deadline the coordinator sorts by hash, cuts batches of 64, pads the last with decoys and precomputes cross terms; five outbound-only operators each post one 48-byte share per batch; three verified shares open the whole batch.">
+<defs><marker id="ah1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#1a1a1a"/></marker></defs>
+<rect x="0" y="0" width="760" height="410" fill="var(--diagram-bg)" rx="8"/>
+<text x="40" y="42" font-family="'Instrument Serif', serif" font-size="22" fill="#1a1a1a">How one seal opens, Peal Commit</text>
+<rect x="40" y="76" width="190" height="96" rx="8" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.5"/>
+<text x="135" y="104" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="15" font-weight="600" fill="#1a1a1a">Browser or agent</text>
+<text x="135" y="126" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#555">peal.js + wasm, FO mode</text>
+<text x="135" y="144" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#555">padded to a fixed bucket</text>
+<text x="135" y="162" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#2563eb">plaintext never leaves</text>
+<rect x="285" y="76" width="200" height="130" rx="8" fill="var(--sketch-fill-gray)" stroke="#1a1a1a" stroke-width="1.5"/>
+<text x="385" y="104" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="15" font-weight="600" fill="#1a1a1a">Coordinator</text>
+<text x="385" y="126" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#555">holds ciphertext, no key</text>
+<text x="385" y="144" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#555">sort by hash, B = 64</text>
+<text x="385" y="162" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#555">decoys fill the last batch</text>
+<text x="385" y="180" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#555">cross terms early, 245 ms</text>
+<rect x="540" y="76" width="180" height="130" rx="8" fill="var(--sketch-fill-green)" stroke="#1a1a1a" stroke-width="1.5"/>
+<text x="630" y="104" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="15" font-weight="600" fill="#1a1a1a">5 operators</text>
+<text x="630" y="126" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#555">outbound only</text>
+<text x="630" y="144" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#555">see 48-byte headers</text>
+<text x="630" y="162" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#555">one 48-byte share</text>
+<text x="630" y="180" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#555">per batch, 1.2 ms</text>
+<line x1="232" y1="122" x2="281" y2="122" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#ah1)"/>
+<text x="256" y="112" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#555">ct</text>
+<line x1="538" y1="150" x2="489" y2="150" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#ah1)"/>
+<text x="513" y="140" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#555">shares</text>
+<line x1="385" y1="208" x2="385" y2="262" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#ah1)"/>
+<rect x="180" y="266" width="410" height="120" rx="8" fill="var(--sketch-fill-amber)" stroke="#1a1a1a" stroke-width="1.5"/>
+<text x="385" y="294" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="15" font-weight="600" fill="#1a1a1a">Reveal, once 3 shares verify</text>
+<text x="385" y="318" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#555">each share: a public pairing check, 12 ms</text>
+<text x="385" y="338" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#555">finalise opens all 64 slots, 37 ms</text>
+<text x="385" y="358" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#555">per-slot validity, Merkle root over the set</text>
+</svg>
+</div>
+<p class="diagram-caption">Timings are single-process benchmarks at B = 64, n = 5, t = 3.</p>
+<ol>
+  <li><strong>Seal.</strong> The client, <a href="https://peal.network/peal.js" target="_blank" rel="noopener noreferrer"><code>peal.js</code></a>, downloads the committee's <a href="https://peal.network/v1/parameters" target="_blank" rel="noopener noreferrer">public parameters</a>, builds the encryptor in WebAssembly, pads the payload into a fixed-size bucket so its length says little, and encrypts. Only ciphertext crosses the network. A sealed bid is always a 320-byte record before encryption, so every bid ciphertext is 393 bytes whatever its amount.</li>
+  <li><strong>Freeze.</strong> A 500 ms engine loop notices the round's time or block height has arrived. It sorts the real ciphertexts by hash, so positions are a pure function of the set and nobody chooses their slot, cuts them into batches of <em>B</em>, fills the last with decoys the coordinator seals to itself, and commits an ordering root, all in one database transaction.</li>
+  <li><strong>Precompute.</strong> The expensive part of decryption, an FFT over the batch headers and 2<em>B</em> pairings, needs no share, so it starts at the freeze. About 245 ms of the work is done before an operator replies.</li>
+  <li><strong>Share.</strong> Each operator polls for work, opens its keystore (argon2id and ChaCha20-Poly1305), computes one multi-scalar multiplication over the headers, and posts one share. Operators never accept inbound connections.</li>
+  <li><strong>Verify and open.</strong> Each share is checked with a public pairing equation; rejected shares are stored, flagged and never counted. With three valid shares the batch opens and every payload is published at once. If fewer than three arrive within 120 seconds the round is marked stalled, and a late valid share still completes it.</li>
+</ol>
+<p>A busy round is not limited to 64 seals. It is split into as many 64-slot batches as it needs, each opened separately, and the round reveals when the last one does. Only the final batch carries decoys, so after opening the slot count bounds the real count to within 64; before opening, the count is withheld. You can watch a round open from the <a href="https://peal.network/developers/quickstart" target="_blank" rel="noopener noreferrer">quickstart</a>.</p>
+<div class="data-table">
+<table>
+  <thead><tr><th>Operation, B = 64, n = 5, t = 3</th><th>Time</th></tr></thead>
+  <tbody>
+    <tr><td>Seal one payload</td><td><code>416 µs</code></td></tr>
+    <tr><td>One operator's share for the batch</td><td><code>1.16 ms</code></td></tr>
+    <tr><td>Verify one share</td><td><code>12.0 ms</code></td></tr>
+    <tr><td>Precompute cross terms, before shares</td><td><code>244.7 ms</code></td></tr>
+    <tr><td>Finalise: open all 64 slots</td><td><code>37.3 ms</code></td></tr>
+    <tr><td>Recover end to end</td><td><code>432 ms</code></td></tr>
+  </tbody>
+</table>
+</div>
+<p>These are criterion runs in one process on an M-series laptop with small payloads, not production numbers. They sit where the paper predicts: 121.5 ms at B = 32 and 593.6 ms at B = 128 for full decryption, against our 282 ms at B = 64.</p>
+<p>After a round opens, anyone can recompute a seal's id, recompute positions from the sorted hashes, rebuild the Merkle root, and re-run the pairing check on every logged share (every endpoint is in the <a href="https://peal.network/developers/api" target="_blank" rel="noopener noreferrer">API reference</a>). Two things are weaker than they look: the client's parameter digest is compared with one from the same coordinator, so it should be pinned out of band, and the proof endpoint's "commitment precedes reveal" flag compares two timestamps the coordinator writes. It is a consistency signal, not a cryptographic proof. <a href="https://peal.network/developers/howitworks" target="_blank" rel="noopener noreferrer">How it works</a> spells out exactly what a seal's proof establishes.</p>
+
+<div class="divider-thin"></div>
+
+<span class="section-number">04</span>
+<h2 id="bonsai">Bonsai: a ledger that verifies payments it cannot read</h2>
+<p>Peal Links uses the construction from "Bonsai: Scalable Private Payments" (O'Grady, Meier and Policharla, <a href="https://eprint.iacr.org/2026/1987" target="_blank" rel="noopener noreferrer">eprint 2026/1987</a>) and Commonware's write-up, <a href="https://commonware.xyz/blogs/private-payments" target="_blank" rel="noopener noreferrer">Out of Sight, Out of State</a>. The circuits come from the <a href="https://github.com/guruvamsi-policharla/zk-pari" target="_blank" rel="noopener noreferrer">ZK-Pari prototype</a>, an open pull request by one of the paper's authors, pinned at <code>a8266aac</code>. To be precise about provenance: the <a href="https://github.com/commonwarexyz/monorepo" target="_blank" rel="noopener noreferrer">Commonware monorepo</a> contains no Bonsai or ZK-Pari code. This is a research artifact, not a release, and we treat it as one.</p>
+<h3>The model</h3>
+<p>Each account is a single commitment on the ledger: a hash of its balance, the root of a private set of receipts it has already claimed, and randomness. The ledger stores that and nothing else about the account. Every payment is one operation, and every operation has the same shape and cost whether it sends or receives.</p>
+<ul>
+  <li><strong>A send</strong> proves the new commitment holds the old balance minus <em>v</em>, with range checks, and appends a receipt only the recipient can open.</li>
+  <li><strong>A receive</strong> proves a receipt is in the public receipt tree, inserts its position into the account's private claimed set inside the circuit, adds <em>v</em>, and appends an unspendable dummy receipt, so it looks exactly like a send.</li>
+  <li><strong>No public nullifiers.</strong> What stops a double claim is the receipt's position in the account's own claimed set, which is never published.</li>
+</ul>
+<p>To an observer, an operation reveals which account acted and when. Not the amount, not the other party, not whether it was a send or a receive.</p>
+<h3>The proof system</h3>
+<p>ZK-Pari is a masked variant of Pari (<a href="https://eprint.iacr.org/2024/1245" target="_blank" rel="noopener noreferrer">eprint 2024/1245</a>), a zero-knowledge SNARK for square R1CS. It is not Groth16, though it shares the shape that matters: a proof is two G1 points and a field element, 128 bytes, and verification is one three-pairing equation. Many proofs batch into a single check. Keygen digests the circuit's matrices into the transcript, so a proof is bound to the exact circuit. The operation circuit, <code>R_op</code>, is Poseidon-hashed with trees of depth 32: 51,791 constraints over a 2<sup>16</sup> domain.</p>
+
+<div class="divider-thin"></div>
+
+<span class="section-number">05</span>
+<h2 id="additions">What Peal added to Bonsai</h2>
+<p>The paper describes payments between accounts. A product also needs money to come in and go out, identities bound to a deployment, and a server that rejects garbage cheaply. Five changes, each recorded as a decision; only one is a new circuit.</p>
+<ol>
+  <li><strong>Namespaces.</strong> An account id derives from the namespace (an asset on a chain) and the account's ed25519 key, so one key is a different account on each asset.</li>
+  <li><strong>Registration reveals the opening randomness,</strong> and the ledger computes the first commitment itself. The documented cost: an account's first operation is visibly a receive or a zero-value send.</li>
+  <li><strong>A deposit relation, <code>R_dep</code>,</strong> of about 400 constraints. A public deposit on the chain becomes a private receipt on the ledger.</li>
+  <li><strong>Withdrawal as a send to a burn account,</strong> proven like any payment, then claimed by revealing that one receipt's opening to the settlement signers.</li>
+  <li><strong>The old commitment travels on the envelope</strong> as a staleness hint, so a racing operation fails fast instead of paying for a proof check.</li>
+</ol>
+<p>Around the circuits sits a strict state-transition function. It checks the namespace and circuit id, the account's signature over a domain-tagged message, that the operation targets the current commitment, that its root is among the last 1,024, and only then the proof. The state root is a SHA-256 chain over every operation, and a replay re-verifies every proof. Every route is in the <a href="https://peal.network/developers/links-api" target="_blank" rel="noopener noreferrer">Private Links API reference</a>.</p>
+<div class="diagram-wrapper">
+<svg viewBox="0 0 760 394" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Peal Links: the wallet in the browser proves each operation in WebAssembly and sends a 128-byte proof to the node; the node verifies proofs and holds one commitment per account and a receipt tree; deposits and withdrawals go through a gateway contract on Sepolia, withdrawals released by two of three settlement signers.">
+<defs><marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#1a1a1a"/></marker></defs>
+<rect x="0" y="0" width="760" height="394" fill="var(--diagram-bg)" rx="8"/>
+<text x="40" y="42" font-family="'Instrument Serif', serif" font-size="22" fill="#1a1a1a">How a private payment moves, Peal Links</text>
+<rect x="40" y="76" width="200" height="120" rx="8" fill="var(--sketch-fill-blue)" stroke="#1a1a1a" stroke-width="1.5"/>
+<text x="140" y="104" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="15" font-weight="600" fill="#1a1a1a">Wallet, in the browser</text>
+<text x="140" y="126" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#555">spending key, claimed set</text>
+<text x="140" y="144" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#555">R_op in wasm, 6.4 to 6.7 s</text>
+<text x="140" y="162" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#555">30 MB key, by digest</text>
+<text x="140" y="180" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#2563eb">nothing that can spend leaves</text>
+<rect x="290" y="76" width="200" height="120" rx="8" fill="var(--sketch-fill-gray)" stroke="#1a1a1a" stroke-width="1.5"/>
+<text x="390" y="104" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="15" font-weight="600" fill="#1a1a1a">Peal Links node</text>
+<text x="390" y="126" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#555">verifies proofs, 937 µs</text>
+<text x="390" y="144" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#555">one commitment per account</text>
+<text x="390" y="162" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#555">receipt tree, depth 32</text>
+<text x="390" y="180" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#555">encrypted inbox</text>
+<rect x="540" y="76" width="180" height="120" rx="8" fill="var(--sketch-fill-purple)" stroke="#1a1a1a" stroke-width="1.5"/>
+<text x="630" y="104" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="15" font-weight="600" fill="#1a1a1a">Settlement</text>
+<text x="630" y="126" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#555">3 signers, 2 release</text>
+<text x="630" y="144" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#555">EIP-712 Withdrawal</text>
+<text x="630" y="162" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#555">checks the burn opening</text>
+<line x1="242" y1="128" x2="286" y2="128" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#ah2)"/>
+<text x="264" y="118" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#555">128 B</text>
+<line x1="492" y1="128" x2="536" y2="128" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#ah2)"/>
+<text x="514" y="118" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#555">burn</text>
+<rect x="160" y="270" width="440" height="100" rx="8" fill="var(--sketch-fill-amber)" stroke="#1a1a1a" stroke-width="1.5"/>
+<text x="380" y="298" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="15" font-weight="600" fill="#1a1a1a">PealLinksGateway, Ethereum Sepolia</text>
+<text x="380" y="322" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#555">deposit(token, amount, receipt), public</text>
+<text x="380" y="342" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#555">withdraw(message, signatures): signatures, not proofs</text>
+<line x1="140" y1="198" x2="230" y2="266" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#ah2)"/>
+<text x="150" y="240" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#555">deposit</text>
+<line x1="430" y1="268" x2="400" y2="200" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#ah2)"/>
+<text x="424" y="240" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#555">events</text>
+<line x1="630" y1="198" x2="540" y2="266" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#ah2)"/>
+<text x="600" y="240" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#555">certificate</text>
+</svg>
+</div>
+<p class="diagram-caption">Between the public deposit and the public withdrawal, payments move as proofs on the ledger.</p>
+<div class="data-table">
+<table>
+  <thead><tr><th>Measurement, Apple M5, 10 cores</th><th>Result</th></tr></thead>
+  <tbody>
+    <tr><td>R_op proof, native, 10 threads</td><td><code>521 ms</code> median</td></tr>
+    <tr><td>R_op proof, native, 1 thread</td><td><code>1,780 ms</code></td></tr>
+    <tr><td>R_op proof, wasm in Node</td><td><code>6.4 to 6.7 s</code></td></tr>
+    <tr><td>R_dep proof, wasm</td><td><code>0.32 s</code></td></tr>
+    <tr><td>Verify one proof, strict decoding</td><td><code>937 µs</code></td></tr>
+    <tr><td>Apply a batch of 32 operations</td><td><code>0.79 ms</code> each</td></tr>
+    <tr><td>Proof size</td><td><code>128 bytes</code></td></tr>
+  </tbody>
+</table>
+</div>
+<p>In the browser, proving runs in a single-threaded Web Worker, because multi-threaded WebAssembly needs cross-origin isolation headers the site does not serve. The browser figure of about five to seven seconds is inferred from the full flow, not measured in isolation; you can feel it in the <a href="https://peal.network/#/bonsai/app" target="_blank" rel="noopener noreferrer">hosted app</a> with test funds. Past a batch of about eight, sqlite writes dominate verification, so one core handles roughly 1,200 operations a second. The paper's much higher verification throughput is not our number.</p>
+<div class="data-table">
+<table>
+  <thead><tr><th>Observer</th><th>Sees</th><th>Does not see</th></tr></thead>
+  <tbody>
+    <tr><td>The public ledger</td><td>Which account acted, and when</td><td>The amount, the other party, send or receive</td></tr>
+    <tr><td>The backing chain</td><td>Deposits and withdrawals: address, amount, token</td><td>Which private account a deposit funded</td></tr>
+    <tr><td>The node's directory</td><td>Which wallet owns which private account</td><td>Payments, amounts, balances</td></tr>
+    <tr><td>Settlement signers</td><td>The withdrawing account, amount and recipient</td><td>Any other payment</td></tr>
+  </tbody>
+</table>
+</div>
+<p>The honest word is private, not unlinkable. The directory links a wallet to its account, deposits and withdrawals are public, and amount and timing correlation across them remains possible. The <a href="https://peal.network/developers/links" target="_blank" rel="noopener noreferrer">Private Links guide</a> has the full version.</p>
+
+<div class="divider-thin"></div>
+
+<span class="section-number">06</span>
+<h2 id="decisions">The decisions worth defending</h2>
+<h3>FO mode over per-ciphertext proofs</h3>
+<p>The base BTE mode attaches a Schnorr proof to every ciphertext, so a malformed one is rejected at submission. FO mode carries no proof, so a bad ciphertext is caught only when its slot opens. We chose FO because it encrypts arbitrary bytes cleanly, its re-encryption check gives per-slot validity, and one bad seal never spoils a batch. The cost is that garbage occupies a slot until the reveal.</p>
+<h3>Pipelining the expensive half</h3>
+<p>About 245 of the 282 ms of decryption need no shares, so they start at the freeze. By the time three operators answer, only the 37 ms finalise is left. It is the cheapest latency win in the system, and the reason the paper splits decryption the way it does.</p>
+<h3>Positions from hashes, decoys at the tail</h3>
+<p>Sorting by ciphertext hash makes the board reproducible by anyone and removes ordering games. Putting decoys only after the real seals keeps real positions a pure function of the real set. The trade-off is that the last batch's padding bounds the count to within 64 after opening.</p>
+<h3>Uncompressed proving keys</h3>
+<p>The R_op proving key is about 30 MB uncompressed. With compressed points and full validation, loading it in a browser took 47 seconds; without validation, 15.6 seconds of point decompression. Uncompressed, fetched by digest and cached in IndexedDB, it loads in 0.7 seconds after download. Verifying keys are always fully validated.</p>
+<h3>A boring database on purpose</h3>
+<p>Both engines use sqlite. Peal Links runs it in write-ahead mode with full synchronisation and an atomic write per operation, and one actor per namespace batches proofs over a 25 ms window. At this scale the database is the limit, and the simplicity is worth it.</p>
+
+<div class="divider-thin"></div>
+
+<span class="section-number">07</span>
+<h2 id="trust">What you are trusting today</h2>
+<p>Both engines run real cryptography on testnets, and both rest on assumptions a production system must remove. Here they are, so nobody has to find them.</p>
+<ul>
+  <li><strong>The BTE committee is not independent yet.</strong> Its key shares came from one trusted-dealer ceremony, and on the hosted deployment the coordinator and all five operators run in one container with every keystore on one volume. There, the 3-of-5 threshold demonstrates the mechanics (verifiable shares, the stall path, pipelining), not confidentiality against whoever runs the container. Operators also sign whatever headers the coordinator serves.</li>
+  <li><strong>v0 ciphertexts are not bound to a round,</strong> so a blob can be replayed into another round. Length is hidden only by the client's padding, and only up to 64 KiB.</li>
+  <li><strong>The Bonsai keys come from a per-process local setup,</strong> not a ceremony. Whoever ran keygen could in principle have kept the trapdoor.</li>
+  <li><strong>The payment protocol relies on an unproven property.</strong> ZK-Pari's knowledge soundness is proven in the algebraic group model, but the paper's Remark 2 says payments additionally need simulation extractability, which the authors expect and have not proven.</li>
+  <li><strong>Withdrawals are committee-attested, not trustless.</strong> The <a href="https://sepolia.etherscan.io/address/0xC141Bc6AaED24258276dC203050AD148ec95C1fC" target="_blank" rel="noopener noreferrer">gateway contract on Sepolia</a> checks signatures, not proofs. Two of three settlement signers release funds, and on the hosted node all three keys live in one process. If the operator disappears, funds not yet withdrawn are stuck.</li>
+  <li><strong>The ledger is one node.</strong> A consensus path on Commonware's simplex is built and tested locally with three and four validators; the hosted ledger is single-node.</li>
+  <li><strong>Nothing is audited,</strong> neither the integrations nor the upstream prototypes.</li>
+</ul>
+
+<div class="divider-thin"></div>
+
+<span class="section-number">08</span>
+<h2 id="next">What comes next</h2>
+<p>The largest step for Peal Commit is removing the dealer. A version-1 BTE, built on a branch and not deployed, follows the "DKG Is All You Need" construction: the committee's key comes from Commonware's Feldman-Desmedt distributed key generation, so no machine ever holds the whole key. It moves the threshold from 3-of-5 to 4-of-5, drops the fixed batch size, binds every ciphertext to its round and parameters, and uses ChaCha20-Poly1305 for the payload. Its sizes and timings are in a design note and still need independent measurement before we quote them. The <a href="https://peal.network/developers/roadmap" target="_blank" rel="noopener noreferrer">roadmap</a> tracks it as the next phase.</p>
+<p>For Peal Links the mainnet checklist is explicit: a multi-party setup ceremony for the circuits, settlement signers run by independent operators with keys in hardware, a ledger replicated by validators, a resolved simulation-extractability question, and an external review. A proof-verified bridge, where the gateway checks a succinct proof of the burn instead of signatures, is the longer road and is not started.</p>
+<p>Until then the claim is narrow and true: submissions that open themselves on schedule with nobody able to withhold, and payments whose amounts and parties stay off the public record, both live on testnets with the trust assumptions above. For where this sits against commit-reveal, timelock encryption and trusted enclaves, read <a href="https://peal.network/developers/compare" target="_blank" rel="noopener noreferrer">Peal compared</a>; for the vocabulary, the <a href="https://peal.network/developers/glossary" target="_blank" rel="noopener noreferrer">glossary</a>; for the full protocol, the <a href="https://peal.network/protocol" target="_blank" rel="noopener noreferrer">protocol page</a>.</p>
+
+<div class="divider-thin"></div>
+
+<span class="section-number">09</span>
+<h2 id="faq">Questions people ask</h2>
+<div class="faq">
+<h3>What is batched threshold encryption (BTE)?</h3>
+<p>Batched threshold encryption groups ciphertexts into a batch and lets each committee member publish one constant-size decryption share for the whole batch. Any threshold of those shares opens every ciphertext at once, so decrypting 64 sealed bids costs about what decrypting one costs. Peal uses Commonware's <code>simple-bte</code> library in its Fujisaki-Okamoto mode.</p>
+<h3>How does Peal use BTE?</h3>
+<p>Peal Commit seals a payload in the browser with WebAssembly, so only ciphertext reaches the server. At the deadline the coordinator orders seals by hash into batches of 64, five operators each post one 48-byte share per batch, and once three shares pass a public pairing check the whole batch opens, in about 37 ms after precomputation.</p>
+<h3>What is Bonsai in private payments?</h3>
+<p>Bonsai is a private payment construction (eprint 2026/1987) where each account is a single commitment on the ledger and every send or receive is one zero-knowledge proof of the same shape. There are no public nullifiers. An observer learns which account acted and when, but not the amount, the counterparty, or whether it was a send or a receive.</p>
+<h3>What is ZK-Pari and how big are its proofs?</h3>
+<p>ZK-Pari is a zero-knowledge variant of the Pari SNARK (eprint 2024/1245) for square R1CS. A proof is two G1 points and a field element, 128 bytes on BLS12-381, verified with one three-pairing equation. Peal's operation circuit has 51,791 constraints, proves in about 521 ms natively and verifies in about 937 microseconds.</p>
+<h3>Is Peal trustless today?</h3>
+<p>No. Both engines run real cryptography on testnets, unaudited. The BTE committee keys came from a trusted dealer and the hosted operators share one container; Bonsai keys come from a local setup rather than a ceremony; withdrawals are released by two of three settlement signers; and the ledger is a single node.</p>
+</div>
+
+<p class="punch"><span class="a">Sealed until the moment arrives.</span> <span class="b">Private between the two people who paid.</span></p>
+
+<p class="cta-row">
+  <a class="cta-primary" href="https://peal.network/developers/quickstart" target="_blank" rel="noopener noreferrer">Seal something on Peal</a>
+  <span class="cta-secondary">or tell us what we got wrong, on <a href="https://x.com/pealnetwork_" target="_blank" rel="noopener noreferrer">X @pealnetwork_</a> and <a href="https://x.com/adityakrx" target="_blank" rel="noopener noreferrer">@adityakrx</a>.</span>
+</p>
+
+<div class="divider-thin"></div>
+
+<ul class="sources">
+  <li>Simple BTE, <a href="https://eprint.iacr.org/2026/760" target="_blank" rel="noopener noreferrer">eprint 2026/760</a>; <a href="https://github.com/commonwarexyz/simple-bte" target="_blank" rel="noopener noreferrer">commonwarexyz/simple-bte</a> at 147a0878.</li>
+  <li>Bonsai, <a href="https://eprint.iacr.org/2026/1987" target="_blank" rel="noopener noreferrer">eprint 2026/1987</a>; <a href="https://commonware.xyz/blogs/private-payments" target="_blank" rel="noopener noreferrer">Out of Sight, Out of State</a>; <a href="https://github.com/guruvamsi-policharla/zk-pari" target="_blank" rel="noopener noreferrer">ZK-Pari</a> PR #2 at a8266aac; Pari, <a href="https://eprint.iacr.org/2024/1245" target="_blank" rel="noopener noreferrer">eprint 2024/1245</a>.</li>
+  <li>Numbers: Peal's BTE benchmarks (criterion, single process, B = 64, n = 5, t = 3) and Peal Links benchmarks (Apple M5, 10 cores); live configuration from <a href="https://peal.network/links/v1/status" target="_blank" rel="noopener noreferrer">/links/v1/status</a>.</li>
+</ul>
+
+</article>
+</body>
+</html>

@@ -7,6 +7,7 @@
     { "source": "/blog/furrow", "destination": "/blog/furrow/index.html" },
     { "source": "/blog/vara-eth-preconfirmation-lab", "destination": "/blog/vara-eth-preconfirmation-lab/index.html" },
     { "source": "/blog/qwen3-mlx-mac", "destination": "/blog/qwen3-mlx-mac/index.html" },
+    { "source": "/blog/peal-bte-and-bonsai", "destination": "/blog/peal-bte-and-bonsai/index.html" },
     { "source": "/blog/how-peal-is-built", "destination": "/blog/how-peal-is-built/index.html" },
     { "source": "/blog/peal", "destination": "/blog/peal/index.html" },
     { "source": "/blog/fiscus", "destination": "/blog/fiscus/index.html" },

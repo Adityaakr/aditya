@@ -66,7 +66,17 @@ const STRIP = [
   /^\s*<meta\s+property="og:(?:title|description|type|url|image|image:width|image:height)"[^>]*>\s*$/gim,
   /^\s*<meta\s+name="twitter:(?:card|title|description|image)"[^>]*>\s*$/gim,
   /^\s*<link\s+rel="canonical"[^>]*>\s*$/gim,
+  /^\s*<meta\s+name="(?:description|keywords)"[^>]*>\s*$/gim,
 ];
+
+/** Structured data (JSON-LD) blocks the standalone article declares, carried into its shell. */
+function jsonLd(file) {
+  if (!file) return [];
+  const path = join(DIST, file.replace(/^\//, ''));
+  if (!existsSync(path)) return [];
+  const html = readFileSync(path, 'utf8');
+  return [...html.matchAll(/<script\s+type="application\/ld\+json">[\s\S]*?<\/script>/gi)].map((m) => m[0]);
+}
 
 let written = 0;
 for (const post of readPosts()) {
@@ -79,11 +89,15 @@ for (const post of readPosts()) {
   const h = fromArticle(post.file, [/<meta\s+property="og:image:height"\s+content="([^"]+)"/i]);
   const desc =
     fromArticle(post.file, [/<meta\s+property="og:description"\s+content="([^"]+)"/i]) || post.excerpt || '';
+  const metaDesc =
+    fromArticle(post.file, [/<meta\s+name="description"\s+content="([^"]+)"/i]) || desc;
+  const keywords = fromArticle(post.file, [/<meta\s+name="keywords"\s+content="([^"]+)"/i]);
   const abs = image ? (image.startsWith('http') ? image : SITE + image) : null;
 
   const tags = [
     `<title>${esc(post.title)}</title>`,
     `<link rel="canonical" href="${esc(url)}" />`,
+    `<meta name="description" content="${esc(metaDesc)}" />`,
     `<meta property="og:site_name" content="Aditya" />`,
     `<meta property="og:type" content="article" />`,
     `<meta property="og:url" content="${esc(url)}" />`,
@@ -105,6 +119,9 @@ for (const post of readPosts()) {
     tags.push(`<meta name="twitter:card" content="summary" />`);
   }
 
+  if (keywords) tags.push(`<meta name="keywords" content="${esc(keywords)}" />`);
+  tags.push(...jsonLd(post.file));
+
   let html = shell;
   for (const re of STRIP) html = html.replace(re, '');
   html = html.replace(/<\/head>/i, `  ${tags.join('\n    ')}\n  </head>`);
@@ -117,6 +134,30 @@ for (const post of readPosts()) {
 }
 
 console.log(`prerender-og: wrote ${written} post shells`);
+
+/** sitemap.xml: the home page, the blog index and every post, at their canonical URLs. */
+{
+  const posts = readPosts();
+  const src = readFileSync(join(ROOT, 'src/data/blog.ts'), 'utf8');
+  const dateOf = (slug) => {
+    const i = src.indexOf(`slug: "${slug}"`);
+    const m = i === -1 ? null : src.slice(i, i + 600).match(/date:\s*"(\d{4}-\d{2}-\d{2})"/);
+    return m ? m[1] : null;
+  };
+  const urls = [
+    { loc: `${SITE}/` },
+    { loc: `${SITE}/blog` },
+    ...posts.map((p) => ({ loc: `${SITE}/blog/${p.slug}`, lastmod: dateOf(p.slug) })),
+  ];
+  const xml =
+    '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
+    urls
+      .map((u) => `  <url><loc>${esc(u.loc)}</loc>${u.lastmod ? `<lastmod>${u.lastmod}</lastmod>` : ''}</url>`)
+      .join('\n') +
+    '\n</urlset>\n';
+  writeFileSync(join(DIST, 'sitemap.xml'), xml);
+  console.log(`prerender-og: wrote sitemap.xml (${urls.length} urls)`);
+}
 
 /**
  * Guard: /blog/<slug> only reaches the shell above because vercel.json rewrites it there
