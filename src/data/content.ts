@@ -416,6 +416,20 @@ export const projects: Project[] = [
     website: "https://roster.finance",
     tags: ["solana", "options", "tokenized stocks"],
   },
+  {
+    title: "parallax",
+    description: "one stock, many tokens, one true position. the best-execution and index layer for tokenized stocks on BNB chain - it aggregates the different token representations of the same underlying from issuers like Ondo and bStocks, routes each order to the best available price per share, and lets you buy a whole thematic index like the magnificent 7 or AI infrastructure in a single transaction. every fill leaves an immutable receipt that points back at the scoring logic that produced it.",
+    status: "live",
+    link: "https://parallax-production-8ebf.up.railway.app/",
+    tags: ["tokenized stocks", "BNB chain", "indices"],
+  },
+  {
+    title: "remit",
+    description: "checks whether a pull request does what its linked issue asked, and nothing it didn't. it reads the issue without looking at the PR and quotes each requirement, then checks the diff both ways - where each requirement is implemented, and which requirement each change serves. every verdict is typed, carries a confidence, and points at exact lines. starts in comment-only mode and refuses to block merges until it has calibration evidence.",
+    status: "building",
+    link: "https://github.com/Adityaakr/snag",
+    tags: ["AI", "code review", "devtools"],
+  },
 ];
 
 export const principles = [
