@@ -425,10 +425,11 @@ export const projects: Project[] = [
   },
   {
     title: "remit",
-    description: "checks whether a pull request does what its linked issue asked, and nothing it didn't. it reads the issue without looking at the PR and quotes each requirement, then checks the diff both ways - where each requirement is implemented, and which requirement each change serves. every verdict is typed, carries a confidence, and points at exact lines. starts in comment-only mode and refuses to block merges until it has calibration evidence.",
+    description: "checks whether a pull request does what its linked issue asked, and nothing it didn't. it reads the issue without looking at the PR and quotes each requirement, then checks the diff both ways - where each requirement is implemented, and which requirement each change serves. every verdict is typed, carries a confidence, and points at exact lines. starts in comment-only mode and refuses to block merges until it has calibration evidence. it wants a model that decides rather than writes, so we fine-tuned Laya, a 421M-parameter decision model that answers in about 340ms on a laptop instead of 17s over the network - six attempts, a 43% label error rate in our own rubric, and the shortcuts we caught ourselves training into it are all written up.",
     status: "building",
     link: "https://github.com/Adityaakr/snag",
-    tags: ["AI", "code review", "devtools"],
+    website: "https://www.adibuilds.in/blog/laya-snag-finetune",
+    tags: ["AI", "code review", "fine-tuning", "devtools"],
   },
 ];
 
