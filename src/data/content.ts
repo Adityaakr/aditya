@@ -136,11 +136,9 @@ export const selectedWork = [
     link: "https://x.com/monaris_fi/status/2030575693864882617?s=20",
   },
   {
-    title: "cusp - documentation & whitepaper",
-    description: "the capital markets layer for prediction markets - risk, credit, settlement, and liquidation infrastructure for event-driven positions. read the docs and whitepaper.",
-    link: "https://docs.cusp.fi",
-    website: "https://drive.google.com/file/d/1FrhRtRtgE8hl8EqvbibSXJ_LHzzDWwsx/view",
-    websiteLabel: "whitepaper",
+    title: "cusp - the credit layer for compute markets",
+    description: "CUSP lends to GPU operators against their signed rental contracts, and the contract repays the loan. compute is now a commodity - CUSP makes it collateral.",
+    link: "https://beta.cusp.fi",
   },
   {
     title: "vara network documentation & developer education",
@@ -277,14 +275,11 @@ export const experience: ExperienceEntry[] = [
     role: "Protocol Design & Research",
     company: "Cusp",
     bullets: [
-      "The capital markets layer for prediction markets: risk, credit, settlement, and liquidation infrastructure for event-driven positions.",
+      "CUSP lends to GPU operators against their signed rental contracts, and the contract repays the loan.",
+      "The credit layer for compute markets on Solana: stablecoin loans against signed contracts, with each contract payment going to the loan first, plus a reference price curve, a standard for tokenized compute claims, and a delivery score for every provider.",
       "Supported by Superteam.",
     ],
-    links: [
-      { label: "beta.cusp.fi", href: "https://beta.cusp.fi" },
-      { label: "docs.cusp.fi", href: "https://docs.cusp.fi" },
-      { label: "whitepaper", href: "https://drive.google.com/file/d/1FrhRtRtgE8hl8EqvbibSXJ_LHzzDWwsx/view" },
-    ],
+    links: [{ label: "beta.cusp.fi", href: "https://beta.cusp.fi" }],
   },
   {
     role: "Creator & Maintainer",
@@ -333,11 +328,10 @@ export const projects: Project[] = [
   },
   {
     title: "cusp",
-    description: "Cusp is the capital markets layer for prediction markets. It provides risk, credit, settlement, and liquidation infrastructure for event-driven positions, and for any short-maturity claim that resolves against a contractual source and pays out after the fact.",
+    description: "compute is now a commodity. CUSP makes it collateral. it is the credit layer for compute markets, built on Solana: companies that rent out GPUs sign contracts months before the cash arrives, but they pay for chips, power and racks up front. CUSP lends stablecoins against those signed contracts, and each contract payment goes to the loan first, so the credit line settles itself. around the loans sit the three things a lender needs - a reference price curve, a standard for tokenized compute claims, and a delivery score for every provider. exchanges are starting to price compute; CUSP finances it.",
     status: "building",
-    link: "https://docs.cusp.fi",
-    website: "https://beta.cusp.fi",
-    tags: ["AI agents", "capital", "prediction markets"],
+    link: "https://beta.cusp.fi",
+    tags: ["compute", "credit", "solana"],
   },
   {
     title: "furrow",
