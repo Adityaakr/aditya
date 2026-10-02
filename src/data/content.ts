@@ -408,6 +408,14 @@ export const projects: Project[] = [
     website: "https://www.adibuilds.in/blog/prism",
     tags: ["AI", "agents", "claude-code", "devtools"],
   },
+  {
+    title: "roster finance",
+    description: "stock leverage without margin liquidation. trade the upside of tokenized stocks and pre-IPO tokens on solana with a fully paid, fully collateralized contract - pick the expiry, see the premium and break-even before you buy, and know the maximum loss up front. no borrowing, no funding payments, no margin calls, and every contract settles physically into your own wallet.",
+    status: "building",
+    link: "https://github.com/Adityaakr/roster-stock-options",
+    website: "https://roster.finance",
+    tags: ["solana", "options", "tokenized stocks"],
+  },
 ];
 
 export const principles = [
@@ -431,6 +439,13 @@ export interface ContentItem {
 }
 
 export const contentItems: ContentItem[] = [
+  {
+    title: "Road to Devcon VIII India, Lucknow edition: community recap",
+    type: "event",
+    date: "2026-07",
+    link: "https://x.com/Lucknow_DAO/status/2073042003810758707",
+    summary: "Lucknow DAO's recap of the Road to Devcon VIII India community gathering in Lucknow, supported by EF Devcon and Geodelabs.",
+  },
   {
     title: "On Vara: Exploring Prediction Markets, Indexes & AI Agents",
     type: "talk",
