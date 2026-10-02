@@ -339,6 +339,14 @@ export const projects: Project[] = [
     tags: ["AI agents", "capital", "prediction markets"],
   },
   {
+    title: "furrow",
+    description: "the exchange rate between GPU-hours and tokens. furrow measures how many tokens a GPU-hour actually produces across models, chips and latency targets, then turns that yield into an inference cost and procurement engine - one intake in, a report out covering GPU-hours, the true cost per million tokens, where the cost risk comes from, how much to reserve, and what a GPU price hedge can and cannot remove. every number is tagged observed, derived, assumed, scenario or simulated, so you can see which ones you are trusting.",
+    status: "live",
+    link: "https://github.com/Adityaakr/furrow-research",
+    website: "https://ai.adibuilds.in",
+    tags: ["AI", "inference", "GPU", "research"],
+  },
+  {
     title: "polybaskets",
     description: "the index fund for prediction markets - bundle, weight, and let AI agents trade for you",
     status: "live",
@@ -430,14 +438,6 @@ export const projects: Project[] = [
     link: "https://github.com/Adityaakr/snag",
     website: "https://www.adibuilds.in/blog/laya-snag-finetune",
     tags: ["AI", "code review", "fine-tuning", "devtools"],
-  },
-  {
-    title: "furrow",
-    description: "the exchange rate between GPU-hours and tokens. furrow measures how many tokens a GPU-hour actually produces across models, chips and latency targets, then turns that yield into an inference cost and procurement engine - one intake in, a report out covering GPU-hours, the true cost per million tokens, where the cost risk comes from, how much to reserve, and what a GPU price hedge can and cannot remove. every number is tagged observed, derived, assumed, scenario or simulated, so you can see which ones you are trusting.",
-    status: "live",
-    link: "https://github.com/Adityaakr/furrow-research",
-    website: "https://ai.adibuilds.in",
-    tags: ["AI", "inference", "GPU", "research"],
   },
 ];
 
