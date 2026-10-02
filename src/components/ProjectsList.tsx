@@ -22,6 +22,7 @@ const ProjectsList = ({ heading = "Experiments", limit, moreHref }: ProjectsList
         const rawLinks = [
           { label: p.link.includes("github") ? "github" : "view", href: p.link },
           p.website && { label: "website", href: p.website },
+          p.docs && { label: "developers", href: p.docs },
           p.protocol && { label: "protocol", href: p.protocol },
           p.social && { label: "twitter", href: p.social },
         ].filter(Boolean) as { label: string; href: string }[];

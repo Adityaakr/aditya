@@ -314,6 +314,7 @@ export interface Project {
   status: ProjectStatus;
   link: string;
   website?: string;
+  docs?: string;
   protocol?: string;
   social?: string;
   tags: string[];
@@ -357,10 +358,11 @@ export const projects: Project[] = [
   },
   {
     title: "peal network",
-    description: "encryption with a release date - the programmable disclosure network. seal data to the Peal committee and it stays unreadable, even to operators, until the cue fires and the whole batch opens at once. fair reveals for any dapp, every share verified in public.",
+    description: "programmable privacy infrastructure.",
     status: "building",
-    link: "https://github.com/Adityaakr/peal-network",
+    link: "https://github.com/Adityaakr/peal",
     website: "https://peal.network",
+    docs: "https://peal.network/developers",
     protocol: "https://peal.network/#/protocol",
     tags: ["encryption", "cryptography", "protocol"],
   },
