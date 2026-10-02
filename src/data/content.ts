@@ -262,8 +262,8 @@ export const experience: ExperienceEntry[] = [
     role: "Creator & Chief",
     company: "Monaris",
     bullets: [
-      "Private credit layer for the stablecoin economy: turns receivables and recurring cashflow into instant liquidity, backed by private, verifiable credit.",
-      "One layer for working capital, BNPL-style financing, automated repayments, treasury, and one-click private payments.",
+      "The programmable credit network for the real world: turns verified cash flows and assets into protected, fundable credit.",
+      "Privately connects businesses, originators, insurers, and capital providers through one programmable network, covering working capital, automated repayments, treasury, and one-click private payments.",
       "18,160+ waitlist.",
     ],
     links: [
@@ -319,11 +319,11 @@ export interface Project {
 export const projects: Project[] = [
   {
     title: "monaris",
-    description: "private credit layer for the stablecoin economy. Monaris turns receivables and recurring cashflow into instant, private liquidity: issue an invoice, choose what to disclose, and get paid - private by default, compliant by design - with every settlement building credit. one layer for working capital, BNPL-style financing, automated repayments, treasury, and one-click private payments.",
+    description: "the programmable credit network for the real world. Monaris turns verified cash flows and assets into protected, fundable credit, privately connecting businesses, originators, insurers, and capital providers through one programmable network. issue an invoice, choose what to disclose, and get liquidity - private by default, compliant by design - with every settlement building credit.",
     status: "building",
     link: "https://monaris.co",
     social: "https://x.com/monaris_fi",
-    tags: ["stablecoins", "privacy", "payfi", "finance"],
+    tags: ["credit", "insurance", "stablecoins", "privacy", "payfi"],
     highlight: "18,160+ waitlist",
   },
   {
