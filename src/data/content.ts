@@ -319,11 +319,11 @@ export interface Project {
 export const projects: Project[] = [
   {
     title: "monaris",
-    description: "private credit layer for the stablecoin economy. Monaris turns receivables and recurring cashflow into instant liquidity, backed by private, verifiable credit. one layer for working capital, BNPL-style financing, automated repayments, treasury, and one-click private payments.",
+    description: "private credit layer for the stablecoin economy. Monaris turns receivables and recurring cashflow into instant, private liquidity: issue an invoice, choose what to disclose, and get paid - private by default, compliant by design - with every settlement building credit. one layer for working capital, BNPL-style financing, automated repayments, treasury, and one-click private payments.",
     status: "building",
     link: "https://monaris.co",
     social: "https://x.com/monaris_fi",
-    tags: ["stablecoins", "payfi", "finance"],
+    tags: ["stablecoins", "privacy", "payfi", "finance"],
     highlight: "18,160+ waitlist",
   },
   {
