@@ -313,6 +313,7 @@ export interface Project {
   docs?: string;
   protocol?: string;
   social?: string;
+  links?: { label: string; href: string }[];
   tags: string[];
   highlight?: string;
 }
@@ -350,6 +351,24 @@ export const projects: Project[] = [
     website: "https://polybaskets.xyz",
     tags: ["prediction markets", "vara", "DeFi"],
     highlight: "4.8M+ tx · 23K+ bets · 52K+ baskets · 4K+ claims",
+  },
+  {
+    title: "proteus",
+    description: "win the order in minutes, get paid when it's delivered. proteus AI, by Merk Labs, is an AI sales agent for businesses that sell custom orders: sellers list what they make, and their deal agent quotes every buyer in seconds - people and their AI agents alike - negotiating inside the seller's prices and limits and never below their floor. every order is paid upfront into escrow on Arc and released to the seller in USDC when the buyer confirms delivery. live on Arc mainnet, with agent-to-agent buying proven on Arc testnet.",
+    status: "live",
+    link: "https://app.proteus.co.in",
+    docs: "https://app.proteus.co.in/docs",
+    links: [{ label: "testnet", href: "https://ai.proteus.co.in" }],
+    tags: ["AI agents", "agent commerce", "escrow", "arc", "USDC"],
+  },
+  {
+    title: "exposure",
+    description: "see whose code is inside your apps. exposure is an open-source, offline rust CLI that reads the macOS apps and Android APK/AAB files on your disk, names every third-party SDK they ship and the company behind it, and cites the file that proves each finding. a scan executes nothing, contains no network code, and gives the same report byte for byte on any machine. it also checks browser extensions with powerful permissions and diffs two builds of the same app.",
+    status: "live",
+    link: "https://github.com/Adityaakr/exposure-scanner",
+    links: [{ label: "sample report", href: "https://adityaakr.github.io/exposure-scanner/sample/" }],
+    tags: ["rust", "privacy", "security", "CLI"],
+    highlight: "v0.2.0 on Homebrew",
   },
   {
     title: "peal network",

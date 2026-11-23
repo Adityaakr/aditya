@@ -25,6 +25,7 @@ const ProjectsList = ({ heading = "Experiments", limit, moreHref }: ProjectsList
           p.docs && { label: "developers", href: p.docs },
           p.protocol && { label: "protocol", href: p.protocol },
           p.social && { label: "twitter", href: p.social },
+          ...(p.links ?? []),
         ].filter(Boolean) as { label: string; href: string }[];
         // drop duplicate hrefs (e.g. a project whose primary link is also its social)
         const seen = new Set<string>();
